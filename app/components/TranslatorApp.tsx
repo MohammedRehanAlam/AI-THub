@@ -268,6 +268,7 @@ const TranslatorApp: React.FC<TranslatorAppProps> = ({ onClose }) => {
   };
 
   const clearChat = () => {
+    if (messages.length === 0) return; // Do nothing if there are no messages
     setAlertVisible(true);
   };
 
@@ -345,8 +346,8 @@ const TranslatorApp: React.FC<TranslatorAppProps> = ({ onClose }) => {
           <Ionicons name="close" size={24} color={isDark ? '#fff' : '#000'} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: isDark ? '#fff' : '#000' }]}>Translator</Text>
-        <TouchableOpacity onPress={clearChat} style={styles.clearButton}>
-          <Ionicons name="trash-outline" size={24} color={isDark ? '#fff' : '#000'} />
+        <TouchableOpacity onPress={clearChat} style={styles.clearButton} disabled={messages.length === 0}>
+          <Ionicons name="trash-outline" size={24} color={messages.length === 0 ? '#aaa' : (isDark ? '#fff' : '#000')} />
         </TouchableOpacity>
       </View>
 
@@ -628,6 +629,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 8,
+    paddingBottom: 6,
   },
   userButton: {
     paddingVertical: 8,
@@ -646,8 +648,8 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flexDirection: 'row',
-    padding: 16,
-    paddingTop: 8,
+    padding: 8,
+    paddingTop: 4,
     paddingBottom: 8,
     gap: 8,
     position: 'relative',
