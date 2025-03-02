@@ -46,12 +46,14 @@ export default function UpdateButton({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#9999',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    margin: 20,
+    marginBottom: 20,
   },
   buttonText: {
     color: '#ffffff',

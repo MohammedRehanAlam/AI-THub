@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Animated, Platform, Pressable
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import UpdateButton from './UpdateButton';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -207,6 +208,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               <Text style={[styles.menuItemText, { color: isDark ? '#fff' : '#000' }]}>About</Text>
             </TouchableOpacity>
           </View>
+          <UpdateButton style={{ marginVertical: 10 }} />
+
           <View style={styles.footerContainer}>
             <Text style={[styles.copyrightText, { color: isDark ? '#999' : '#666' }]}>
               © {currentYear} AI THub
