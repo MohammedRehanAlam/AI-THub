@@ -67,7 +67,7 @@ export function Box({ number, isDark, onPress, totalBoxes }: BoxProps) {
   const styles = StyleSheet.create({
     box: {
       width: boxWidth,
-      height: boxWidth,
+      height: 250,
       borderRadius: 16,
       justifyContent: 'center',
       alignItems: 'center',

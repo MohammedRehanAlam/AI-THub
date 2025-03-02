@@ -10,6 +10,7 @@ A powerful translation application that leverages advanced AI technology to prov
 - User-friendly interface
 - Dark/Light mode support
 - Cross-platform compatibility (iOS, Android, Web)
+- Over-the-air updates via EAS Update
 
 ## Tech Stack
 
@@ -85,6 +86,62 @@ A powerful translation application that leverages advanced AI technology to prov
 - Favorite translations
 - Language auto-detection
 - Offline mode support
+
+## EAS Update
+
+This app uses EAS Update to deliver over-the-air updates to users without requiring a new app store submission.
+
+### How It Works
+
+EAS Update allows you to push JavaScript and asset changes directly to users without going through the app stores. This is useful for:
+
+- Bug fixes
+- Minor feature updates
+- Content updates
+- UI tweaks
+
+### Publishing Updates
+
+To publish an update to your app:
+
+```bash
+# Publish to production channel
+npm run publish-update:production "Your update message"
+
+# Publish to preview channel
+npm run publish-update:preview "Your update message"
+
+# Publish to development channel
+npm run publish-update:development "Your update message"
+
+# Or use the generic command with custom channel and message
+npm run publish-update [channel] "Your update message"
+```
+
+### Update Channels
+
+- **production**: For updates to the production app
+- **preview**: For testing updates before pushing to production
+- **development**: For development and testing
+
+### Testing Updates
+
+1. Build your app with EAS Build for the desired channel
+2. Install the app on your device
+3. Make changes to your app code
+4. Publish an update using one of the commands above
+5. Open the app on your device - it should automatically check for and apply the update
+
+### Manual Update Check
+
+The app includes a component that allows users to manually check for updates. You can add this to your settings or about screen:
+
+```jsx
+import UpdateButton from '../components/UpdateButton';
+
+// In your component:
+<UpdateButton label="Check for Updates" />
+```
 
 ## Deployment
 

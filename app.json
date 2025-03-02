@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -34,7 +34,9 @@
     },
     "plugins": [
       "expo-router",
-      "expo-system-ui"
+      "expo-system-ui",
+      "expo-font",
+      "expo-updates"
     ],
     "scheme": "ai-thub",
     "extra": {
@@ -47,6 +49,10 @@
     },
     "experiments": {
       "typedRoutes": true
+    },
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/57314dbd-cc23-4487-8dbb-4fcaa1a3ae45"
     }
   }
 }

@@ -3,15 +3,13 @@ import { StyleSheet, View, Text, TouchableOpacity, Animated, Platform, Pressable
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AboutApp } from './AboutApp';
-import { Settings } from './Settings';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const SIDEBAR_WIDTH = 250;
+const SIDEBAR_WIDTH = 300;
 const currentYear = new Date().getFullYear();
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
@@ -108,9 +106,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           },
         ]}>
         <View style={styles.sidebarContent}>
-          <View style={styles.headerSpace} />
+          
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <TouchableOpacity onPress={onClose} style={styles.toggleButton}>
+                <Ionicons
+                  name={'chevron-back-outline'}
+                  size={24}
+                  color={isDark ? '#fff' : '#000'}
+                />
+              </TouchableOpacity>
+              <Text style={[styles.logo, { color: isDark ? '#fff' : '#000' }]}>AppLogo</Text>
+            </View>
+          </View>
           <View style={styles.titleSpace} />
           <View style={styles.menuItems}>
+          <View style={styles.separator} />
             <TouchableOpacity 
               style={[
                 styles.menuItem,
@@ -120,7 +131,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               onPress={handleThemePress}
             >
               <Ionicons name="color-palette-outline" size={24} color={isDark ? '#fff' : '#000'} />
-              <Text style={[styles.menuItemText, { color: isDark ? '#fff' : '#000' }]}>Themes</Text>
+              <Text style={[styles.menuItemText, { color: isDark ? '#fff' : '#000' }]}>
+                Themes • {activeTheme.charAt(0).toUpperCase() + activeTheme.slice(1)}{activeTheme === 'system' ? ` (${isDark ? 'Dark' : 'Light'})` : ''}</Text>
               <Ionicons 
                 name={isThemeMenuOpen ? 'chevron-up' : 'chevron-down'} 
                 size={20} 
@@ -184,7 +196,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               onPress={() => setIsSettingsVisible(true)}
             >
               <Ionicons name="settings-outline" size={24} color={isDark ? '#fff' : '#000'} />
-              <Text style={[styles.menuItemText, { color: isDark ? '#fff' : '#000' }]}>Settings</Text>
+              <Text style={[styles.menuItemText, { color: isDark ? '#fff' : '#000' }]}>API Settings</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
@@ -205,15 +217,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </View>
         </View>
       </Animated.View>
-      
-      <AboutApp 
-        visible={isAboutVisible} 
-        onClose={() => setIsAboutVisible(false)} 
-      />
-      <Settings
-        visible={isSettingsVisible}
-        onClose={() => setIsSettingsVisible(false)}
-      />
     </>
   );
 }
@@ -249,11 +252,29 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'space-between',
   },
-  headerSpace: {
-    height: 10,
+  header: {
+    padding: 28,      
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerLeft: {
+    position: 'absolute',
+    left: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 12,
+    gap: 12,
+  },
+  toggleButton: {
+    padding: 4,
+  },
+  logo: {
+    fontSize: 24,
+    fontWeight: 'bold',
   },
   titleSpace: {
-    height: 44,
+    height: 4,
   },
   sidebarTitle: {
     fontSize: 20,
@@ -315,7 +336,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   footerContainer: {
-    padding: 16,
+    padding: 8,
     borderTopWidth: 1,
     borderTopColor: 'rgba(128, 128, 128, 0.2)',
     alignItems: 'center',
@@ -323,6 +344,11 @@ const styles = StyleSheet.create({
   copyrightText: {
     fontSize: 12,
     textAlign: 'center',
-    marginVertical: 2,
+    marginVertical: 1,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: 'rgba(128, 128, 128, 0.2)',
+    marginVertical: 10,
   },
 }); 

@@ -7,6 +7,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useColorScheme, Appearance, Platform, AppState, AppStateStatus, StatusBar } from 'react-native';
 import { ThemeProvider as CustomThemeProvider } from './context/ThemeContext';
 import * as SystemUI from 'expo-system-ui';
+import { initializeUpdates, checkAndInstallUpdates } from './utils/updateUtils';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -62,6 +63,15 @@ function RootLayoutNav() {
   // Keep track of the app state
   const appState = useRef(AppState.currentState);
 
+  // Initialize updates when the app starts
+  useEffect(() => {
+    // Initialize the Updates module
+    initializeUpdates();
+    
+    // Check for updates when the app starts
+    checkAndInstallUpdates();
+  }, []);
+
   // Configure system UI to follow system theme
   useEffect(() => {
     // Set the system UI to follow the system theme
@@ -108,6 +118,9 @@ function RootLayoutNav() {
         nextAppState === 'active'
       ) {
         updateTheme();
+        
+        // Also check for updates when the app comes to the foreground
+        checkAndInstallUpdates(true); // Silent update check
       }
       
       appState.current = nextAppState;

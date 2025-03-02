@@ -6,7 +6,6 @@ import { Box } from './components/Box';
 import { Sidebar } from './components/Sidebar';
 import { Ionicons } from '@expo/vector-icons';
 
-const SIDEBAR_WIDTH = 250;
 
 export default function HomePage() {
   const { currentTheme } = useTheme();
@@ -27,11 +26,10 @@ export default function HomePage() {
       flex: 1,
     },
     header: {
-      padding: 28,      
+      padding: 34,      
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 1000,
     },
     headerLeft: {
       position: 'absolute',
@@ -42,7 +40,6 @@ export default function HomePage() {
     },
     toggleButton: {
       padding: 4,
-      zIndex: 1000,
     },
     logo: {
       fontSize: 24,
