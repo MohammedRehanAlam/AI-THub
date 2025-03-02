@@ -28,7 +28,7 @@ const CustomAlert = ({ visible, title, message, onCancel, onConfirm, isDark }: {
         <View style={[styles.alertBox, { backgroundColor: isDark ? '#1a1a1a' : '#ffffff' }]}> 
           <Text style={[styles.alertTitle, { color: isDark ? '#ffffff' : '#000000' }]}>{title}</Text>
           <Text style={[styles.alertMessage, { color: isDark ? '#ffffff' : '#000000' }]}>{message}</Text>
-          <View style={[styles.buttonContainer]}>
+          <View style={[styles.buttonContainer, { justifyContent: 'center' }]}>
             <TouchableOpacity onPress={onCancel} style={styles.button}><Text style={styles.buttonText}>CANCEL</Text></TouchableOpacity>
             <TouchableOpacity onPress={onConfirm} style={styles.button}><Text style={styles.buttonText}>CLEAR</Text></TouchableOpacity>
           </View>
@@ -557,9 +557,10 @@ const styles = StyleSheet.create({
   },
   languageSelector: {
     flex: 1,
+    minWidth: 0,
   },
   swapButton: {
-    padding: 4,
+    padding: 8,
     marginHorizontal: 4,
   },
   messagesContainer: {
