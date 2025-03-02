@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform, Keyboard, LayoutChangeEvent } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform, Keyboard, LayoutChangeEvent, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import LanguageSelector from './LanguageSelector';
 import { LANGUAGES } from '../constants/languages';
@@ -21,6 +21,23 @@ interface TranslatorAppProps {
   onClose: () => void;
 }
 
+const CustomAlert = ({ visible, title, message, onCancel, onConfirm, isDark }: { visible: boolean; title: string; message: string; onCancel: () => void; onConfirm: () => void; isDark: boolean; }) => {
+  return (
+    <Modal transparent={true} visible={visible} animationType='fade'>
+      <View style={styles.overlay}>
+        <View style={[styles.alertBox, { backgroundColor: isDark ? '#1a1a1a' : '#ffffff' }]}> 
+          <Text style={[styles.alertTitle, { color: isDark ? '#ffffff' : '#000000' }]}>{title}</Text>
+          <Text style={[styles.alertMessage, { color: isDark ? '#ffffff' : '#000000' }]}>{message}</Text>
+          <View style={[styles.buttonContainer]}>
+            <TouchableOpacity onPress={onCancel} style={styles.button}><Text style={styles.buttonText}>CANCEL</Text></TouchableOpacity>
+            <TouchableOpacity onPress={onConfirm} style={styles.button}><Text style={styles.buttonText}>CLEAR</Text></TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 const TranslatorApp: React.FC<TranslatorAppProps> = ({ onClose }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -41,6 +58,7 @@ const TranslatorApp: React.FC<TranslatorAppProps> = ({ onClose }) => {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [preventScroll, setPreventScroll] = useState(false);
   const scrollPositionRef = useRef(0);
+  const [isAlertVisible, setAlertVisible] = useState(false);
 
   useEffect(() => {
     const loadSavedData = async () => {
@@ -250,40 +268,17 @@ const TranslatorApp: React.FC<TranslatorAppProps> = ({ onClose }) => {
   };
 
   const clearChat = () => {
-    if (Platform.OS === 'web') {
-      const confirmClear = window.confirm('Are you sure you want to clear all messages? This cannot be undone.');
-      if (confirmClear) {
-        setMessages([]);
-        try {
-          AsyncStorage.removeItem('chatMessages');
-        } catch (error) {
-          console.error('Error clearing chat:', error);
-        }
-      }
-    } else {
-      Alert.alert(
-        'Clear Chat',
-        'Are you sure you want to clear all messages? This cannot be undone.',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel'
-          },
-          {
-            text: 'Clear',
-            style: 'destructive',
-            onPress: async () => {
-              setMessages([]);
-              try {
-                await AsyncStorage.removeItem('chatMessages');
-              } catch (error) {
-                console.error('Error clearing chat:', error);
-              }
-            }
-          }
-        ]
-      );
+    setAlertVisible(true);
+  };
+
+  const handleConfirmClear = async () => {
+    setMessages([]);
+    try {
+      await AsyncStorage.removeItem('chatMessages');
+    } catch (error) {
+      console.error('Error clearing chat:', error);
     }
+    setAlertVisible(false);
   };
 
   const handleScroll = (event: any) => {
@@ -337,6 +332,14 @@ const TranslatorApp: React.FC<TranslatorAppProps> = ({ onClose }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: isDark ? '#000000' : '#ffffff' }]}>
+      <CustomAlert 
+        visible={isAlertVisible} 
+        title='Clear Chat' 
+        message='Are you sure you want to clear all messages? This cannot be undone.' 
+        onCancel={() => setAlertVisible(false)} 
+        onConfirm={handleConfirmClear} 
+        isDark={isDark} 
+      />
       <View style={[styles.header, { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' }]}>
         <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
           <Ionicons name="close" size={24} color={isDark ? '#fff' : '#000'} />
@@ -554,10 +557,9 @@ const styles = StyleSheet.create({
   },
   languageSelector: {
     flex: 1,
-    minWidth: 0,
   },
   swapButton: {
-    padding: 8,
+    padding: 4,
     marginHorizontal: 4,
   },
   messagesContainer: {
@@ -666,6 +668,40 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  alertBox: {
+    width: 300,
+    padding: 20,
+    borderRadius: 10,
+    elevation: 5,
+  },
+  alertTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  alertMessage: {
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 20,
+  },
+  button: {
+    padding: 10,
+    borderRadius: 5,
+    backgroundColor: '#007AFF',
+  },
+  buttonText: {
+    color: '#ffffff',
   },
 });
 
