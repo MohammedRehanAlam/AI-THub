@@ -72,6 +72,8 @@ export function Box({ number, isDark, onPress, totalBoxes }: BoxProps) {
       justifyContent: 'center',
       alignItems: 'center',
       marginVertical: 8,
+      borderWidth: 5,
+      borderColor: '#8888',
       marginHorizontal: numColumns === 1 ? 0 : GAP / 2,
       ...Platform.select({
         ios: {
