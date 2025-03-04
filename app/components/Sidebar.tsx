@@ -4,16 +4,24 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import UpdateButton from './UpdateButton';
+import { createStackNavigator } from '@react-navigation/stack';
+import { Link, useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+
+export type SidebarNavigationProp = StackNavigationProp<{ ApiSettings: undefined; About: undefined; }>;
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  navigation: SidebarNavigationProp;
 }
 
 const SIDEBAR_WIDTH = 300;
 const currentYear = new Date().getFullYear();
 
-export function Sidebar({ isOpen, onClose }: SidebarProps) {
+const Stack = createStackNavigator();
+
+export function Sidebar({ isOpen, onClose, navigation }: SidebarProps) {
   const { currentTheme, setTheme } = useTheme();
   const isDark = currentTheme === 'dark';
   const insets = useSafeAreaInsets();
@@ -191,25 +199,19 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </Pressable>
               </View>
             )}
-
-            <TouchableOpacity 
-              style={styles.menuItem}
-              onPress={() => setIsSettingsVisible(true)}
-            >
-              <Ionicons name="settings-outline" size={24} color={isDark ? '#fff' : '#000'} />
+            <TouchableOpacity style={styles.menuItem}>
+              <Ionicons name="cloud" size={24} color={isDark ? '#fff' : '#000'} />
               <Text style={[styles.menuItemText, { color: isDark ? '#fff' : '#000' }]}>API Settings</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity 
-              style={styles.menuItem} 
-              onPress={handleAboutPress}
-            >
+            <TouchableOpacity style={styles.menuItem}>
               <Ionicons name="information-circle-outline" size={24} color={isDark ? '#fff' : '#000'} />
               <Text style={[styles.menuItemText, { color: isDark ? '#fff' : '#000' }]}>About</Text>
             </TouchableOpacity>
           </View>
+          
           <UpdateButton style={{ marginVertical: 10 }} />
-
+         
           <View style={styles.footerContainer}>
             <Text style={[styles.copyrightText, { color: isDark ? '#999' : '#666' }]}>
               © {currentYear} AI THub

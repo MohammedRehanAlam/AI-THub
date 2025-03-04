@@ -5,9 +5,12 @@ import { useTheme } from './context/ThemeContext';
 import { Box } from './components/Box';
 import { Sidebar } from './components/Sidebar';
 import { Ionicons } from '@expo/vector-icons';
-
+import { useNavigation } from '@react-navigation/native';
+import { Link } from 'expo-router';
+import { SidebarNavigationProp } from './components/Sidebar';
 
 export default function HomePage() {
+  const navigation = useNavigation<SidebarNavigationProp>();
   const { currentTheme } = useTheme();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
@@ -75,7 +78,7 @@ export default function HomePage() {
 
   return (
     <SafeAreaView style={themedStyles.container}>
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} navigation={navigation}/>
       <View style={themedStyles.mainContent}>
         <View style={themedStyles.header}>
           <View style={themedStyles.headerLeft}>
