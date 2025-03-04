@@ -8,7 +8,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Link, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 
-export type SidebarNavigationProp = StackNavigationProp<{ ApiSettings: undefined; About: undefined; }>;
+export type SidebarNavigationProp = StackNavigationProp<{ Home: undefined; Settings: undefined; About: undefined; }>;
 
 interface SidebarProps {
   isOpen: boolean;
@@ -199,12 +199,13 @@ export function Sidebar({ isOpen, onClose, navigation }: SidebarProps) {
                 </Pressable>
               </View>
             )}
-            <TouchableOpacity style={styles.menuItem}>
+            
+            <TouchableOpacity style={styles.menuItem} onPress={() => { navigation.navigate('Settings'); onClose(); }}>
               <Ionicons name="cloud" size={24} color={isDark ? '#fff' : '#000'} />
               <Text style={[styles.menuItemText, { color: isDark ? '#fff' : '#000' }]}>API Settings</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { navigation.navigate('About'); onClose(); }}>
               <Ionicons name="information-circle-outline" size={24} color={isDark ? '#fff' : '#000'} />
               <Text style={[styles.menuItemText, { color: isDark ? '#fff' : '#000' }]}>About</Text>
             </TouchableOpacity>
