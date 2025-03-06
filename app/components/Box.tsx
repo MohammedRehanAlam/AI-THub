@@ -1,38 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, Text, Modal, View, Platform, useWindowDimensions } from 'react-native';
-import TranslatorApp from './TranslatorApp';
+import React from 'react';
+import { StyleSheet, TouchableOpacity, Text, Platform, useWindowDimensions } from 'react-native';
 
 interface BoxProps {
-  number: number;
   isDark: boolean;
   onPress: () => void;
-  totalBoxes: number;
+  title?: string;
 }
 
-export function Box({ number, isDark, onPress, totalBoxes }: BoxProps) {
-  const [isTranslatorOpen, setIsTranslatorOpen] = useState(false);
+export function Box({ isDark, onPress, title }: BoxProps) {
   const { width, height } = useWindowDimensions();
-
-  const handlePress = () => {
-    if (number === 1) {
-      setIsTranslatorOpen(true);
-    } else {
-      onPress();
-    }
-  };
-
-  const handleCloseTranslator = () => {
-    setIsTranslatorOpen(false);
-  };
-
-  // Add a small delay when opening to ensure smooth animation
-  const handleOpenTranslator = () => {
-    setTimeout(() => {
-      setIsTranslatorOpen(true);
-    }, 100);
-  };
-
-  const isLastBox = number === totalBoxes;
 
   // Constants for responsive layout
   const MINIMUM_SCREEN_WIDTH_FOR_TWO_COLUMNS = 318;  // 350 - 32 = 318 is the minimum width for two columns
@@ -101,37 +77,21 @@ export function Box({ number, isDark, onPress, totalBoxes }: BoxProps) {
       width: '100%',
       paddingHorizontal: 10,
     },
-    modalContainer: {
-      flex: 1,
-      backgroundColor: 'white',
-    },
   });
 
   return (
-    <>
-      <TouchableOpacity
-        style={[
-          styles.box,
-          { backgroundColor: isDark ? '#2d2d2d' : '#f8f9fa' },
-        ]}
-        onPress={number === 1 ? handleOpenTranslator : handlePress}
-      >
-        <Text style={[styles.text, { color: isDark ? '#fff' : '#000' }]}>
-          {number === 1 ? 'Translator' : isLastBox ? 'Coming Soon...' : `Box ${number}`}
-        </Text>
-      </TouchableOpacity>
-
-      <Modal
-        visible={isTranslatorOpen}
-        animationType="slide"
-        onRequestClose={handleCloseTranslator}
-      >
-        <View style={styles.modalContainer}>
-          <TranslatorApp onClose={handleCloseTranslator} />
-        </View>
-      </Modal>
-    </>
+    <TouchableOpacity
+      style={[
+        styles.box,
+        { backgroundColor: isDark ? '#2d2d2d' : '#f8f9fa' },
+      ]}
+      onPress={onPress}
+    >
+      <Text style={[styles.text, { color: isDark ? '#fff' : '#000' }]}>
+        {title}
+      </Text>
+    </TouchableOpacity>
   );
 }
 
-export default Box; 
+export default Box;

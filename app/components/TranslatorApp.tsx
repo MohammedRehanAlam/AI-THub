@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform, Keyboard, LayoutChangeEvent, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+// eslint-disable-next-line import/no-unresolved
 import LanguageSelector from './LanguageSelector';
 import { LANGUAGES } from '../constants/languages';
 import { PLACEHOLDER_TRANSLATIONS } from '../constants/placeholders';

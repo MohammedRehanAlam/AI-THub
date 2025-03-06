@@ -1,18 +1,15 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { useTheme } from './context/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const getFullYear = () => {
-    return new Date().getFullYear();
-}
-
-const About = () => {
+const APISettings = () => {
     const { currentTheme } = useTheme();
     const isDark = currentTheme === 'dark';
     const router = useRouter();
+    const [apiKey, setApiKey] = useState('');
 
     const themedStyles = useMemo(() => StyleSheet.create({
         container: {
@@ -49,12 +46,20 @@ const About = () => {
             color: isDark ? '#fff' : '#000',
             marginBottom: 12,
         },
-        heading: {
-            fontSize: 20,
-            fontWeight: 'bold',
+        input: {
+            borderWidth: 1,
+            borderColor: isDark ? '#444' : '#ddd',
+            borderRadius: 8,
+            padding: 12,
+            marginVertical: 8,
             color: isDark ? '#fff' : '#000',
-            marginBottom: 16,
-            marginTop: 24,
+            backgroundColor: isDark ? '#2d2d2d' : '#f5f5f5',
+        },
+        label: {
+            fontSize: 16,
+            color: isDark ? '#fff' : '#000',
+            marginBottom: 8,
+            fontWeight: '500',
         },
         separator: {
             height: 1,
@@ -63,16 +68,6 @@ const About = () => {
         },
         section: {
             marginBottom: 24,
-        },
-        version: {
-            fontSize: 14,
-            color: isDark ? '#888' : '#666',
-            marginTop: 8,
-        },
-        copyrightText: {
-            fontSize: 12,
-            color: isDark ? '#999' : '#666',
-            marginVertical: 2,
         },
     }), [isDark]);
 
@@ -83,7 +78,7 @@ const About = () => {
                     <TouchableOpacity style={themedStyles.toggleButton} onPress={() => router.back()}>
                         <Ionicons name="chevron-back-outline" size={24} color={isDark ? '#fff' : '#000'} />
                     </TouchableOpacity>
-                    <Text style={themedStyles.logo}>About</Text>
+                    <Text style={themedStyles.logo}>API Settings</Text>
                 </View>
             </View>
             <View style={themedStyles.separator} />
@@ -93,22 +88,22 @@ const About = () => {
                 indicatorStyle={isDark ? "white" : "black"}
             > 
                 <View style={themedStyles.section}>
-                    <Text style={themedStyles.text}>
-                        Welcome to AI-THub, your comprehensive toolkit for AI-powered solutions.
+                    <Text style={themedStyles.label}>OpenAI API Key</Text>
+                    <TextInput
+                        style={themedStyles.input}
+                        placeholder="Enter your OpenAI API key"
+                        placeholderTextColor={isDark ? '#888' : '#666'}
+                        value={apiKey}
+                        onChangeText={setApiKey}
+                        secureTextEntry
+                    />
+                    <Text style={[themedStyles.text, { fontSize: 14, color: isDark ? '#888' : '#666' }]}>
+                        Your API key is stored securely and used only for making requests to OpenAI's services.
                     </Text>
-                    <Text style={themedStyles.heading}>Features</Text>
-                    <Text style={themedStyles.text}>• Advanced language processing</Text>
-                    <Text style={themedStyles.text}>• Real-time translations</Text>
-                    <Text style={themedStyles.text}>• Smart content generation</Text>
-                    <Text style={themedStyles.text}>• AI-powered assistance</Text>
-                    <Text style={themedStyles.heading}>Version</Text>
-                    <Text style={themedStyles.version}>1.0.0</Text>
-                    <Text style={themedStyles.copyrightText}> {getFullYear()} AI THub</Text>
-                    <Text style={themedStyles.copyrightText}>All Rights Reserved</Text>
                 </View>
             </ScrollView>
         </SafeAreaView>
     );
 };
 
-export default About;
+export default APISettings;

@@ -1,19 +1,31 @@
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, Animated, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from './context/ThemeContext';
 import { Box } from './components/Box';
-import { Sidebar, SidebarNavigationProp } from './components/Sidebar';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 
 export default function HomePage() {
-  const navigation = useNavigation<SidebarNavigationProp>();
   const { currentTheme } = useTheme();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSettingsOpen] = useState(false);
+  const router = useRouter();
   
-  // You can modify this array to add more boxes as needed
-  const boxes = [1, 2, 3, 4];
+  // Individual boxes for better control over position and properties
+  type BoxRoute = '/Box1' | '/Box2' | '/Box3' | '/ComingSoon';
+
+  interface BoxItem {
+    id: number;
+    route: BoxRoute;
+    title: string;
+  }
+
+  const boxes: BoxItem[] = [
+    { id: 1, route: '/Box1', title: 'Translator' },
+    { id: 2, route: '/Box2', title: 'Box 2 two' },
+    { id: 3, route: '/Box3', title: 'Box 3 three' },
+    { id: 4, route: '/ComingSoon', title: 'Coming Soon' },
+  ];
 
   const isDark = currentTheme === 'dark';
 
@@ -73,21 +85,23 @@ export default function HomePage() {
       margin: 10,
       color: 'blue',
     },
+    separator: {
+      height: 1,
+      backgroundColor: 'rgba(128, 128, 128, 0.5)',
+      marginVertical: 10,
+    },
   }), [isDark]);
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+ 
 
   return (
     <SafeAreaView style={themedStyles.container}>
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} navigation={navigation} />
       <View style={themedStyles.mainContent}>
         <View style={themedStyles.header}>
           <View style={themedStyles.headerLeft}>
-            <TouchableOpacity onPress={toggleSidebar} style={themedStyles.toggleButton}>
+            <TouchableOpacity style={themedStyles.toggleButton} onPress={() => router.push('/Settings')}>
               <Ionicons
-                name={isSidebarOpen ? 'chevron-back-outline' : 'chevron-forward-outline'}
+                name={isSettingsOpen ? 'chevron-back-outline' : 'chevron-forward-outline'}
                 size={24}
                 color={isDark ? '#fff' : '#000'}
               />
@@ -95,20 +109,30 @@ export default function HomePage() {
             <Text style={themedStyles.logo}>AppLogo</Text>
           </View>
         </View>
-        
+        <View style={themedStyles.separator} />
         <ScrollView 
           contentContainerStyle={themedStyles.scrollContent}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
           indicatorStyle={isDark ? "white" : "black"}
-        >
+        >     
           <View style={themedStyles.grid}>
-            {boxes.map((num) => (
+            {boxes.map((box) => (
               <Box
-                key={num}
-                number={num}
+                key={box.id}
                 isDark={isDark}
-                totalBoxes={boxes.length}
-                onPress={() => console.log(`Box ${num} pressed`)}
+                title={box.title}
+                onPress={() => {
+                  if (box.route === '/ComingSoon') {
+                    router.push({
+                      pathname: '/ComingSoon',
+                      params: { title: box.title }
+                    });
+                  } else {
+                    router.push({
+                      pathname: box.route as BoxRoute
+                    });
+                  }
+                }}
               />
             ))}
           </View>
