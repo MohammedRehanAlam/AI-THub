@@ -73,3 +73,14 @@ out/
 
 # app specific
 app-example
+
+# EAS
+.eas/
+
+# Temporary files
+*.tmp
+.tmp/
+tmp/
+
+# Generated files
+.generated/

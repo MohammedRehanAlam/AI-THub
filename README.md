@@ -68,6 +68,16 @@ A powerful translation application that leverages advanced AI technology to prov
 - Android: `npx expo start --android`
 - Web: `npx expo start --web`
 
+### Available Scripts
+
+- `npm start` or `yarn start`: Start the Expo development server
+- `npm run android` or `yarn android`: Run on Android device/emulator
+- `npm run ios` or `yarn ios`: Run on iOS simulator
+- `npm run web` or `yarn web`: Run on web browser
+- `npm run lint` or `yarn lint`: Run ESLint
+- `npm run test` or `yarn test`: Run tests
+- `npm run publish-update` or `yarn publish-update`: Publish an update via EAS Update
+
 ## Features in Detail
 
 ### Translation Capabilities
@@ -147,6 +157,16 @@ import UpdateButton from '../components/UpdateButton';
 
 Follow the Expo documentation for building and deploying your application:
 [Expo Deployment Guide](https://docs.expo.dev/distribution/introduction/)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
