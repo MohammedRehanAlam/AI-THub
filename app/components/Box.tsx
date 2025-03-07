@@ -151,13 +151,6 @@ export function Box({ isDark, onPress, title }: BoxProps) {
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{getSubtitle()}</Text>
       </View>
-      <View style={styles.arrowContainer}>
-        <Ionicons 
-          name="chevron-forward-outline" 
-          size={24} 
-          color={isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.3)'} 
-        />
-      </View>
     </TouchableOpacity>
   );
 }

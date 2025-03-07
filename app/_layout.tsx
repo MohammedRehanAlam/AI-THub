@@ -1,13 +1,14 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { useColorScheme, Appearance, Platform, View, StatusBar } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Platform, View } from 'react-native';
+import { useColorScheme, Appearance } from 'react-native';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { ThemeProvider as CustomThemeProvider } from './context/ThemeContext';
 import * as SplashScreen from 'expo-splash-screen';
-import * as SystemUI from 'expo-system-ui';
 import * as NavigationBar from 'expo-navigation-bar';
+import { StatusBar } from 'expo-status-bar';
 import { initializeUpdates, checkAndInstallUpdates } from './utils/updateUtils';
 
 export { ErrorBoundary } from 'expo-router';
@@ -25,6 +26,8 @@ export default function RootLayout() {
   });
 
   const colorScheme = useColorScheme();
+
+  
 
   useEffect(() => {
     if (error) {
@@ -48,7 +51,13 @@ export default function RootLayout() {
 
   return (
     <View style={{ flex: 1 }}>
-      <StatusBar translucent backgroundColor='transparent' />
+      {/* setting status bar transparent and hidden */}
+      <StatusBar 
+        translucent={true} 
+        backgroundColor="transparent" 
+        hidden={true}
+        style={colorScheme === 'dark' ? 'light' : 'dark'} 
+      />
       <RootLayoutNav />
     </View>
   );
@@ -64,21 +73,33 @@ function RootLayoutNav() {
     checkAndInstallUpdates();
   }, []);
 
+  // Setup the color of the screen when opening the app
   useEffect(() => {
     const setupSystemUI = async () => {
       try {
-        await SystemUI.setBackgroundColorAsync('transparent');
-        await NavigationBar.setBackgroundColorAsync(currentColorScheme === 'dark' ? 'rgba(45, 45, 45, 0.8)' : 'rgba(248, 249, 250, 0.8)');
-        await NavigationBar.setButtonStyleAsync(currentColorScheme === 'dark' ? 'light' : 'dark');
-        await NavigationBar.setBorderColorAsync('transparent');
-        await NavigationBar.setVisibilityAsync('visible');
+        // Set system UI to be fully transparent
+        await NavigationBar.setBackgroundColorAsync('transparent');
       } catch (error) {
         console.error('Error configuring system UI:', error);
       }
     };
-
     setupSystemUI();
-  }, [currentColorScheme, colorScheme]);
+  }, [currentColorScheme]);
+
+  // Setup Navigation Bar behavior with animation timing matched to stack navigation
+  useEffect(() => {
+    const setupNavigationBar = async () => {
+      try {
+        await NavigationBar.setVisibilityAsync('hidden');
+        await NavigationBar.setBehaviorAsync('overlay-swipe');
+        await NavigationBar.setButtonStyleAsync(currentColorScheme === 'dark' ? 'light' : 'dark');
+        await NavigationBar.setBackgroundColorAsync('transparent');
+      } catch (error) {
+        console.error('Error configuring navigation bar:', error);
+      }
+    };
+    setupNavigationBar();
+  }, [currentColorScheme]); // Re-run when theme changes
 
   useEffect(() => {
     const subscription = Appearance.addChangeListener(({ colorScheme }) => {
@@ -99,16 +120,16 @@ function RootLayoutNav() {
 
   const customScreenOptions = {
     headerShown: false,
-            animation: 'fade',
-            presentation: 'card',
-            animationDuration: 200,
-            gestureEnabled: true,
-            gestureDirection: 'horizontal',
-            contentStyle: {
-              backgroundColor: currentColorScheme === 'dark' ? '#1a1a1a' : '#fff',
-            },
-            fullScreenGestureEnabled: true,
-            cardStyleInterpolator: ({ current, layouts, closing }) => ({
+    animation: 'fade',
+    presentation: 'card',
+    animationDuration: 200,
+    gestureEnabled: true,
+    gestureDirection: 'horizontal',
+    contentStyle: {
+      backgroundColor: currentColorScheme === 'dark' ? '#1a1a1a' : '#fff',
+    },
+    fullScreenGestureEnabled: true,
+    cardStyleInterpolator: ({ current, layouts, closing }) => ({
       cardStyle: {
         transform: [
           {
@@ -143,13 +164,13 @@ function RootLayoutNav() {
       <ThemeProvider value={currentColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack screenOptions={customScreenOptions}>
           <Stack.Screen name="index" />
+          <Stack.Screen name="tools/Box1" options={{ title: "Translator" }} />
+          <Stack.Screen name="tools/Box2" options={{ title: "Box 2 two" }} />
+          <Stack.Screen name="tools/Box3" options={{ title: "Box 3 three" }} />
+          <Stack.Screen name="tools/ComingSoon" />
           <Stack.Screen name="Settings" />
           <Stack.Screen name="APISettings" />
           <Stack.Screen name="About" />
-          <Stack.Screen name="tools/Box1" /> {/* Translator */}
-          <Stack.Screen name="tools/Box2" />
-          <Stack.Screen name="tools/Box3" />
-          <Stack.Screen name="tools/ComingSoon" />
         </Stack>
       </ThemeProvider>
     </CustomThemeProvider>

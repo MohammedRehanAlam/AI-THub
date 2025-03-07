@@ -103,7 +103,8 @@ const About = () => {
                     <Text style={themedStyles.text}>• AI-powered assistance</Text>
                     <Text style={themedStyles.heading}>Version</Text>
                     <Text style={themedStyles.version}>1.0.0</Text>
-                    <Text style={themedStyles.copyrightText}> {getFullYear()} AI THub</Text>
+                    <Text style={themedStyles.version}> </Text>
+                    <Text style={themedStyles.copyrightText}>© {getFullYear()} AI THub</Text>
                     <Text style={themedStyles.copyrightText}>All Rights Reserved</Text>
                 </View>
             </ScrollView>

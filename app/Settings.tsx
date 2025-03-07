@@ -177,7 +177,21 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                 showsVerticalScrollIndicator={false}
                 contentInsetAdjustmentBehavior="automatic"
             >
-                {/* <Text style={themedStyles.sectionTitle}>Appearance</Text> */}
+                <Text style={themedStyles.sectionTitle}>API Settings</Text>
+                <View style={themedStyles.menuItems}>
+                    <TouchableOpacity 
+                        style={themedStyles.menuItem}
+                        onPress={() => router.push('/APISettings')}
+                    >
+                        <View style={themedStyles.iconContainer}>
+                            <Ionicons name="key-outline" size={20} color={isDark ? '#fff' : '#000'} />
+                        </View>
+                        <Text style={themedStyles.menuItemText}>API Settings</Text>
+                        <Ionicons name="chevron-forward-outline" size={18} color={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)'} />
+                    </TouchableOpacity>
+                </View>
+                
+                <Text style={themedStyles.sectionTitle}>Appearance</Text>
                 <View style={themedStyles.menuItems}>
                     <TouchableOpacity 
                         style={themedStyles.menuItem}
@@ -246,20 +260,9 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                     </Animated.View>
                 </View>
 
-                {/* <Text style={themedStyles.sectionTitle}>Settings</Text> */}
-                <View style={themedStyles.menuItems}>
-                    <TouchableOpacity 
-                        style={themedStyles.menuItem}
-                        onPress={() => router.push('/APISettings')}
-                    >
-                        <View style={themedStyles.iconContainer}>
-                            <Ionicons name="key-outline" size={20} color={isDark ? '#fff' : '#000'} />
-                        </View>
-                        <Text style={themedStyles.menuItemText}>API Settings</Text>
-                        <Ionicons name="chevron-forward-outline" size={18} color={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)'} />
-                    </TouchableOpacity>
-                </View>
+                
 
+                <Text style={themedStyles.sectionTitle}>Feedback & Support</Text>
                 <View style={themedStyles.menuItems}>
                     <TouchableOpacity 
                         style={[themedStyles.menuItem, { borderBottomWidth: 0 }]}
@@ -275,7 +278,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             </ScrollView>
             <View style={themedStyles.footerContent}>
                 <View style={themedStyles.footerContainer}>
-                    <Text style={themedStyles.copyrightText}> {getFullYear()} AI THub</Text>
+                    <Text style={themedStyles.copyrightText}> © {getFullYear()} AI THub</Text>
                     <Text style={themedStyles.copyrightText}>All Rights Reserved</Text>
                 </View>
             </View>
