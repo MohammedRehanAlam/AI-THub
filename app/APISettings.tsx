@@ -63,7 +63,7 @@ const APISettings = () => {
         },
         separator: {
             height: 1,
-            backgroundColor: 'rgba(128, 128, 128, 0.5)',
+            backgroundColor: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
             marginVertical: 10,
         },
         section: {

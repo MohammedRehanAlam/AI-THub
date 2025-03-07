@@ -89,7 +89,8 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
         },
         separator: {
             height: 1,
-            backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+            backgroundColor: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
+            marginVertical: 10,
         },
         footerContent: {
             marginTop: 'auto',
@@ -169,6 +170,8 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                     <Text style={themedStyles.logo}>Settings</Text>
                 </View>
             </View>
+            <View style={themedStyles.separator} />
+
             <ScrollView 
                 style={themedStyles.content}
                 showsVerticalScrollIndicator={false}

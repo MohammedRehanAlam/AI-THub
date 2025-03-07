@@ -12,7 +12,7 @@ export default function HomePage() {
   const router = useRouter();
   
   // Individual boxes for better control over position and properties
-  type BoxRoute = '/Box1' | '/Box2' | '/Box3' | '/ComingSoon';
+  type BoxRoute = '/tools/Box1' | '/tools/Box2' | '/tools/Box3' | '/tools/ComingSoon';
 
   interface BoxItem {
     id: number;
@@ -21,10 +21,14 @@ export default function HomePage() {
   }
 
   const boxes: BoxItem[] = [
-    { id: 1, route: '/Box1', title: 'Translator' },
-    { id: 2, route: '/Box2', title: 'Box 2 two' },
-    { id: 3, route: '/Box3', title: 'Box 3 three' },
-    { id: 4, route: '/ComingSoon', title: 'Coming Soon' },
+    { id: 1, route: '/tools/Box1', title: 'Translator' },
+    { id: 2, route: '/tools/Box2', title: 'Box 2 two' },
+    { id: 3, route: '/tools/Box3', title: 'Box 3 three' },
+    { id: 4, route: '/tools/ComingSoon', title: 'Coming Soon' },
+    { id: 5, route: '/tools/Box1', title: 'Translator' },
+    { id: 6, route: '/tools/Box2', title: 'Box 2 two' },
+    { id: 7, route: '/tools/Box3', title: 'Box 3 three' },
+    { id: 8, route: '/tools/ComingSoon', title: 'Coming Soon' },
   ];
 
   const isDark = currentTheme === 'dark';
@@ -87,9 +91,9 @@ export default function HomePage() {
     },
     separator: {
       height: 1,
-      backgroundColor: 'rgba(128, 128, 128, 0.5)',
+      backgroundColor: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
       marginVertical: 10,
-    },
+  },
   }), [isDark]);
 
  
@@ -122,9 +126,9 @@ export default function HomePage() {
                 isDark={isDark}
                 title={box.title}
                 onPress={() => {
-                  if (box.route === '/ComingSoon') {
+                  if (box.route === '/tools/ComingSoon') {
                     router.push({
-                      pathname: '/ComingSoon',
+                      pathname: '/tools/ComingSoon',
                       params: { title: box.title }
                     });
                   } else {

@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useTheme } from './context/ThemeContext';
+import { useTheme } from '../context/ThemeContext';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function Box3() {
+export default function Box2() {
     const { currentTheme } = useTheme();
     const isDark = currentTheme === 'dark';
     const router = useRouter();
@@ -55,7 +55,7 @@ export default function Box3() {
       },
       separator: {
         height: 1,
-        backgroundColor: 'rgba(128, 128, 128, 0.5)',
+        backgroundColor: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
         marginVertical: 10,
       },
     });
@@ -67,13 +67,13 @@ export default function Box3() {
           <TouchableOpacity style={styles.toggleButton} onPress={() => router.back()}>
             <Ionicons name="chevron-back-outline" size={24} color={isDark ? '#fff' : '#000'} />
           </TouchableOpacity>
-          <Text style={styles.logo}>Box 3</Text>
+          <Text style={styles.logo}>Box 2</Text>
         </View>
       </View>
       <View style={styles.separator} />
       <View style={styles.content}>
-        <Text style={styles.title}>Box 3 Content</Text>
-        <Text style={styles.text}>This is the content for Box 3. You can customize this page as needed.</Text>
+        <Text style={styles.title}>Box 2 Content</Text>
+        <Text style={styles.text}>This is the content for Box 2. You can customize this page as needed.</Text>
       </View>
     </SafeAreaView>
   );
