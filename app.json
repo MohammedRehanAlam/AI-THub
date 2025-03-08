@@ -30,17 +30,9 @@
       "userInterfaceStyle": "automatic",
       "package": "com.aithub.app",
       "softwareKeyboardLayoutMode": "pan",
-      "androidStatusBar": {
-        "backgroundColor": "#00000000",
-        "translucent": true,
-        "barStyle": "light-content",
-        "hidden": true
-      },
-      "navigationBar": {
-        "backgroundColor": "red",
-        "visible": "hidden",
-        "barStyle": "dark-content"
-      }
+      "permissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     },
     "web": {
       "bundler": "metro",

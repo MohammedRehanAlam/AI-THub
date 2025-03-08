@@ -81,7 +81,8 @@ function RootLayoutNav() {
           // Configure status bar using React Native's StatusBar API
           RNStatusBar.setTranslucent(true);
           RNStatusBar.setBackgroundColor('transparent');
-          RNStatusBar.setHidden(true);
+          RNStatusBar.setHidden(false);
+          RNStatusBar.setBarStyle(currentColorScheme === 'dark' ? 'light-content' : 'dark-content');
           
           // Configure navigation bar
           await NavigationBar.setBackgroundColorAsync('transparent');
