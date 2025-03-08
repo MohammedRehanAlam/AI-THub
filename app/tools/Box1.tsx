@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform, Keyboard, Modal } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform, Keyboard, Modal, AppState } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +10,7 @@ import type { Language } from '../components/languages';
 import { PLACEHOLDER_TRANSLATIONS } from '../components/placeholders';
 import LanguageSelector from '../components/LanguageSelector';
 import { BlurView } from 'expo-blur';
+import { useFocusEffect } from '@react-navigation/native';
 
 // Theme colors
 const COLORS = {
@@ -349,6 +350,10 @@ export default function Box1() {
             expanded: msg.originalText ? false : undefined
           }));
           setMessages(updatedMessages);
+          setShouldAnimateScroll(false);
+          setTimeout(() => {
+            setShouldAnimateScroll(true);
+          }, 500);
         }
       } catch (error) {
         console.error('Error loading data:', error);
@@ -388,6 +393,47 @@ export default function Box1() {
       keyboardDidHideListener.remove();
     };
   }, []);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: shouldAnimateScroll });
+      }, 100);
+    }
+  }, [messages, shouldAnimateScroll]);
+
+  useEffect(() => {
+    if (keyboardVisible && messages.length > 0) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: false });
+      }, 100);
+    }
+  }, [keyboardVisible, messages.length]);
+
+  // Use useFocusEffect to scroll to bottom when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      if (messages.length > 0) {
+        // Small delay to ensure the view is fully rendered
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: false });
+        }, 300);
+      }
+      
+      // Also handle app state changes to scroll when app comes back from background
+      const subscription = AppState.addEventListener('change', nextAppState => {
+        if (nextAppState === 'active' && messages.length > 0) {
+          setTimeout(() => {
+            scrollViewRef.current?.scrollToEnd({ animated: false });
+          }, 300);
+        }
+      });
+      
+      return () => {
+        subscription.remove();
+      };
+    }, [messages.length])
+  );
 
   const getPlaceholder = () => {
     const lang = activeUser === 1 ? sourceLanguage : targetLanguage;
@@ -485,7 +531,6 @@ export default function Box1() {
       };
 
       setMessages(prev => [...prev, translatedMessage]);
-      scrollViewRef.current?.scrollToEnd({ animated: true });
     } catch (error) {
       Alert.alert('Translation Error', 'Failed to translate text. Please try again.');
       setMessages(prev => prev.slice(0, -1));
@@ -567,6 +612,16 @@ export default function Box1() {
         style={styles.messagesContainer}
         contentContainerStyle={styles.messagesContent}
         showsVerticalScrollIndicator={false}
+        onContentSizeChange={() => {
+          if (messages.length > 0) {
+            scrollViewRef.current?.scrollToEnd({ animated: shouldAnimateScroll });
+          }
+        }}
+        onLayout={() => {
+          if (messages.length > 0) {
+            scrollViewRef.current?.scrollToEnd({ animated: shouldAnimateScroll });
+          }
+        }}
       >
         {messages.map((message, index) => (
           <View
