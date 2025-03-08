@@ -287,7 +287,7 @@ const createStyles = (isDark: boolean) => {
       padding: 12,
       paddingTop: 10,
       fontSize: 16,
-      maxHeight: 150,
+      maxHeight: 130,
       textAlignVertical: 'center',
       minHeight: 48,
       backgroundColor: colors.surface,
