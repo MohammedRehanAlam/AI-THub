@@ -8,6 +8,7 @@ declare module './tools/Box1';
 declare module './tools/Box2';
 declare module './tools/Box3';
 declare module './tools/ComingSoon';
+declare module './components/TranslatorApp';
 
 type RootDrawerParamList = {
   Home: undefined;
@@ -18,6 +19,7 @@ type RootDrawerParamList = {
   Box2: undefined;
   Box3: undefined;
   ComingSoon: undefined;
+  TranslatorApp: undefined;
 };
 
 type HomeScreenNavigationProp = DrawerNavigationProp<RootDrawerParamList, 'Home'>;

@@ -115,6 +115,8 @@ export function Box({ isDark, onPress, title }: BoxProps) {
         return 'cube-outline';
       case 'box 3 three':
         return 'grid-outline';
+      case 'translator old':
+        return 'language-outline';
       case 'coming soon':
         return 'time-outline';
       default:
@@ -131,6 +133,8 @@ export function Box({ isDark, onPress, title }: BoxProps) {
         return 'Coming Soon';
       case 'box 3 three':
         return 'Coming Soon';
+      case 'translator old':
+        return 'Coming Soon in new version';
       case 'coming soon':
         return 'Stay Tuned!';
       default:

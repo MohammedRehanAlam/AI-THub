@@ -163,14 +163,16 @@ function RootLayoutNav() {
     <CustomThemeProvider>
       <ThemeProvider value={currentColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack screenOptions={customScreenOptions}>
+          {/* only path is enough as i have made custom headers */}
           <Stack.Screen name="index" />
-          <Stack.Screen name="tools/Box1" options={{ title: "Translator" }} />
-          <Stack.Screen name="tools/Box2" options={{ title: "Box 2 two" }} />
-          <Stack.Screen name="tools/Box3" options={{ title: "Box 3 three" }} />
+          <Stack.Screen name="tools/Box1" />
+          <Stack.Screen name="tools/Box2" />
+          <Stack.Screen name="tools/Box3" />
           <Stack.Screen name="tools/ComingSoon" />
           <Stack.Screen name="Settings" />
           <Stack.Screen name="APISettings" />
           <Stack.Screen name="About" />
+          <Stack.Screen name="components/TranslatorApp" />
         </Stack>
       </ThemeProvider>
     </CustomThemeProvider>

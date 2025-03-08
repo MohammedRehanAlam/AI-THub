@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet, TextInput, Keyboard, Platform, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LANGUAGES, Language } from '../constants/languages';
+import { LANGUAGES, Language } from './languages';
 
 interface LanguageSelectorProps {
   selectedLanguage: Language;
@@ -13,7 +13,7 @@ interface LanguageSelectorProps {
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   selectedLanguage,
   onSelect,
-  languages,
+  languages = LANGUAGES,
   isDark,
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -22,7 +22,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   const searchInputRef = useRef<TextInput>(null);
   const flatListRef = useRef<FlatList>(null);
 
-  const filteredLanguages = languages.filter(lang =>
+  const filteredLanguages = (languages || []).filter(lang =>
     lang.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -114,7 +114,9 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
                 onKeyPress={handleKeyPress}
                 autoCapitalize="none"
                 autoCorrect={false}
-                returnKeyType="done"
+                returnKeyType="search"
+                keyboardType="default"
+                enablesReturnKeyAutomatically={true}
                 onSubmitEditing={() => {
                   if (selectedIndex >= 0 && selectedIndex < filteredLanguages.length) {
                     handleLanguageSelect(filteredLanguages[selectedIndex]);
@@ -163,11 +165,15 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
                     color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)',
                   }}
                 >
-                  <Text style={[
-                    styles.languageText,
-                    { color: isDark ? '#fff' : '#000' },
-                    selectedLanguage === item && { color: '#fff', fontWeight: '500' }
-                  ]}>
+                  <Text 
+                    style={[
+                      styles.languageText,
+                      { color: isDark ? '#fff' : '#000' },
+                      selectedLanguage === item && { color: '#fff', fontWeight: '500' }
+                    ]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     {item}
                   </Text>
                 </Pressable>
@@ -191,27 +197,26 @@ const styles = StyleSheet.create({
   selector: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     padding: 12,
-    borderRadius: 8,
-    gap: 8,
-    minWidth: 120,
-    maxWidth: '100%',
   },
   selectedText: {
     fontSize: 16,
     flex: 1,
-    textAlign: 'left',
+    paddingHorizontal: 4,
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'flex-end',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContent: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    width: '90%',
+    maxWidth: 'auto',
     maxHeight: '80%',
-    width: '100%',
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -222,69 +227,46 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    flex: 1,
-    textAlign: 'center',
+    fontWeight: '600',
   },
   searchContainer: {
+    padding: 16,
+    borderTopWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    position: 'relative',
-    height: 68,
+    minHeight: 48,
   },
   searchIcon: {
     position: 'absolute',
-    left: 28,
-    ...Platform.select({
-      web: {
-        top: '50%',
-        transform: [{ translateY: -10 }],
-      },
-      default: {
-        top: 24,
-        width: 20,
-        height: 44,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      },
-    }),
+    left: 24,
     zIndex: 1,
   },
   searchInput: {
     flex: 1,
-    height: 44,
-    borderRadius: 22,
+    height: 48,
+    borderRadius: 8,
     paddingLeft: 40,
     paddingRight: 40,
     fontSize: 16,
   },
   clearSearch: {
     position: 'absolute',
-    right: 28,
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
+    right: 24,
     zIndex: 1,
   },
   languageItem: {
     padding: 16,
     borderBottomWidth: 1,
-    backgroundColor: 'transparent',
-  },
-  selectedItem: {
-    borderColor: 'transparent',
   },
   languageText: {
     fontSize: 16,
-    fontWeight: '400',
+  },
+  selectedItem: {
+    borderRadius: 8,
   },
   highlightedItem: {
-    borderColor: 'transparent',
+    borderRadius: 8,
   },
 });
 
-export default LanguageSelector; 
+export default LanguageSelector;

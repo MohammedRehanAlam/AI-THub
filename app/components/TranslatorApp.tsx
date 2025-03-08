@@ -1,14 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform, Keyboard, LayoutChangeEvent, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform, Keyboard, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-// eslint-disable-next-line import/no-unresolved
-import LanguageSelector from './LanguageSelector';
-import { LANGUAGES } from '../constants/languages';
-import { PLACEHOLDER_TRANSLATIONS } from '../constants/placeholders';
-import { useTheme } from '../context/ThemeContext';
+import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
+import { LANGUAGES } from './languages';
+import type { Language } from './languages';
+import { PLACEHOLDER_TRANSLATIONS } from './placeholders';
+import LanguageSelector from '../components/LanguageSelector';
+import { useRef } from 'react';
 
-type Language = keyof typeof PLACEHOLDER_TRANSLATIONS;
+interface TranslatorAppProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
 
 interface Message {
   text: string;
@@ -18,28 +24,23 @@ interface Message {
   expanded?: boolean;
 }
 
-interface TranslatorAppProps {
-  onClose: () => void;
-}
-
-const CustomAlert = ({ visible, title, message, onCancel, onConfirm, isDark }: { visible: boolean; title: string; message: string; onCancel: () => void; onConfirm: () => void; isDark: boolean; }) => {
-  return (
-    <Modal transparent={true} visible={visible} animationType='fade'>
-      <View style={styles.overlay}>
-        <View style={[styles.alertBox, { backgroundColor: isDark ? '#1a1a1a' : '#ffffff' }]}> 
-          <Text style={[styles.alertTitle, { color: isDark ? '#ffffff' : '#000000' }]}>{title}</Text>
-          <Text style={[styles.alertMessage, { color: isDark ? '#ffffff' : '#000000' }]}>{message}</Text>
-          <View style={[styles.buttonContainer, { justifyContent: 'center' }]}>
-            <TouchableOpacity onPress={onCancel} style={styles.button}><Text style={styles.buttonText}>CANCEL</Text></TouchableOpacity>
-            <TouchableOpacity onPress={onConfirm} style={styles.button}><Text style={styles.buttonText}>CLEAR</Text></TouchableOpacity>
-          </View>
+const CustomAlert = ({ visible, title, message, onCancel, onConfirm, isDark }: { visible: boolean; title: string; message: string; onCancel: () => void; onConfirm: () => void; isDark: boolean; }) => (
+  <Modal transparent={true} visible={visible} animationType='fade'>
+    <View style={styles.overlay}>
+      <View style={[styles.alertBox, { backgroundColor: isDark ? '#1a1a1a' : '#ffffff' }]}> 
+        <Text style={[styles.alertTitle, { color: isDark ? '#ffffff' : '#000000' }]}>{title}</Text>
+        <Text style={[styles.alertMessage, { color: isDark ? '#ffffff' : '#000000' }]}>{message}</Text>
+        <View style={[styles.buttonContainer, { justifyContent: 'center' }]}>
+          <TouchableOpacity onPress={onCancel} style={styles.button}><Text style={styles.buttonText}>CANCEL</Text></TouchableOpacity>
+          <TouchableOpacity onPress={onConfirm} style={styles.button}><Text style={styles.buttonText}>CLEAR</Text></TouchableOpacity>
         </View>
       </View>
-    </Modal>
-  );
-};
+    </View>
+  </Modal>
+);
 
-const TranslatorApp: React.FC<TranslatorAppProps> = ({ onClose }) => {
+const TranslatorApp: React.FC<TranslatorAppProps> = ({ isOpen, onClose }) => {
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [sourceLanguage, setSourceLanguage] = useState<Language>('Hindi');
@@ -47,7 +48,7 @@ const TranslatorApp: React.FC<TranslatorAppProps> = ({ onClose }) => {
   const [activeUser, setActiveUser] = useState(1);
   const { currentTheme } = useTheme();
   const isDark = currentTheme === 'dark';
-  const scrollViewRef = React.useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const [lastTranslationTime, setLastTranslationTime] = useState<number>(0);
   const [requestQueue, setRequestQueue] = useState<number>(0);
@@ -329,7 +330,7 @@ const TranslatorApp: React.FC<TranslatorAppProps> = ({ onClose }) => {
 
   const handleClose = () => {
     setShouldAnimateScroll(true);
-    onClose();
+    onClose?.();
   };
 
   return (
@@ -343,9 +344,9 @@ const TranslatorApp: React.FC<TranslatorAppProps> = ({ onClose }) => {
         isDark={isDark} 
       />
       <View style={[styles.header, { backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5' }]}>
-        <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-          <Ionicons name="close" size={24} color={isDark ? '#fff' : '#000'} />
-        </TouchableOpacity>
+      <TouchableOpacity style={styles.toggleButton} onPress={() => router.back()}>
+            <Ionicons name="chevron-back-outline" size={24} color={isDark ? '#fff' : '#000'} />
+          </TouchableOpacity>
         <Text style={[styles.title, { color: isDark ? '#fff' : '#000' }]}>Translator</Text>
         <TouchableOpacity onPress={clearChat} style={styles.clearButton} disabled={messages.length === 0}>
           <Ionicons name="trash-outline" size={24} color={messages.length === 0 ? '#aaa' : (isDark ? '#fff' : '#000')} />
@@ -533,10 +534,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 5,
-    paddingBottom: 0,
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(150,150,150,0.2)',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  toggleButton: {
+    padding: 4,
   },
   closeButton: {
     padding: 8,
