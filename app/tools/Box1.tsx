@@ -560,7 +560,7 @@ export default function Box1() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity style={styles.toggleButton} onPress={() => router.back()}>
+          <TouchableOpacity style={styles.toggleButton} onPress={() => router.push('/')}>
             <Ionicons name="chevron-back-outline" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.logo}>Translator</Text>

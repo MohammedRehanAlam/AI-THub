@@ -164,7 +164,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
         <SafeAreaView style={themedStyles.container}>
             <View style={themedStyles.header}>
                 <View style={themedStyles.headerLeft}>
-                    <TouchableOpacity style={themedStyles.toggleButton} onPress={() => router.back()}>
+                    <TouchableOpacity style={themedStyles.toggleButton} onPress={() => router.push('/')}>
                         <Ionicons name="chevron-back-outline" size={24} color={isDark ? '#fff' : '#000'} />
                     </TouchableOpacity>
                     <Text style={themedStyles.logo}>Settings</Text>

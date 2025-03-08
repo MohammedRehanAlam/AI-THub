@@ -8,10 +8,8 @@ import { useFonts } from 'expo-font';
 import { ThemeProvider as CustomThemeProvider } from './context/ThemeContext';
 import * as SplashScreen from 'expo-splash-screen';
 import * as NavigationBar from 'expo-navigation-bar';
-import { StatusBar } from 'expo-status-bar';
 import { initializeUpdates, checkAndInstallUpdates } from './utils/updateUtils';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
-import { CardStyleInterpolators } from '@react-navigation/stack';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -26,38 +24,34 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
   });
-
-  const colorScheme = useColorScheme();
-
+  
+  // Enhanced error handling for production
   useEffect(() => {
     if (error) {
       console.error('Font loading error:', error);
+      // You might want to implement crash reporting here
+      // Example: Crashlytics.recordError(error);
     }
   }, [error]);
-
+  
   useEffect(() => {
     if (loaded) {
       try {
         SplashScreen.hideAsync();
       } catch (e) {
         console.error('Error hiding splash screen:', e);
+        // Production error logging
+        // Example: Crashlytics.recordError(e);
       }
     }
   }, [loaded]);
-
+  
   if (!loaded) {
     return null;
   }
 
   return (
     <View style={{ flex: 1 }}>
-      {/* // Setting status bar transparent and hidden
-      <StatusBar 
-        translucent={true} 
-        backgroundColor="transparent" 
-        hidden={false}
-        style={colorScheme === 'dark' ? 'light' : 'dark'} 
-      /> */}
       <RootLayoutNav />
     </View>
   );
@@ -72,7 +66,7 @@ function RootLayoutNav() {
     initializeUpdates();
     checkAndInstallUpdates();
   }, []);
-
+  
   // Configure system UI on app start and theme changes
   useEffect(() => {
     const configureSystemUI = async () => {
@@ -81,7 +75,7 @@ function RootLayoutNav() {
           // Configure status bar using React Native's StatusBar API
           RNStatusBar.setTranslucent(true);
           RNStatusBar.setBackgroundColor('transparent');
-          RNStatusBar.setHidden(false);
+          RNStatusBar.setHidden(true);
           RNStatusBar.setBarStyle(currentColorScheme === 'dark' ? 'light-content' : 'dark-content');
           
           // Configure navigation bar

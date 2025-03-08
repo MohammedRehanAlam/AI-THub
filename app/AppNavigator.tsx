@@ -5,6 +5,9 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { DrawerScreenProps } from '@react-navigation/drawer';
 import Home from './index';
 import Settings from './Settings';
+import APISettings from './APISettings';
+import About from './About';
+
 import Box1 from './tools/Box1';
 import Box2 from './tools/Box2';
 import Box3 from './tools/Box3';
@@ -29,6 +32,9 @@ const AppNavigator = () => {
       <Drawer.Navigator initialRouteName="Home">
         <Drawer.Screen name="Home" component={Home} options={{ title: 'Home' }} />
         <Drawer.Screen name="Settings" component={SettingsWrapper} options={{ title: 'Settings' }} />
+        <Drawer.Screen name="APISettings" component={APISettings} options={{ title: 'API Settings' }} />
+        <Drawer.Screen name="About" component={About} options={{ title: 'About' }} />
+        
         <Drawer.Screen name="Box1" component={Box1} options={{ title: 'Translator' }} />
         <Drawer.Screen name="Box2" component={Box2} options={{ title: 'Box 2' }} />
         <Drawer.Screen name="Box3" component={Box3} options={{ title: 'Box 3' }} />

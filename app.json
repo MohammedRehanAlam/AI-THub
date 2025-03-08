@@ -25,14 +25,17 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "transparent"
       },
       "userInterfaceStyle": "automatic",
       "package": "com.aithub.app",
       "softwareKeyboardLayoutMode": "pan",
       "permissions": [
         "android.permission.SYSTEM_ALERT_WINDOW"
-      ]
+      ],
+      "buildType": "apk",
+      "enableProguardInReleaseBuilds": false,
+      "enableHermes": true
     },
     "web": {
       "bundler": "metro",
