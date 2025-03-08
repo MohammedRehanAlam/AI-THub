@@ -93,6 +93,9 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
+        
+        // Add this to handle resource conflicts
+        resourceConfigurations.addAll(["en"])
     }
     signingConfigs {
         debug {
@@ -123,6 +126,18 @@ android {
     }
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
+        
+        // Add this to handle resource conflicts
+        additionalParameters "--warn-manifest-validation", "--no-version-vectors"
+    }
+    
+    // Add this to handle resource conflicts
+    configurations.all {
+        resolutionStrategy {
+            force 'androidx.core:core:1.9.0'
+            force 'androidx.core:core-ktx:1.9.0'
+            force 'com.google.android.material:material:1.8.0'
+        }
     }
 }
 
@@ -173,4 +188,7 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+    
+    // Add specific version of Material Design library
+    implementation('com.google.android.material:material:1.8.0')
 }

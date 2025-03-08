@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Override problematic Material Design values -->
+    <item name="m3_dynamic_default_color_primary" type="color">@color/m3_ref_palette_dynamic_primary40</item>
+    <item name="m3_dynamic_default_color_primary_container" type="color">@color/m3_ref_palette_dynamic_primary90</item>
+    <item name="m3_dynamic_default_color_on_primary" type="color">@color/m3_ref_palette_dynamic_primary100</item>
+    <item name="m3_dynamic_default_color_on_primary_container" type="color">@color/m3_ref_palette_dynamic_primary10</item>
+    <item name="m3_dynamic_default_color_secondary" type="color">@color/m3_ref_palette_dynamic_primary40</item>
+    <item name="m3_dynamic_default_color_secondary_container" type="color">@color/m3_ref_palette_dynamic_primary90</item>
+    <item name="m3_dynamic_default_color_on_secondary" type="color">@color/m3_ref_palette_dynamic_primary100</item>
+    <item name="m3_dynamic_default_color_on_secondary_container" type="color">@color/m3_ref_palette_dynamic_primary10</item>
+    <item name="m3_dynamic_default_color_tertiary" type="color">@color/m3_ref_palette_dynamic_primary40</item>
+    <item name="m3_dynamic_default_color_tertiary_container" type="color">@color/m3_ref_palette_dynamic_primary90</item>
+    <item name="m3_dynamic_default_color_on_tertiary" type="color">@color/m3_ref_palette_dynamic_primary100</item>
+    <item name="m3_dynamic_default_color_on_tertiary_container" type="color">@color/m3_ref_palette_dynamic_primary10</item>
+</resources>
