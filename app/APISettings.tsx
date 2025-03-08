@@ -1,11 +1,20 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, Alert } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { useTheme } from './context/ThemeContext';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { testOpenAIKey, testGoogleAIKey, testAnthropicKey, testOpenRouterKey, testGroqKey } from './utils/apiTests';
+
+// Default model names for each provider
+const DEFAULT_MODELS = {
+  openai: "gpt-3.5-turbo",
+  google: "gemini-1.5-flash",
+  anthropic: "claude-3-opus-20240229",
+  openrouter: "openai/gpt-3.5-turbo",
+  groq: "llama3-8b-8192"
+};
 
 const APISettings = () => {
     const { currentTheme } = useTheme();
@@ -18,6 +27,13 @@ const APISettings = () => {
     const [anthropicKey, setAnthropicKey] = useState('');
     const [openrouterKey, setOpenrouterKey] = useState('');
     const [groqKey, setGroqKey] = useState('');
+    
+    // Model name states
+    const [openaiModel, setOpenaiModel] = useState(DEFAULT_MODELS.openai);
+    const [googleModel, setGoogleModel] = useState(DEFAULT_MODELS.google);
+    const [anthropicModel, setAnthropicModel] = useState(DEFAULT_MODELS.anthropic);
+    const [openrouterModel, setOpenrouterModel] = useState(DEFAULT_MODELS.openrouter);
+    const [groqModel, setGroqModel] = useState(DEFAULT_MODELS.groq);
     
     // Loading states for verification
     const [openaiLoading, setOpenaiLoading] = useState(false);
@@ -32,176 +48,247 @@ const APISettings = () => {
     const [anthropicStatus, setAnthropicStatus] = useState<null | boolean>(null);
     const [openrouterStatus, setOpenrouterStatus] = useState<null | boolean>(null);
     const [groqStatus, setGroqStatus] = useState<null | boolean>(null);
+    
+    // Error message states
+    const [openaiError, setOpenaiError] = useState<string | null>(null);
+    const [googleError, setGoogleError] = useState<string | null>(null);
+    const [anthropicError, setAnthropicError] = useState<string | null>(null);
+    const [openrouterError, setOpenrouterError] = useState<string | null>(null);
+    const [groqError, setGroqError] = useState<string | null>(null);
 
-    // Load saved API keys on component mount
-    React.useEffect(() => {
-        const loadApiKeys = async () => {
+    // Load saved API keys and models on component mount
+    useEffect(() => {
+        const loadApiSettings = async () => {
             try {
+                // Load API keys
                 const savedOpenaiKey = await AsyncStorage.getItem('openai_api_key');
                 const savedGoogleKey = await AsyncStorage.getItem('google_api_key');
                 const savedAnthropicKey = await AsyncStorage.getItem('anthropic_api_key');
                 const savedOpenrouterKey = await AsyncStorage.getItem('openrouter_api_key');
                 const savedGroqKey = await AsyncStorage.getItem('groq_api_key');
                 
+                // Load model names
+                const savedOpenaiModel = await AsyncStorage.getItem('openai_model');
+                const savedGoogleModel = await AsyncStorage.getItem('google_model');
+                const savedAnthropicModel = await AsyncStorage.getItem('anthropic_model');
+                const savedOpenrouterModel = await AsyncStorage.getItem('openrouter_model');
+                const savedGroqModel = await AsyncStorage.getItem('groq_model');
+                
+                // Set API keys if they exist
                 if (savedOpenaiKey) setOpenaiKey(savedOpenaiKey);
                 if (savedGoogleKey) setGoogleKey(savedGoogleKey);
                 if (savedAnthropicKey) setAnthropicKey(savedAnthropicKey);
                 if (savedOpenrouterKey) setOpenrouterKey(savedOpenrouterKey);
                 if (savedGroqKey) setGroqKey(savedGroqKey);
+                
+                // Set model names if they exist
+                if (savedOpenaiModel) setOpenaiModel(savedOpenaiModel);
+                if (savedGoogleModel) setGoogleModel(savedGoogleModel);
+                if (savedAnthropicModel) setAnthropicModel(savedAnthropicModel);
+                if (savedOpenrouterModel) setOpenrouterModel(savedOpenrouterModel);
+                if (savedGroqModel) setGroqModel(savedGroqModel);
             } catch (error) {
-                console.error('Error loading API keys:', error);
+                console.error('Error loading API settings:', error);
             }
         };
         
-        loadApiKeys();
+        loadApiSettings();
     }, []);
 
-    // Save API key to AsyncStorage
-    const saveApiKey = async (key: string, value: string) => {
+    // Save API key and model to AsyncStorage
+    const saveApiSettings = async (keyName: string, keyValue: string, modelName: string, modelValue: string) => {
         try {
-            await AsyncStorage.setItem(key, value);
+            await AsyncStorage.setItem(keyName, keyValue);
+            await AsyncStorage.setItem(modelName, modelValue);
+            return true;
         } catch (error) {
-            console.error(`Error saving ${key}:`, error);
-            Alert.alert('Error', `Failed to save ${key}. Please try again.`);
+            console.error(`Error saving ${keyName} or ${modelName}:`, error);
+            return false;
         }
     };
 
-    // Verify API keys
+    // Verify OpenAI API key
     const verifyOpenAI = async () => {
         if (!openaiKey.trim()) {
-            Alert.alert('Error', 'Please enter an OpenAI API key');
+            setOpenaiError('Please enter an OpenAI API key');
+            return;
+        }
+        
+        if (!openaiModel.trim()) {
+            setOpenaiError('Please enter a model name');
             return;
         }
         
         setOpenaiLoading(true);
         setOpenaiStatus(null);
+        setOpenaiError(null);
         
         try {
-            const result = await testOpenAIKey(openaiKey);
+            const result = await testOpenAIKey(openaiKey, openaiModel);
             setOpenaiStatus(result.success);
             
             if (result.success) {
-                await saveApiKey('openai_api_key', openaiKey);
-                Alert.alert('Success', 'OpenAI API key verified and saved successfully');
+                const saved = await saveApiSettings('openai_api_key', openaiKey, 'openai_model', openaiModel);
+                if (saved) {
+                    // Success, no need for an alert as we show the status visually
+                } else {
+                    setOpenaiError('Failed to save settings. Please try again.');
+                }
             } else {
-                Alert.alert('Error', result.message || 'Failed to verify OpenAI API key');
+                setOpenaiError(result.message || 'Failed to verify API key');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error verifying OpenAI API key:', error);
             setOpenaiStatus(false);
-            Alert.alert('Error', 'Failed to verify OpenAI API key. Please check your internet connection and try again.');
+            setOpenaiError('Network error. Please check your internet connection.');
         } finally {
             setOpenaiLoading(false);
         }
     };
 
+    // Verify Google AI API key
     const verifyGoogle = async () => {
         if (!googleKey.trim()) {
-            Alert.alert('Error', 'Please enter a Google AI API key');
+            setGoogleError('Please enter a Google AI API key');
+            return;
+        }
+        
+        if (!googleModel.trim()) {
+            setGoogleError('Please enter a model name');
             return;
         }
         
         setGoogleLoading(true);
         setGoogleStatus(null);
+        setGoogleError(null);
         
         try {
-            const result = await testGoogleAIKey(googleKey);
+            const result = await testGoogleAIKey(googleKey, googleModel);
             setGoogleStatus(result.success);
             
             if (result.success) {
-                await saveApiKey('google_api_key', googleKey);
-                Alert.alert('Success', 'Google AI API key verified and saved successfully');
+                const saved = await saveApiSettings('google_api_key', googleKey, 'google_model', googleModel);
+                if (!saved) {
+                    setGoogleError('Failed to save settings. Please try again.');
+                }
             } else {
-                Alert.alert('Error', result.message || 'Failed to verify Google AI API key');
+                setGoogleError(result.message || 'Failed to verify API key');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error verifying Google AI API key:', error);
             setGoogleStatus(false);
-            Alert.alert('Error', 'Failed to verify Google AI API key. Please check your internet connection and try again.');
+            setGoogleError('Network error. Please check your internet connection.');
         } finally {
             setGoogleLoading(false);
         }
     };
 
+    // Verify Anthropic API key
     const verifyAnthropic = async () => {
         if (!anthropicKey.trim()) {
-            Alert.alert('Error', 'Please enter an Anthropic API key');
+            setAnthropicError('Please enter an Anthropic API key');
+            return;
+        }
+        
+        if (!anthropicModel.trim()) {
+            setAnthropicError('Please enter a model name');
             return;
         }
         
         setAnthropicLoading(true);
         setAnthropicStatus(null);
+        setAnthropicError(null);
         
         try {
-            const result = await testAnthropicKey(anthropicKey);
+            const result = await testAnthropicKey(anthropicKey, anthropicModel);
             setAnthropicStatus(result.success);
             
             if (result.success) {
-                await saveApiKey('anthropic_api_key', anthropicKey);
-                Alert.alert('Success', 'Anthropic API key verified and saved successfully');
+                const saved = await saveApiSettings('anthropic_api_key', anthropicKey, 'anthropic_model', anthropicModel);
+                if (!saved) {
+                    setAnthropicError('Failed to save settings. Please try again.');
+                }
             } else {
-                Alert.alert('Error', result.message || 'Failed to verify Anthropic API key');
+                setAnthropicError(result.message || 'Failed to verify API key');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error verifying Anthropic API key:', error);
             setAnthropicStatus(false);
-            Alert.alert('Error', 'Failed to verify Anthropic API key. Please check your internet connection and try again.');
+            setAnthropicError('Network error. Please check your internet connection.');
         } finally {
             setAnthropicLoading(false);
         }
     };
 
+    // Verify OpenRouter API key
     const verifyOpenRouter = async () => {
         if (!openrouterKey.trim()) {
-            Alert.alert('Error', 'Please enter an OpenRouter API key');
+            setOpenrouterError('Please enter an OpenRouter API key');
+            return;
+        }
+        
+        if (!openrouterModel.trim()) {
+            setOpenrouterError('Please enter a model name');
             return;
         }
         
         setOpenrouterLoading(true);
         setOpenrouterStatus(null);
+        setOpenrouterError(null);
         
         try {
-            const result = await testOpenRouterKey(openrouterKey);
+            const result = await testOpenRouterKey(openrouterKey, openrouterModel);
             setOpenrouterStatus(result.success);
             
             if (result.success) {
-                await saveApiKey('openrouter_api_key', openrouterKey);
-                Alert.alert('Success', 'OpenRouter API key verified and saved successfully');
+                const saved = await saveApiSettings('openrouter_api_key', openrouterKey, 'openrouter_model', openrouterModel);
+                if (!saved) {
+                    setOpenrouterError('Failed to save settings. Please try again.');
+                }
             } else {
-                Alert.alert('Error', result.message || 'Failed to verify OpenRouter API key');
+                setOpenrouterError(result.message || 'Failed to verify API key');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error verifying OpenRouter API key:', error);
             setOpenrouterStatus(false);
-            Alert.alert('Error', 'Failed to verify OpenRouter API key. Please check your internet connection and try again.');
+            setOpenrouterError('Network error. Please check your internet connection.');
         } finally {
             setOpenrouterLoading(false);
         }
     };
 
+    // Verify Groq API key
     const verifyGroq = async () => {
         if (!groqKey.trim()) {
-            Alert.alert('Error', 'Please enter a Groq API key');
+            setGroqError('Please enter a Groq API key');
+            return;
+        }
+        
+        if (!groqModel.trim()) {
+            setGroqError('Please enter a model name');
             return;
         }
         
         setGroqLoading(true);
         setGroqStatus(null);
+        setGroqError(null);
         
         try {
-            const result = await testGroqKey(groqKey);
+            const result = await testGroqKey(groqKey, groqModel);
             setGroqStatus(result.success);
             
             if (result.success) {
-                await saveApiKey('groq_api_key', groqKey);
-                Alert.alert('Success', 'Groq API key verified and saved successfully');
+                const saved = await saveApiSettings('groq_api_key', groqKey, 'groq_model', groqModel);
+                if (!saved) {
+                    setGroqError('Failed to save settings. Please try again.');
+                }
             } else {
-                Alert.alert('Error', result.message || 'Failed to verify Groq API key');
+                setGroqError(result.message || 'Failed to verify API key');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error verifying Groq API key:', error);
             setGroqStatus(false);
-            Alert.alert('Error', 'Failed to verify Groq API key. Please check your internet connection and try again.');
+            setGroqError('Network error. Please check your internet connection.');
         } finally {
             setGroqLoading(false);
         }
@@ -259,31 +346,49 @@ const APISettings = () => {
         },
         separator: {
             height: 1,
-            backgroundColor: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
-            marginVertical: 10,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
+            marginVertical: 16,
         },
         section: {
             marginBottom: 24,
+            backgroundColor: isDark ? '#252525' : '#f9f9f9',
+            borderRadius: 12,
+            padding: 16,
+            borderWidth: 1,
+            borderColor: isDark ? '#333' : '#eee',
+        },
+        sectionHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 12,
+        },
+        sectionIcon: {
+            marginRight: 8,
         },
         verifyButton: {
             backgroundColor: isDark ? '#4a90e2' : '#2196F3',
-            padding: 10,
+            padding: 12,
             borderRadius: 8,
             alignItems: 'center',
-            marginTop: 8,
+            marginTop: 12,
         },
         buttonText: {
             color: '#fff',
             fontWeight: '500',
+            fontSize: 16,
         },
         statusContainer: {
             flexDirection: 'row',
             alignItems: 'center',
-            marginTop: 8,
+            marginTop: 12,
+            backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)',
+            padding: 10,
+            borderRadius: 8,
         },
         statusText: {
             marginLeft: 8,
             fontSize: 14,
+            flex: 1,
         },
         successText: {
             color: '#4CAF50',
@@ -293,32 +398,96 @@ const APISettings = () => {
         },
         infoText: {
             fontSize: 14,
-            color: isDark ? '#888' : '#666',
+            color: isDark ? '#aaa' : '#666',
             marginTop: 4,
+            marginBottom: 8,
+        },
+        inputGroup: {
+            marginBottom: 12,
+        },
+        inputLabel: {
+            fontSize: 14,
+            color: isDark ? '#bbb' : '#555',
+            marginBottom: 4,
+        },
+        errorContainer: {
+            backgroundColor: isDark ? 'rgba(244,67,54,0.1)' : 'rgba(244,67,54,0.05)',
+            padding: 10,
+            borderRadius: 8,
+            marginTop: 8,
+            borderLeftWidth: 3,
+            borderLeftColor: '#F44336',
+        },
+        errorMessage: {
+            color: isDark ? '#ff8a80' : '#d32f2f',
+            fontSize: 14,
+        },
+        modelInfoText: {
+            fontSize: 13,
+            color: isDark ? '#888' : '#777',
+            fontStyle: 'italic',
+            marginTop: 2,
         },
     }), [isDark]);
 
-    // Helper function to render API key input section
+    // Helper function to render API key input section with model name input
     const renderApiSection = (
-        title: string, 
-        value: string, 
-        onChangeText: (text: string) => void,
+        title: string,
+        icon: string,
+        keyValue: string,
+        onChangeKey: (text: string) => void,
+        modelValue: string,
+        onChangeModel: (text: string) => void,
         onVerify: () => void,
         loading: boolean,
         status: boolean | null,
-        info: string
+        error: string | null,
+        info: string,
+        modelInfo: string,
+        defaultModel: string
     ) => (
         <View style={themedStyles.section}>
-            <Text style={themedStyles.label}>{title}</Text>
-            <TextInput
-                style={themedStyles.input}
-                placeholder={`Enter your ${title}`}
-                placeholderTextColor={isDark ? '#888' : '#666'}
-                value={value}
-                onChangeText={onChangeText}
-                secureTextEntry
-            />
+            <View style={themedStyles.sectionHeader}>
+                <MaterialIcons 
+                    name={icon as any} 
+                    size={22} 
+                    color={isDark ? '#4a90e2' : '#2196F3'} 
+                    style={themedStyles.sectionIcon} 
+                />
+                <Text style={themedStyles.label}>{title}</Text>
+            </View>
+            
             <Text style={themedStyles.infoText}>{info}</Text>
+            
+            <View style={themedStyles.inputGroup}>
+                <Text style={themedStyles.inputLabel}>API Key</Text>
+                <TextInput
+                    style={themedStyles.input}
+                    placeholder="Enter your API key"
+                    placeholderTextColor={isDark ? '#888' : '#aaa'}
+                    value={keyValue}
+                    onChangeText={onChangeKey}
+                    secureTextEntry
+                />
+            </View>
+            
+            <View style={themedStyles.inputGroup}>
+                <Text style={themedStyles.inputLabel}>Model Name</Text>
+                <TextInput
+                    style={themedStyles.input}
+                    placeholder={`Default: ${defaultModel}`}
+                    placeholderTextColor={isDark ? '#888' : '#aaa'}
+                    value={modelValue}
+                    onChangeText={onChangeModel}
+                />
+                <Text style={themedStyles.modelInfoText}>{modelInfo}</Text>
+            </View>
+            
+            {error && (
+                <View style={themedStyles.errorContainer}>
+                    <Text style={themedStyles.errorMessage}>{error}</Text>
+                </View>
+            )}
             
             <TouchableOpacity 
                 style={themedStyles.verifyButton} 
@@ -333,17 +502,20 @@ const APISettings = () => {
             </TouchableOpacity>
             
             {status !== null && (
-                <View style={themedStyles.statusContainer}>
+                <View style={[
+                    themedStyles.statusContainer,
+                    status ? { backgroundColor: isDark ? 'rgba(76,175,80,0.1)' : 'rgba(76,175,80,0.05)' } : {}
+                ]}>
                     <Ionicons 
                         name={status ? "checkmark-circle" : "close-circle"} 
-                        size={18} 
+                        size={20} 
                         color={status ? "#4CAF50" : "#F44336"} 
                     />
                     <Text style={[
                         themedStyles.statusText, 
                         status ? themedStyles.successText : themedStyles.errorText
                     ]}>
-                        {status ? "API key is valid" : "API key is invalid"}
+                        {status ? `${title} verified successfully` : `Verification failed`}
                     </Text>
                 </View>
             )}
@@ -361,69 +533,99 @@ const APISettings = () => {
                 </View>
             </View>
             <View style={themedStyles.separator} />
-            <ScrollView 
-                style={themedStyles.content}
-                showsVerticalScrollIndicator={true}
-                indicatorStyle={isDark ? "white" : "black"}
-            > 
-                {renderApiSection(
-                    "OpenAI API Key", 
-                    openaiKey, 
-                    setOpenaiKey, 
-                    verifyOpenAI, 
-                    openaiLoading, 
-                    openaiStatus,
-                    "Your API key is stored securely and used only for making requests to OpenAI's services."
-                )}
-                
-                <View style={themedStyles.separator} />
-                
-                {renderApiSection(
-                    "Google AI API Key", 
-                    googleKey, 
-                    setGoogleKey, 
-                    verifyGoogle, 
-                    googleLoading, 
-                    googleStatus,
-                    "Required for accessing Google's Gemini models."
-                )}
-                
-                <View style={themedStyles.separator} />
-                
-                {renderApiSection(
-                    "Anthropic API Key", 
-                    anthropicKey, 
-                    setAnthropicKey, 
-                    verifyAnthropic, 
-                    anthropicLoading, 
-                    anthropicStatus,
-                    "Required for accessing Anthropic's Claude models."
-                )}
-                
-                <View style={themedStyles.separator} />
-                
-                {renderApiSection(
-                    "OpenRouter API Key", 
-                    openrouterKey, 
-                    setOpenrouterKey, 
-                    verifyOpenRouter, 
-                    openrouterLoading, 
-                    openrouterStatus,
-                    "OpenRouter provides access to multiple AI models through a single API."
-                )}
-                
-                <View style={themedStyles.separator} />
-                
-                {renderApiSection(
-                    "Groq API Key", 
-                    groqKey, 
-                    setGroqKey, 
-                    verifyGroq, 
-                    groqLoading, 
-                    groqStatus,
-                    "Required for accessing Groq's fast inference API."
-                )}
-            </ScrollView>
+            
+            <KeyboardAvoidingView 
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={{ flex: 1 }}
+            >
+                <ScrollView 
+                    style={themedStyles.content}
+                    showsVerticalScrollIndicator={true}
+                    indicatorStyle={isDark ? "white" : "black"}
+                > 
+                    {renderApiSection(
+                        "OpenAI",
+                        "bolt",
+                        openaiKey, 
+                        setOpenaiKey,
+                        openaiModel,
+                        setOpenaiModel,
+                        verifyOpenAI, 
+                        openaiLoading, 
+                        openaiStatus,
+                        openaiError,
+                        "Your API key is stored securely and used only for making requests to OpenAI's services.",
+                        "Examples: gpt-3.5-turbo, gpt-4-turbo, gpt-4o",
+                        DEFAULT_MODELS.openai
+                    )}
+                    
+                    {renderApiSection(
+                        "Google AI",
+                        "cloud", 
+                        googleKey, 
+                        setGoogleKey,
+                        googleModel,
+                        setGoogleModel,
+                        verifyGoogle, 
+                        googleLoading, 
+                        googleStatus,
+                        googleError,
+                        "Required for accessing Google's Gemini models.",
+                        "Examples: gemini-1.5-flash, gemini-1.5-pro",
+                        DEFAULT_MODELS.google
+                    )}
+                    
+                    {renderApiSection(
+                        "Anthropic",
+                        "psychology", 
+                        anthropicKey, 
+                        setAnthropicKey,
+                        anthropicModel,
+                        setAnthropicModel,
+                        verifyAnthropic, 
+                        anthropicLoading, 
+                        anthropicStatus,
+                        anthropicError,
+                        "Required for accessing Anthropic's Claude models.",
+                        "Examples: claude-3-opus-20240229, claude-3-sonnet-20240229",
+                        DEFAULT_MODELS.anthropic
+                    )}
+                    
+                    {renderApiSection(
+                        "OpenRouter",
+                        "router", 
+                        openrouterKey, 
+                        setOpenrouterKey,
+                        openrouterModel,
+                        setOpenrouterModel,
+                        verifyOpenRouter, 
+                        openrouterLoading, 
+                        openrouterStatus,
+                        openrouterError,
+                        "OpenRouter provides access to multiple AI models through a single API.",
+                        "Examples: openai/gpt-3.5-turbo, anthropic/claude-3-opus",
+                        DEFAULT_MODELS.openrouter
+                    )}
+                    
+                    {renderApiSection(
+                        "Groq",
+                        "speed", 
+                        groqKey, 
+                        setGroqKey,
+                        groqModel,
+                        setGroqModel,
+                        verifyGroq, 
+                        groqLoading, 
+                        groqStatus,
+                        groqError,
+                        "Required for accessing Groq's fast inference API.",
+                        "Examples: llama3-8b-8192, llama3-70b-8192, mixtral-8x7b-32768",
+                        DEFAULT_MODELS.groq
+                    )}
+                    
+                    <View style={{ height: 40 }} />
+                </ScrollView>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 };

@@ -26,16 +26,33 @@ export const testOpenAIKey = async (apiKey: string, modelName = "gpt-3.5-turbo")
                 data: data
             };
         } else {
+            // Extract more detailed error information
+            const errorMessage = data.error?.message || "Invalid OpenAI API key";
+            const errorType = data.error?.type || "unknown_error";
+            const errorCode = data.error?.code || null;
+            
+            // Format a more user-friendly error message
+            let formattedError = errorMessage;
+            
+            // Handle common error cases
+            if (errorType === "invalid_request_error" && errorMessage.includes("model")) {
+                formattedError = `Model '${modelName}' not found or not available. Please check the model name.`;
+            } else if (errorType === "authentication_error") {
+                formattedError = "Invalid API key or insufficient permissions.";
+            }
+            
             return {
                 success: false,
-                message: data.error?.message || "Invalid OpenAI API key",
-                error: data.error
+                message: formattedError,
+                error: data.error,
+                errorType,
+                errorCode
             };
         }
     } catch (error: any) {
         return {
             success: false,
-            message: "Error testing OpenAI API key",
+            message: "Network error. Please check your internet connection.",
             error: error.message
         };
     }
@@ -64,16 +81,35 @@ export const testGoogleAIKey = async (apiKey: string, modelName = "gemini-1.5-fl
                 data: data
             };
         } else {
+            // Extract more detailed error information
+            const errorMessage = data.error?.message || "Invalid Google AI API key";
+            const errorStatus = data.error?.status || "unknown_error";
+            const errorCode = data.error?.code || null;
+            
+            // Format a more user-friendly error message
+            let formattedError = errorMessage;
+            
+            // Handle common error cases
+            if (errorStatus === "NOT_FOUND") {
+                formattedError = `Model '${modelName}' not found. Please check the model name.`;
+            } else if (errorStatus === "PERMISSION_DENIED" || errorCode === 403) {
+                formattedError = "Invalid API key or insufficient permissions.";
+            } else if (errorStatus === "INVALID_ARGUMENT") {
+                formattedError = "Invalid request format. Please check your model name.";
+            }
+            
             return {
                 success: false,
-                message: data.error?.message || "Invalid Google AI API key",
-                error: data.error
+                message: formattedError,
+                error: data.error,
+                errorStatus,
+                errorCode
             };
         }
     } catch (error: any) {
         return {
             success: false,
-            message: "Error testing Google AI API key",
+            message: "Network error. Please check your internet connection.",
             error: error.message
         };
     }
@@ -106,16 +142,31 @@ export const testAnthropicKey = async (apiKey: string, modelName = "claude-3-opu
                 data: data
             };
         } else {
+            // Extract more detailed error information
+            const errorMessage = data.error?.message || "Invalid Anthropic API key";
+            const errorType = data.error?.type || "unknown_error";
+            
+            // Format a more user-friendly error message
+            let formattedError = errorMessage;
+            
+            // Handle common error cases
+            if (errorType === "authentication_error") {
+                formattedError = "Invalid API key or insufficient permissions.";
+            } else if (errorType === "invalid_request_error" && errorMessage.includes("model")) {
+                formattedError = `Model '${modelName}' not found or not available. Please check the model name.`;
+            }
+            
             return {
                 success: false,
-                message: data.error?.message || "Invalid Anthropic API key",
-                error: data.error
+                message: formattedError,
+                error: data.error,
+                errorType
             };
         }
     } catch (error: any) {
         return {
             success: false,
-            message: "Error testing Anthropic API key",
+            message: "Network error. Please check your internet connection.",
             error: error.message
         };
     }
@@ -129,7 +180,7 @@ export const testOpenRouterKey = async (apiKey: string, modelName = "openai/gpt-
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}`,
-                'HTTP-Referer': 'https://your-app-domain.com' // Required by OpenRouter
+                'HTTP-Referer': 'https://ai-thub.app' // Updated to match your app
             },
             body: JSON.stringify({
                 model: modelName,
@@ -148,16 +199,31 @@ export const testOpenRouterKey = async (apiKey: string, modelName = "openai/gpt-
                 data: data
             };
         } else {
+            // Extract more detailed error information
+            const errorMessage = data.error?.message || "Invalid OpenRouter API key";
+            const errorType = data.error?.type || "unknown_error";
+            
+            // Format a more user-friendly error message
+            let formattedError = errorMessage;
+            
+            // Handle common error cases
+            if (errorType === "authentication_error") {
+                formattedError = "Invalid API key or insufficient permissions.";
+            } else if (errorMessage.includes("model")) {
+                formattedError = `Model '${modelName}' not found or not available. Please check the model name.`;
+            }
+            
             return {
                 success: false,
-                message: data.error?.message || "Invalid OpenRouter API key",
-                error: data.error
+                message: formattedError,
+                error: data.error,
+                errorType
             };
         }
     } catch (error: any) {
         return {
             success: false,
-            message: "Error testing OpenRouter API key",
+            message: "Network error. Please check your internet connection.",
             error: error.message
         };
     }
@@ -189,16 +255,31 @@ export const testGroqKey = async (apiKey: string, modelName = "llama3-8b-8192") 
                 data: data
             };
         } else {
+            // Extract more detailed error information
+            const errorMessage = data.error?.message || "Invalid Groq API key";
+            const errorType = data.error?.type || "unknown_error";
+            
+            // Format a more user-friendly error message
+            let formattedError = errorMessage;
+            
+            // Handle common error cases
+            if (errorType === "authentication_error") {
+                formattedError = "Invalid API key or insufficient permissions.";
+            } else if (errorMessage.includes("model")) {
+                formattedError = `Model '${modelName}' not found or not available. Please check the model name.`;
+            }
+            
             return {
                 success: false,
-                message: data.error?.message || "Invalid Groq API key",
-                error: data.error
+                message: formattedError,
+                error: data.error,
+                errorType
             };
         }
     } catch (error: any) {
         return {
             success: false,
-            message: "Error testing Groq API key",
+            message: "Network error. Please check your internet connection.",
             error: error.message
         };
     }
