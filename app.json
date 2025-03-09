@@ -32,13 +32,7 @@
       "softwareKeyboardLayoutMode": "pan",
       "permissions": [
         "android.permission.SYSTEM_ALERT_WINDOW"
-      ],
-      "buildType": "apk",
-      "enableProguardInReleaseBuilds": false,
-      "enableHermes": true,
-      "splash": {
-        "backgroundColor": "#ffffff"
-      }
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -57,15 +51,16 @@
         "origin": false
       },
       "eas": {
-        "projectId": "57314dbd-cc23-4487-8dbb-4fcaa1a3ae45"
+        "projectId": "f14cdf6c-881b-499b-9951-1c14f0b25548"
       }
     },
     "experiments": {
       "typedRoutes": true
     },
     "runtimeVersion": "1.0.0",
+    "owner": "rehanalam7036",
     "updates": {
-      "url": "https://u.expo.dev/57314dbd-cc23-4487-8dbb-4fcaa1a3ae45"
+      "url": "https://u.expo.dev/f14cdf6c-881b-499b-9951-1c14f0b25548"
     }
   }
 }
