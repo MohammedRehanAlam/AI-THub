@@ -6,6 +6,11 @@ import { Platform, Alert } from 'react-native';
  */
 export async function checkForUpdates(): Promise<boolean> {
   try {
+    // Skip in development
+    if (__DEV__) {
+      return false;
+    }
+    
     const update = await Updates.checkForUpdateAsync();
     return update.isAvailable;
   } catch (error) {
@@ -101,9 +106,13 @@ export async function checkAndInstallUpdates(silent: boolean = false): Promise<v
  */
 export function initializeUpdates(): void {
   if (!__DEV__) {
-    console.log('Updates module initialized');
-    
-    // For expo-updates 0.27.x, we don't need to add event listeners
-    // as the update checking is handled differently
+    try {
+      console.log('Updates module initialized');
+      
+      // For expo-updates 0.27.x, we don't need to add event listeners
+      // as the update checking is handled differently
+    } catch (error) {
+      console.error('Error initializing updates:', error);
+    }
   }
 } 

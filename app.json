@@ -57,10 +57,15 @@
     "experiments": {
       "typedRoutes": true
     },
-    "runtimeVersion": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "owner": "rehanalam7036",
     "updates": {
-      "url": "https://u.expo.dev/f14cdf6c-881b-499b-9951-1c14f0b25548"
+      "url": "https://u.expo.dev/f14cdf6c-881b-499b-9951-1c14f0b25548",
+      "enabled": true,
+      "fallbackToCacheTimeout": 0,
+      "checkAutomatically": "ON_LOAD"
     }
   }
 }

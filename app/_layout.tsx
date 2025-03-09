@@ -78,7 +78,7 @@ function RootLayoutNav() {
           RNStatusBar.setHidden(true);
           RNStatusBar.setBarStyle(currentColorScheme === 'dark' ? 'light-content' : 'dark-content');
           
-          // Configure navigation bar
+          // Configure navigation bar using expo-navigation-bar
           await NavigationBar.setBackgroundColorAsync('transparent');
           await NavigationBar.setVisibilityAsync('hidden');
           await NavigationBar.setBehaviorAsync('overlay-swipe');

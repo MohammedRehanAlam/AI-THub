@@ -1,5 +1,5 @@
 {
-  "name": "ai-thub",
+  "name": "private-aithub-app-2025",
   "displayName": "AI THub",
   "main": "expo-router/entry",
   "version": "1.0.0",
@@ -28,19 +28,17 @@
     "@expo/vector-icons": "^14.0.2",
     "@google/generative-ai": "^0.21.0",
     "@react-native-async-storage/async-storage": "1.23.1",
-    "@react-native-community/masked-view": "^0.1.11",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/drawer": "^7.1.1",
     "@react-navigation/native": "^7.0.14",
     "@react-navigation/native-stack": "^7.2.0",
     "@react-navigation/stack": "^7.1.2",
-    "ai-thub": "file:",
+    "aithub-mobile-app": "file:",
     "axios": "^1.8.2",
     "expo": "~52.0.37",
     "expo-blur": "~14.0.3",
     "expo-constants": "~17.0.7",
     "expo-dev-client": "~5.0.12",
-    "expo-dev-launcher": "^5.0.29",
     "expo-font": "~13.0.4",
     "expo-haptics": "~14.0.1",
     "expo-linear-gradient": "~14.0.2",
@@ -52,18 +50,14 @@
     "expo-symbols": "~0.2.2",
     "expo-system-ui": "~4.0.8",
     "expo-updates": "~0.27.1",
-    "expo-updates-interface": "^1.0.0",
     "expo-web-browser": "~14.0.2",
-    "metro": "^0.81.0",
-    "metro-react-native-babel-preset": "^0.77.0",
+    "private-aithub-app-2025": "file:",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.7",
-    "react-native-async-storage": "^0.0.1",
     "react-native-dotenv": "^3.4.11",
     "react-native-dropdown-picker": "^5.4.6",
     "react-native-gesture-handler": "~2.20.2",
-    "react-native-navigation-bar-color": "^2.0.2",
     "react-native-reanimated": "~3.16.1",
     "react-native-safe-area-context": "4.12.0",
     "react-native-screens": "~4.4.0",
@@ -78,8 +72,6 @@
     "@types/jest": "^29.5.14",
     "@types/react": "~18.3.12",
     "@types/react-dom": "~18.3.1",
-    "@types/react-native": "^0.72.8",
-    "@types/react-test-renderer": "^18.3.1",
     "babel-plugin-module-resolver": "^5.0.2",
     "eslint": "^8.57.1",
     "eslint-config-expo": "~8.0.1",
@@ -88,6 +80,18 @@
     "jest-expo": "^52.0.0",
     "react-test-renderer": "18.3.1",
     "typescript": "^5.3.3"
+  },
+  "expo": {
+    "doctor": {
+      "skipPackageNameCheck": true,
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "@babel/runtime",
+          "@google/generative-ai"
+        ],
+        "listUnknownPackages": false
+      }
+    }
   },
   "private": true
 }
