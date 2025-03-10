@@ -27,7 +27,7 @@ const PROVIDER_INFO = {
   },
   openrouter: { 
     name: 'OpenRouter', 
-    icon: () => <OpenRouterLogo width={20} height={20} fill="#4361ee" /> 
+    icon: () => <OpenRouterLogo width={20} height={20} useThemeColor={true} /> 
   },
   groq: { 
     name: 'Groq', 
@@ -245,7 +245,7 @@ export default function HomePage() {
                   {selectedProvider === 'openai' && <OpenAILogo width={20} height={20} useThemeColor={true} />}
                   {selectedProvider === 'google' && <GeminiLogo width={20} height={20} />}
                   {selectedProvider === 'anthropic' && <AnthropicLogo width={20} height={20} fill="#d97757" />}
-                  {selectedProvider === 'openrouter' && <OpenRouterLogo width={20} height={20} fill="#4361ee" />}
+                  {selectedProvider === 'openrouter' && <OpenRouterLogo width={20} height={20} useThemeColor={true} />}
                   {selectedProvider === 'groq' && <GroqLogo width={20} height={20} fill="#ffffff" />}
                   <Text style={themedStyles.providerText}>
                     {PROVIDER_INFO[selectedProvider].name}
@@ -295,7 +295,7 @@ export default function HomePage() {
                       {item === 'openai' && <OpenAILogo width={20} height={20} useThemeColor={true} />}
                       {item === 'google' && <GeminiLogo width={20} height={20} />}
                       {item === 'anthropic' && <AnthropicLogo width={20} height={20} fill="#d97757" />}
-                      {item === 'openrouter' && <OpenRouterLogo width={20} height={20} fill="#4361ee" />}
+                      {item === 'openrouter' && <OpenRouterLogo width={20} height={20} useThemeColor={true} />}
                       {item === 'groq' && <GroqLogo width={20} height={20} fill="#ffffff" />}
                       <Text style={themedStyles.dropdownItemText}>
                         {PROVIDER_INFO[item].name}

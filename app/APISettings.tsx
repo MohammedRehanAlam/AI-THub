@@ -959,7 +959,7 @@ const APISettings = () => {
                                                 {providerType === 'openai' && <OpenAILogo width={20} height={20} useThemeColor={true} />}
                                                 {providerType === 'google' && <GeminiLogo width={20} height={20} />}
                                                 {providerType === 'anthropic' && <AnthropicLogo width={20} height={20} fill="#d97757" />}
-                                                {providerType === 'openrouter' && <OpenRouterLogo width={20} height={20} fill="#4361ee" />}
+                                                {providerType === 'openrouter' && <OpenRouterLogo width={20} height={20} useThemeColor={true} />}
                                                 {providerType === 'groq' && <GroqLogo width={20} height={20} fill="#ffffff" />}
                                             </View>
                                             <Text style={themedStyles.activeProviderName}>
@@ -1042,7 +1042,7 @@ const APISettings = () => {
                     
                     {renderApiSection(
                         "OpenRouter",
-                        <OpenRouterLogo width={24} height={24} fill="#4361ee" />,
+                        <OpenRouterLogo width={24} height={24} useThemeColor={true} />,
                         openrouterKey, 
                         setOpenrouterKey,
                         openrouterModel,
