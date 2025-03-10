@@ -61,16 +61,32 @@ export const testOpenAIKey = async (apiKey: string, modelName = "gpt-3.5-turbo")
 // Google AI (Gemini) API Key Testing
 export const testGoogleAIKey = async (apiKey: string, modelName = "gemini-1.5-flash") => {
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}/generateContent?key=${apiKey}`, {
+        // Add timeout to prevent long-hanging requests
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: "Hello, this is a test message." }] }]
-            })
+                contents: [
+                    {
+                        parts: [
+                            { text: "Hello, this is a test message." }
+                        ]
+                    }
+                ],
+                generationConfig: {
+                    maxOutputTokens: 10
+                }
+            }),
+            signal: controller.signal
         });
 
+        clearTimeout(timeoutId);
+        
         const data = await response.json();
 
         if (response.status === 200) {
@@ -107,6 +123,15 @@ export const testGoogleAIKey = async (apiKey: string, modelName = "gemini-1.5-fl
             };
         }
     } catch (error: any) {
+        // Provide more specific error message for timeout
+        if (error.name === 'AbortError') {
+            return {
+                success: false,
+                message: "Request timed out. The API may be experiencing issues.",
+                error: error.message
+            };
+        }
+        
         return {
             success: false,
             message: "Network error. Please check your internet connection.",
