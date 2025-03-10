@@ -28,10 +28,6 @@ export default function HomePage() {
     { id: 5, route: '/tools/ComingSoon', title: 'Coming Soon' },
     { id: 6, route: '/tools/ComingSoon', title: 'Coming Soon' },
     { id: 7, route: '/tools/ComingSoon', title: 'Coming Soon' },
-    { id: 8, route: '/tools/ComingSoon', title: 'Coming Soon' },
-    { id: 9, route: '/tools/ComingSoon', title: 'Coming Soon' },
-    { id: 10, route: '/tools/ComingSoon', title: 'Coming Soon' },
-    { id: 11, route: '/tools/ComingSoon', title: 'Coming Soon' },
   ];
 
   const isDark = currentTheme === 'dark';
