@@ -3,7 +3,7 @@ import { DrawerNavigationProp } from '@react-navigation/drawer';
 declare module './HomeScreen';
 declare module './Settings';
 declare module './APISettings';
-declare module './About'; 
+declare module './About';
 
 declare module './tools/Box1';
 declare module './tools/Box2';

@@ -23,7 +23,7 @@ const COLORS = {
     primary: '#007AFF',
     border: 'rgba(150,150,150,0.2)',
     inactive: '#999999',
-    overlay: 'rgba(0, 0, 0, 0.5)',
+    overlay: 'rgba(0, 0, 0, 0.1)',
   },
   dark: {
     background: '#1a1a1a',
@@ -34,7 +34,7 @@ const COLORS = {
     primary: '#007AFF',
     border: 'rgba(150,150,150,0.2)',
     inactive: '#444444',
-    overlay: 'rgba(0, 0, 0, 0.5)',
+    overlay: 'rgba(0, 0, 0, 0.1)',
   }
 };
 
@@ -97,7 +97,7 @@ const createStyles = (isDark: boolean) => {
       opacity: 0.3,
     },
     logo: {
-      fontSize: 20,
+      fontSize: 24,
       fontWeight: 'bold',
       color: colors.text,
     },
@@ -321,10 +321,15 @@ export default function Box1() {
   const [shouldAnimateScroll, setShouldAnimateScroll] = useState(true);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [isAlertVisible, setAlertVisible] = useState(false);
+  const [lastUser1ClickTime, setLastUser1ClickTime] = useState<number>(0);
+  const [lastUser2ClickTime, setLastUser2ClickTime] = useState<number>(0);
+  const [isSourceLanguageSelectorOpen, setIsSourceLanguageSelectorOpen] = useState<boolean>(false);
+  const [isTargetLanguageSelectorOpen, setIsTargetLanguageSelectorOpen] = useState<boolean>(false);
 
   const RATE_LIMIT_DELAY = 1000;
   const MAX_RETRIES = 3;
   const RETRY_DELAY = 1000;
+  const DOUBLE_CLICK_DELAY = 300;
 
   useEffect(() => {
     const loadSavedData = async () => {
@@ -585,6 +590,8 @@ export default function Box1() {
               onSelect={(lang: Language) => setSourceLanguage(lang)}
               languages={LANGUAGES}
               isDark={isDark}
+              isOpen={isSourceLanguageSelectorOpen}
+              onClose={() => setIsSourceLanguageSelectorOpen(false)}
             />
           </View>
           <TouchableOpacity
@@ -602,6 +609,8 @@ export default function Box1() {
               onSelect={(lang: Language) => setTargetLanguage(lang)}
               languages={LANGUAGES}
               isDark={isDark}
+              isOpen={isTargetLanguageSelectorOpen}
+              onClose={() => setIsTargetLanguageSelectorOpen(false)}
             />
           </View>
         </View>
@@ -667,7 +676,15 @@ export default function Box1() {
               styles.userButton,
               activeUser === 1 && styles.activeUserButton,
             ]}
-            onPress={() => setActiveUser(1)}
+            onPress={() => {
+              const now = new Date().getTime();
+              if (now - lastUser1ClickTime < DOUBLE_CLICK_DELAY) {
+                setIsSourceLanguageSelectorOpen(true);
+              } else {
+                setActiveUser(1);
+              }
+              setLastUser1ClickTime(now);
+            }}
           >
             <View style={[
               styles.userLanguageLegend,
@@ -685,7 +702,15 @@ export default function Box1() {
               styles.userButton,
               activeUser === 2 && styles.activeUserButton,
             ]}
-            onPress={() => setActiveUser(2)}
+            onPress={() => {
+              const now = new Date().getTime();
+              if (now - lastUser2ClickTime < DOUBLE_CLICK_DELAY) {
+                setIsTargetLanguageSelectorOpen(true);
+              } else {
+                setActiveUser(2);
+              }
+              setLastUser2ClickTime(now);
+            }}
           >
             <View style={[
               styles.userLanguageLegend,

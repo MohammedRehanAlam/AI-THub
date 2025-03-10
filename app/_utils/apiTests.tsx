@@ -308,4 +308,9 @@ export const testGroqKey = async (apiKey: string, modelName = "llama3-8b-8192") 
             error: error.message
         };
     }
-}; 
+};
+
+// Add a default export to satisfy Expo Router's requirements
+export default function ApiTests() {
+  return null;
+} 

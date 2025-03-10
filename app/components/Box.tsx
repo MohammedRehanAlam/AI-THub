@@ -40,13 +40,13 @@ export function Box({ isDark, onPress, title }: BoxProps) {
   const styles = StyleSheet.create({
     box: {
       width: boxWidth,
-      height: 250,
+      height: 230,
       borderRadius: 20,
       justifyContent: 'space-between',
       alignItems: 'center',
       marginVertical: 8,
       borderWidth: 2,
-      borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+      borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
       marginHorizontal: numColumns === 1 ? 0 : GAP / 2,
       padding: 20,
       backgroundColor: isDark ? '#2d2d2d' : '#f8f9fa',

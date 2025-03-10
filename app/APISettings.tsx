@@ -5,7 +5,7 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { testOpenAIKey, testGoogleAIKey, testAnthropicKey, testOpenRouterKey, testGroqKey } from './utils/apiTests';
+import { testOpenAIKey, testGoogleAIKey, testAnthropicKey, testOpenRouterKey, testGroqKey } from './_utils/apiTests';
 
 // Default model names for each provider
 const DEFAULT_MODELS = {

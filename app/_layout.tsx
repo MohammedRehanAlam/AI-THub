@@ -8,7 +8,7 @@ import { useFonts } from 'expo-font';
 import { ThemeProvider as CustomThemeProvider } from './context/ThemeContext';
 import * as SplashScreen from 'expo-splash-screen';
 import * as NavigationBar from 'expo-navigation-bar';
-import { initializeUpdates, checkAndInstallUpdates } from './utils/updateUtils';
+import { initializeUpdates, checkAndInstallUpdates } from './_utils/updateUtils';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 export { ErrorBoundary } from 'expo-router';
@@ -130,14 +130,14 @@ function RootLayoutNav() {
         <Stack screenOptions={customScreenOptions as any}>
           {/* only path is enough as i have made custom headers */}
           <Stack.Screen name="index" />
+          <Stack.Screen name="Settings" />
+          <Stack.Screen name="APISettings" />
+          <Stack.Screen name="About" />
+          
           <Stack.Screen name="tools/Box1" />
           <Stack.Screen name="tools/Box2" />
           <Stack.Screen name="tools/Box3" />
           <Stack.Screen name="tools/ComingSoon" />
-          <Stack.Screen name="Settings" />
-          <Stack.Screen name="APISettings" />
-          <Stack.Screen name="About" />
-          <Stack.Screen name="components/TranslatorApp" />
         </Stack>
       </ThemeProvider>
     </CustomThemeProvider>

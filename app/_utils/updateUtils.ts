@@ -115,4 +115,9 @@ export function initializeUpdates(): void {
       console.error('Error initializing updates:', error);
     }
   }
+}
+
+// Add a default export to satisfy Expo Router's requirements
+export default function UpdateUtils() {
+  return null;
 } 

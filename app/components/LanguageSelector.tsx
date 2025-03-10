@@ -8,6 +8,8 @@ interface LanguageSelectorProps {
   onSelect: (language: Language) => void;
   languages: Language[];
   isDark: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({
@@ -15,12 +17,30 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   onSelect,
   languages = LANGUAGES,
   isDark,
+  isOpen = false,
+  onClose,
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const searchInputRef = useRef<TextInput>(null);
   const flatListRef = useRef<FlatList>(null);
+
+  // Handle external control of modal visibility
+  React.useEffect(() => {
+    if (isOpen) {
+      setModalVisible(true);
+    }
+  }, [isOpen]);
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    setSearchQuery('');
+    setSelectedIndex(-1);
+    if (onClose) {
+      onClose();
+    }
+  };
 
   const filteredLanguages = (languages || []).filter(lang =>
     lang.toLowerCase().includes(searchQuery.toLowerCase())
@@ -43,9 +63,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
 
   const handleLanguageSelect = (language: Language) => {
     onSelect(language);
-    setModalVisible(false);
-    setSearchQuery('');
-    setSelectedIndex(-1);
+    handleCloseModal();
     Keyboard.dismiss();
   };
 
@@ -73,7 +91,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         visible={modalVisible}
         transparent={true}
         animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={handleCloseModal}
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: isDark ? '#1a1a1a' : '#ffffff' }]}>
@@ -81,7 +99,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
               <Text style={[styles.modalTitle, { color: isDark ? '#fff' : '#000' }]}>
                 Select Language
               </Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <TouchableOpacity onPress={handleCloseModal}>
                 <Ionicons name="close" size={24} color={isDark ? '#fff' : '#000'} />
               </TouchableOpacity>
             </View>
@@ -207,7 +225,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
   },
