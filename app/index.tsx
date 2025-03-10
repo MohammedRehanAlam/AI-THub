@@ -1,15 +1,63 @@
-import React, { useMemo, useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from './context/ThemeContext';
+import { useProviders, ProviderType } from './context/ProviderContext';
 import { Box } from './components/Box';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Import SVG logos as React components
+import { OpenAILogo, GeminiLogo, AnthropicLogo, OpenRouterLogo, GroqLogo } from './components/LogoIcons';
+
+// Provider display names and icons mapping
+const PROVIDER_INFO = {
+  openai: { name: 'OpenAI', icon: () => <OpenAILogo width={20} height={20} /> },
+  google: { name: 'Google AI', icon: () => <GeminiLogo width={20} height={20} /> },
+  anthropic: { name: 'Anthropic', icon: () => <AnthropicLogo width={20} height={20} /> },
+  openrouter: { name: 'OpenRouter', icon: () => <OpenRouterLogo width={20} height={20} /> },
+  groq: { name: 'Groq', icon: () => <GroqLogo width={20} height={20} /> }
+};
 
 export default function HomePage() {
   const { currentTheme } = useTheme();
   const [isSettingsOpen] = useState(false);
+  const { activeProviders, isProviderActive } = useProviders();
+  const [selectedProvider, setSelectedProvider] = useState<ProviderType | null>(null);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [activeProvidersList, setActiveProvidersList] = useState<ProviderType[]>([]);
   const router = useRouter();
+  
+  // Load active providers and set default selected provider
+  useEffect(() => {
+    const loadActiveProviders = async () => {
+      try {
+        // Get list of active providers
+        const activeProvs = Object.entries(activeProviders)
+          .filter(([_, isActive]) => isActive)
+          .map(([provider]) => provider as ProviderType);
+        
+        setActiveProvidersList(activeProvs);
+        
+        // Set the first active provider as selected, or null if none are active
+        if (activeProvs.length > 0 && !selectedProvider) {
+          setSelectedProvider(activeProvs[0]);
+        }
+        
+        // If the currently selected provider is no longer active, select the first active one
+        if (selectedProvider && !activeProviders[selectedProvider] && activeProvs.length > 0) {
+          setSelectedProvider(activeProvs[0]);
+        } else if (activeProvs.length === 0) {
+          setSelectedProvider(null);
+        }
+      } catch (error) {
+        console.error('Error loading active providers:', error);
+      }
+    };
+    
+    loadActiveProviders();
+  }, [activeProviders, selectedProvider]);
   
   // Individual boxes for better control over position and properties
   type BoxRoute = '/tools/Box1' | '/tools/Box2' | '/tools/Box3' | '/tools/ComingSoon';
@@ -54,6 +102,13 @@ export default function HomePage() {
       alignItems: 'center',
       gap: 12,
     },
+    headerRight: {
+      position: 'absolute',
+      right: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
     toggleButton: {
       padding: 4,
     },
@@ -61,6 +116,59 @@ export default function HomePage() {
       fontSize: 24,
       fontWeight: 'bold',
       color: isDark ? '#fff' : '#000',
+    },
+    providerSelector: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: isDark ? '#333' : '#f0f0f0',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+      gap: 8,
+    },
+    providerText: {
+      color: isDark ? '#fff' : '#000',
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    dropdownModal: {
+      flex: 1,
+      justifyContent: 'flex-start',
+      alignItems: 'flex-end',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    dropdownContent: {
+      marginTop: 80,
+      marginRight: 16,
+      width: 200,
+      backgroundColor: isDark ? '#333' : '#fff',
+      borderRadius: 8,
+      padding: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    dropdownItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 12,
+      borderRadius: 4,
+      gap: 8,
+    },
+    selectedItem: {
+      backgroundColor: isDark ? '#444' : '#e0e0e0',
+    },
+    dropdownItemText: {
+      color: isDark ? '#fff' : '#000',
+      fontSize: 16,
+    },
+    noProvidersText: {
+      color: isDark ? '#999' : '#666',
+      fontSize: 14,
+      padding: 12,
+      textAlign: 'center',
     },
     scrollContent: {
       flexGrow: 1,
@@ -111,7 +219,89 @@ export default function HomePage() {
             </TouchableOpacity>
             <Text style={themedStyles.logo}>AppLogo</Text>
           </View>
+          
+          <View style={themedStyles.headerRight}>
+            <TouchableOpacity 
+              style={themedStyles.providerSelector}
+              onPress={() => setDropdownVisible(true)}
+            >
+              {selectedProvider ? (
+                <>
+                  {PROVIDER_INFO[selectedProvider].icon()}
+                  <Text style={themedStyles.providerText}>
+                    {PROVIDER_INFO[selectedProvider].name}
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Ionicons name="cloud-outline" size={20} color={isDark ? '#fff' : '#000'} />
+                  <Text style={themedStyles.providerText}>
+                    {activeProvidersList.length > 0 ? 'Select Provider' : 'No Providers'}
+                  </Text>
+                </>
+              )}
+              <Ionicons name="chevron-down" size={16} color={isDark ? '#fff' : '#000'} />
+            </TouchableOpacity>
+          </View>
         </View>
+        
+        {/* Provider Selection Dropdown */}
+        <Modal
+          visible={dropdownVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setDropdownVisible(false)}
+        >
+          <TouchableOpacity 
+            style={themedStyles.dropdownModal}
+            activeOpacity={1}
+            onPress={() => setDropdownVisible(false)}
+          >
+            <View style={themedStyles.dropdownContent}>
+              {activeProvidersList.length > 0 ? (
+                <FlatList
+                  data={activeProvidersList}
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        themedStyles.dropdownItem,
+                        selectedProvider === item && themedStyles.selectedItem
+                      ]}
+                      onPress={() => {
+                        setSelectedProvider(item);
+                        setDropdownVisible(false);
+                      }}
+                    >
+                      {PROVIDER_INFO[item].icon()}
+                      <Text style={themedStyles.dropdownItemText}>
+                        {PROVIDER_INFO[item].name}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              ) : (
+                <Text style={themedStyles.noProvidersText}>
+                  No active providers. Please verify and enable providers in Settings.
+                </Text>
+              )}
+              
+              <TouchableOpacity
+                style={[themedStyles.dropdownItem]}
+                onPress={() => {
+                  router.push('/APISettings');
+                  setDropdownVisible(false);
+                }}
+              >
+                <Ionicons name="settings-outline" size={20} color={isDark ? '#fff' : '#000'} />
+                <Text style={themedStyles.dropdownItemText}>
+                  Manage Providers
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+        
         <View style={themedStyles.separator} />
         <ScrollView 
           contentContainerStyle={themedStyles.scrollContent}

@@ -579,21 +579,23 @@ const APISettings = () => {
         statusContainer: {
             flexDirection: 'row',
             alignItems: 'center',
-            marginTop: 12,
-            backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.05)',
             padding: 10,
             borderRadius: 8,
+            marginTop: 8,
+            marginBottom: 8,
         },
         statusText: {
-            marginLeft: 8,
             fontSize: 14,
-            flex: 1,
+            marginLeft: 8,
         },
         successText: {
             color: '#4CAF50',
         },
         errorText: {
             color: '#F44336',
+        },
+        warningText: {
+            color: '#FFA500',
         },
         infoText: {
             fontSize: 14,
@@ -651,6 +653,75 @@ const APISettings = () => {
         disabledText: {
             color: isDark ? '#666' : '#aaa',
         },
+        statusBadge: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 12,
+            marginRight: 8,
+            gap: 4,
+        },
+        verifiedBadge: {
+            backgroundColor: '#4CAF50',
+        },
+        limitBadge: {
+            backgroundColor: '#FFA500',
+        },
+        errorBadge: {
+            backgroundColor: '#F44336',
+        },
+        statusBadgeText: {
+            fontSize: 12,
+            fontWeight: '500',
+            color: '#fff',
+        },
+        summaryContainer: {
+            marginBottom: 24,
+            padding: 16,
+            backgroundColor: isDark ? '#252525' : '#f9f9f9',
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: isDark ? '#333' : '#eee',
+        },
+        summaryTitle: {
+            fontSize: 18,
+            fontWeight: 'bold',
+            color: isDark ? '#fff' : '#000',
+            marginBottom: 8,
+        },
+        summarySubtitle: {
+            fontSize: 14,
+            color: isDark ? '#aaa' : '#666',
+        },
+        activeProvidersList: {
+            marginTop: 12,
+            gap: 8,
+        },
+        activeProviderItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            padding: 12,
+            borderWidth: 1,
+            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+            borderRadius: 8,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+        },
+        providerIconContainer: {
+            width: 24,
+            height: 24,
+            marginRight: 8,
+        },
+        activeProviderName: {
+            flex: 1,
+            fontSize: 16,
+            color: isDark ? '#fff' : '#000',
+        },
+        noActiveProvidersText: {
+            fontSize: 14,
+            color: isDark ? '#aaa' : '#666',
+            textAlign: 'center',
+        },
     }), [isDark, activeProviders]);
 
     // Helper function to render API key input section with model name input
@@ -703,6 +774,33 @@ const APISettings = () => {
             }
         };
         
+        // Determine the status badge to display
+        const getStatusBadge = () => {
+            if (status === true) {
+                return (
+                    <View style={[themedStyles.statusBadge, themedStyles.verifiedBadge]}>
+                        <Ionicons name="checkmark-circle" size={14} color="#fff" />
+                        <Text style={themedStyles.statusBadgeText}>Verified</Text>
+                    </View>
+                );
+            } else if (status === false && isUsageLimitError && !isCredentialError) {
+                return (
+                    <View style={[themedStyles.statusBadge, themedStyles.limitBadge]}>
+                        <Ionicons name="alert-circle" size={14} color="#fff" />
+                        <Text style={themedStyles.statusBadgeText}>Usage Limit</Text>
+                    </View>
+                );
+            } else if (status === false) {
+                return (
+                    <View style={[themedStyles.statusBadge, themedStyles.errorBadge]}>
+                        <Ionicons name="close-circle" size={14} color="#fff" />
+                        <Text style={themedStyles.statusBadgeText}>Error</Text>
+                    </View>
+                );
+            }
+            return null;
+        };
+        
         return (
         <View style={themedStyles.section}>
             <View style={themedStyles.sectionHeader}>
@@ -711,6 +809,7 @@ const APISettings = () => {
                 </View>
                 <Text style={themedStyles.label}>{title}</Text>
                 <View style={{ flex: 1 }} />
+                {getStatusBadge()}
                 <View style={themedStyles.toggleContainer}>
                     <Text style={[themedStyles.toggleLabel, !isToggleEnabled && themedStyles.disabledText]}>
                         {activeProviders[providerType] ? 'Active' : 'Inactive'}
@@ -778,6 +877,35 @@ const APISettings = () => {
                 </View>
             )}
             
+            {status !== null && (
+                <View style={[
+                    themedStyles.statusContainer,
+                    status ? 
+                        { backgroundColor: isDark ? 'rgba(76,175,80,0.1)' : 'rgba(76,175,80,0.05)' } : 
+                        (isUsageLimitError ? 
+                            { backgroundColor: isDark ? 'rgba(255,165,0,0.1)' : 'rgba(255,165,0,0.05)' } : 
+                            { backgroundColor: isDark ? 'rgba(244,67,54,0.1)' : 'rgba(244,67,54,0.05)' })
+                ]}>
+                    <Ionicons 
+                        name={status ? "checkmark-circle" : (isUsageLimitError ? "alert-circle" : "close-circle")} 
+                        size={20} 
+                        color={status ? "#4CAF50" : (isUsageLimitError ? "#FFA500" : "#F44336")} 
+                    />
+                    <Text style={[
+                        themedStyles.statusText, 
+                        status ? 
+                            themedStyles.successText : 
+                            (isUsageLimitError ? themedStyles.warningText : themedStyles.errorText)
+                    ]}>
+                        {status ? 
+                            `${title} verified successfully` : 
+                            (isUsageLimitError ? 
+                                `API key is valid but has usage limits or credit issues. You can still toggle it on.` : 
+                                `Verification failed. Please check your credentials.`)}
+                    </Text>
+                </View>
+            )}
+            
             <TouchableOpacity 
                 style={themedStyles.verifyButton} 
                 onPress={onVerify}
@@ -789,25 +917,6 @@ const APISettings = () => {
                     <Text style={themedStyles.buttonText}>Verify & Save</Text>
                 )}
             </TouchableOpacity>
-            
-            {status !== null && (
-                <View style={[
-                    themedStyles.statusContainer,
-                    status ? { backgroundColor: isDark ? 'rgba(76,175,80,0.1)' : 'rgba(76,175,80,0.05)' } : {}
-                ]}>
-                    <Ionicons 
-                        name={status ? "checkmark-circle" : "close-circle"} 
-                        size={20} 
-                        color={status ? "#4CAF50" : "#F44336"} 
-                    />
-                    <Text style={[
-                        themedStyles.statusText, 
-                        status ? themedStyles.successText : themedStyles.errorText
-                    ]}>
-                        {status ? `${title} verified successfully` : `Verification failed`}
-                    </Text>
-                </View>
-            )}
         </View>
     )};
 
@@ -832,6 +941,48 @@ const APISettings = () => {
                     showsVerticalScrollIndicator={true}
                     indicatorStyle={isDark ? "white" : "black"}
                 > 
+                    {/* Active Providers Summary */}
+                    <View style={themedStyles.summaryContainer}>
+                        <Text style={themedStyles.summaryTitle}>Active Providers</Text>
+                        <Text style={themedStyles.summarySubtitle}>
+                            These providers will be available for selection in the app
+                        </Text>
+                        
+                        <View style={themedStyles.activeProvidersList}>
+                            {Object.entries(activeProviders).some(([_, isActive]) => isActive) ? (
+                                Object.entries(activeProviders).map(([provider, isActive]) => {
+                                    if (!isActive) return null;
+                                    const providerType = provider as ProviderType;
+                                    return (
+                                        <View key={provider} style={themedStyles.activeProviderItem}>
+                                            <View style={themedStyles.providerIconContainer}>
+                                                {providerType === 'openai' && <OpenAILogo width={20} height={20} fill={isDark ? "#ececec" : "#0d0d0d"} />}
+                                                {providerType === 'google' && <GeminiLogo width={20} height={20} />}
+                                                {providerType === 'anthropic' && <AnthropicLogo width={20} height={20} />}
+                                                {providerType === 'openrouter' && <OpenRouterLogo width={20} height={20} />}
+                                                {providerType === 'groq' && <GroqLogo width={20} height={20} />}
+                                            </View>
+                                            <Text style={themedStyles.activeProviderName}>
+                                                {providerType === 'openai' && 'OpenAI'}
+                                                {providerType === 'google' && 'Google AI'}
+                                                {providerType === 'anthropic' && 'Anthropic'}
+                                                {providerType === 'openrouter' && 'OpenRouter'}
+                                                {providerType === 'groq' && 'Groq'}
+                                            </Text>
+                                            <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+                                        </View>
+                                    );
+                                })
+                            ) : (
+                                <Text style={themedStyles.noActiveProvidersText}>
+                                    No active providers. Verify and enable providers below.
+                                </Text>
+                            )}
+                        </View>
+                    </View>
+                    
+                    <View style={themedStyles.separator} />
+                    
                     {renderApiSection(
                         "OpenAI",
                         <OpenAILogo width={24} height={24} fill={isDark ? "#ececec" : "#0d0d0d"} />,
