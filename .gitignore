@@ -17,6 +17,10 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Prebuild folders - recommended by expo-doctor
+/android
+/ios
+
 # Metro
 .metro-health-check*
 
