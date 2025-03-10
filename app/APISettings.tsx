@@ -956,11 +956,11 @@ const APISettings = () => {
                                     return (
                                         <View key={provider} style={themedStyles.activeProviderItem}>
                                             <View style={themedStyles.providerIconContainer}>
-                                                {providerType === 'openai' && <OpenAILogo width={20} height={20} fill={isDark ? "#ececec" : "#0d0d0d"} />}
+                                                {providerType === 'openai' && <OpenAILogo width={20} height={20} useThemeColor={true} />}
                                                 {providerType === 'google' && <GeminiLogo width={20} height={20} />}
-                                                {providerType === 'anthropic' && <AnthropicLogo width={20} height={20} />}
-                                                {providerType === 'openrouter' && <OpenRouterLogo width={20} height={20} />}
-                                                {providerType === 'groq' && <GroqLogo width={20} height={20} />}
+                                                {providerType === 'anthropic' && <AnthropicLogo width={20} height={20} fill="#d97757" />}
+                                                {providerType === 'openrouter' && <OpenRouterLogo width={20} height={20} fill="#4361ee" />}
+                                                {providerType === 'groq' && <GroqLogo width={20} height={20} fill="#ffffff" />}
                                             </View>
                                             <Text style={themedStyles.activeProviderName}>
                                                 {providerType === 'openai' && 'OpenAI'}
@@ -985,7 +985,7 @@ const APISettings = () => {
                     
                     {renderApiSection(
                         "OpenAI",
-                        <OpenAILogo width={24} height={24} fill={isDark ? "#ececec" : "#0d0d0d"} />,
+                        <OpenAILogo width={24} height={24} useThemeColor={true} />,
                         openaiKey, 
                         setOpenaiKey,
                         openaiModel,
@@ -1042,7 +1042,7 @@ const APISettings = () => {
                     
                     {renderApiSection(
                         "OpenRouter",
-                        <OpenRouterLogo width={24} height={24} fill={isDark ? "#fafafa" : "#18181b"} />,
+                        <OpenRouterLogo width={24} height={24} fill="#4361ee" />,
                         openrouterKey, 
                         setOpenrouterKey,
                         openrouterModel,
@@ -1055,7 +1055,7 @@ const APISettings = () => {
                         "Examples: openai/gpt-3.5-turbo, anthropic/claude-3-opus",
                         DEFAULT_MODELS.openrouter,
                         "https://openrouter.ai/keys",
-                        "https://openrouter.ai/models",
+                        "https://openrouter.ai/docs",
                         "openrouter"
                     )}
                     
