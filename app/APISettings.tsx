@@ -8,6 +8,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { testOpenAIKey, testGoogleAIKey, testAnthropicKey, testOpenRouterKey, testGroqKey } from './_utils/apiTests';
 
+// Import SVG logos as React components
+import { OpenAILogo, GeminiLogo, AnthropicLogo, OpenRouterLogo, GroqLogo } from './components/LogoIcons';
+
 // Default model names for each provider
 const DEFAULT_MODELS = {
   openai: "gpt-3.5-turbo",
@@ -341,7 +344,7 @@ const APISettings = () => {
     const themedStyles = useMemo(() => StyleSheet.create({
         container: {
             flex: 1,
-            backgroundColor: isDark ? '#1a1a1a' : '#fff',
+            backgroundColor: isDark ? '#121212' : '#f5f5f5',
         },
         header: {
             padding: 34,      
@@ -388,7 +391,6 @@ const APISettings = () => {
         label: {
             fontSize: 16,
             color: isDark ? '#fff' : '#000',
-            marginBottom: 8,
             fontWeight: '500',
         },
         separator: {
@@ -411,7 +413,11 @@ const APISettings = () => {
             marginBottom: 12,
         },
         sectionIcon: {
-            marginRight: 8,
+            width: 24,
+            height: 24,
+            marginRight: 10,
+            justifyContent: 'center',
+            alignItems: 'center',
         },
         verifyButton: {
             backgroundColor: isDark ? '#4a90e2' : '#2196F3',
@@ -505,7 +511,7 @@ const APISettings = () => {
     // Helper function to render API key input section with model name input
     const renderApiSection = (
         title: string,
-        icon: string,
+        logoComponent: React.ReactNode,
         keyValue: string,
         onChangeKey: (text: string) => void,
         modelValue: string,
@@ -532,12 +538,9 @@ const APISettings = () => {
         return (
         <View style={themedStyles.section}>
             <View style={themedStyles.sectionHeader}>
-                <MaterialIcons 
-                    name={icon as any} 
-                    size={22} 
-                    color={isDark ? '#4a90e2' : '#2196F3'} 
-                    style={themedStyles.sectionIcon} 
-                />
+                <View style={themedStyles.sectionIcon}>
+                    {logoComponent}
+                </View>
                 <Text style={themedStyles.label}>{title}</Text>
                 <View style={{ flex: 1 }} />
                 <View style={themedStyles.toggleContainer}>
@@ -663,7 +666,7 @@ const APISettings = () => {
                 > 
                     {renderApiSection(
                         "OpenAI",
-                        "bolt", 
+                        <OpenAILogo width={24} height={24} fill={isDark ? "#ececec" : "#0d0d0d"} />,
                         openaiKey, 
                         setOpenaiKey,
                         openaiModel,
@@ -682,7 +685,7 @@ const APISettings = () => {
                     
                     {renderApiSection(
                         "Google AI",
-                        "cloud", 
+                        <GeminiLogo width={24} height={24} />,
                         googleKey, 
                         setGoogleKey,
                         googleModel,
@@ -701,7 +704,7 @@ const APISettings = () => {
                     
                     {renderApiSection(
                         "Anthropic",
-                        "psychology", 
+                        <AnthropicLogo width={24} height={24} fill="#d97757" />,
                         anthropicKey, 
                         setAnthropicKey,
                         anthropicModel,
@@ -714,13 +717,13 @@ const APISettings = () => {
                         "Examples: claude-3-opus-20240229, claude-3-sonnet-20240229",
                         DEFAULT_MODELS.anthropic,
                         "https://console.anthropic.com/settings/keys",
-                        "https://console.anthropic.com/workbench",
+                        "https://console.anthropic.com/settings/keys",
                         "anthropic"
                     )}
                     
                     {renderApiSection(
                         "OpenRouter",
-                        "router", 
+                        <OpenRouterLogo width={24} height={24} fill={isDark ? "#fafafa" : "#18181b"} />,
                         openrouterKey, 
                         setOpenrouterKey,
                         openrouterModel,
@@ -732,14 +735,14 @@ const APISettings = () => {
                         "OpenRouter provides access to multiple AI models through a single API.",
                         "Examples: openai/gpt-3.5-turbo, anthropic/claude-3-opus",
                         DEFAULT_MODELS.openrouter,
-                        "https://openrouter.ai/settings/keys",
-                        "https://openrouter.ai/models?max_price=0",
+                        "https://openrouter.ai/keys",
+                        "https://openrouter.ai/models",
                         "openrouter"
                     )}
                     
                     {renderApiSection(
                         "Groq",
-                        "speed", 
+                        <GroqLogo width={24} height={24} fill="#ffffff" />,
                         groqKey, 
                         setGroqKey,
                         groqModel,
@@ -748,11 +751,11 @@ const APISettings = () => {
                         groqLoading, 
                         groqStatus,
                         groqError,
-                        "Required for accessing Groq's fast inference API.",
+                        "Groq provides fast inference for various open-source models.",
                         "Examples: llama3-8b-8192, llama3-70b-8192, mixtral-8x7b-32768",
                         DEFAULT_MODELS.groq,
                         "https://console.groq.com/keys",
-                        "https://console.groq.com/docs/rate-limits",
+                        "https://console.groq.com/docs/models",
                         "groq"
                     )}
                     

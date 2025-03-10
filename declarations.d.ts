@@ -11,6 +11,13 @@ declare module './tools/Box3';
 declare module './tools/ComingSoon';
 declare module './components/TranslatorApp';
 
+declare module "*.svg" {
+  import React from "react";
+  import { SvgProps } from "react-native-svg";
+  const content: React.FC<SvgProps>;
+  export default content;
+}
+
 type RootDrawerParamList = {
   Home: undefined;
   Settings: undefined;

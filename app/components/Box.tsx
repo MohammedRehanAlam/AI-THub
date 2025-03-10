@@ -40,7 +40,7 @@ export function Box({ isDark, onPress, title }: BoxProps) {
   const styles = StyleSheet.create({
     box: {
       width: boxWidth,
-      height: 235,
+      height: 245,
       borderRadius: 20,
       justifyContent: 'space-between',
       alignItems: 'center',
