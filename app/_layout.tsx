@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Platform, View, StatusBar as RNStatusBar } from 'react-native';
+import { Platform, View, StatusBar as RNStatusBar, BackHandler } from 'react-native';
 import { useColorScheme, Appearance } from 'react-native';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -67,6 +67,18 @@ function RootLayoutNav() {
     checkAndInstallUpdates();
   }, []);
   
+  // Disable Android back button
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+        // Return true to prevent default behavior (which would exit the app)
+        return true;
+      });
+
+      return () => backHandler.remove();
+    }
+  }, []);
+  
   // Configure system UI on app start and theme changes
   useEffect(() => {
     const configureSystemUI = async () => {
@@ -115,13 +127,12 @@ function RootLayoutNav() {
     animation: 'fade',
     presentation: 'card',
     animationDuration: 200,
-    gestureEnabled: true,
-    gestureDirection: 'horizontal' as any, // Type assertion to fix TypeScript error
+    gestureEnabled: false,
+    gestureDirection: 'horizontal' as any,
     contentStyle: {
       backgroundColor: currentColorScheme === 'dark' ? '#1a1a1a' : '#fff',
     },
-    fullScreenGestureEnabled: true,
-    // Using as any to bypass type checking for custom navigation options
+    fullScreenGestureEnabled: false,
   };
 
   return (
@@ -129,15 +140,15 @@ function RootLayoutNav() {
       <ThemeProvider value={currentColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack screenOptions={customScreenOptions as any}>
           {/* only path is enough as i have made custom headers */}
-          <Stack.Screen name="index" />
-          <Stack.Screen name="Settings" />
-          <Stack.Screen name="APISettings" />
-          <Stack.Screen name="About" />
+          <Stack.Screen name="index" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="Settings" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="APISettings" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="About" options={{ gestureEnabled: false }} />
           
-          <Stack.Screen name="tools/Box1" />
-          <Stack.Screen name="tools/Box2" />
-          <Stack.Screen name="tools/Box3" />
-          <Stack.Screen name="tools/ComingSoon" />
+          <Stack.Screen name="tools/Box1" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="tools/Box2" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="tools/Box3" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="tools/ComingSoon" options={{ gestureEnabled: false }} />
         </Stack>
       </ThemeProvider>
     </CustomThemeProvider>
