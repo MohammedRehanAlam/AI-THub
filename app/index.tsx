@@ -26,6 +26,12 @@ export default function HomePage() {
     { id: 3, route: '/tools/Box3', title: 'Box 3 three' },
     { id: 4, route: '/tools/ComingSoon', title: 'Coming Soon' },
     { id: 5, route: '/tools/ComingSoon', title: 'Coming Soon' },
+    { id: 6, route: '/tools/ComingSoon', title: 'Coming Soon' },
+    { id: 7, route: '/tools/ComingSoon', title: 'Coming Soon' },
+    { id: 8, route: '/tools/ComingSoon', title: 'Coming Soon' },
+    { id: 9, route: '/tools/ComingSoon', title: 'Coming Soon' },
+    { id: 10, route: '/tools/ComingSoon', title: 'Coming Soon' },
+    { id: 11, route: '/tools/ComingSoon', title: 'Coming Soon' },
   ];
 
   const isDark = currentTheme === 'dark';
@@ -67,7 +73,7 @@ export default function HomePage() {
     grid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       alignItems: 'flex-start',
       marginHorizontal: -8,
     },
