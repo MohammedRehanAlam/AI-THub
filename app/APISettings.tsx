@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, Linking } from 'react-native';
 import { useTheme } from './context/ThemeContext';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -428,6 +428,16 @@ const APISettings = () => {
             fontStyle: 'italic',
             marginTop: 2,
         },
+        inputLabelContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        },
+        linkText: {
+            color: isDark ? '#4a90e2' : '#2196F3',
+            fontSize: 12,
+            fontWeight: '500',
+        },
     }), [isDark]);
 
     // Helper function to render API key input section with model name input
@@ -444,7 +454,9 @@ const APISettings = () => {
         error: string | null,
         info: string,
         modelInfo: string,
-        defaultModel: string
+        defaultModel: string,
+        apiKeyLink: string,
+        modelLink: string
     ) => (
         <View style={themedStyles.section}>
             <View style={themedStyles.sectionHeader}>
@@ -460,7 +472,12 @@ const APISettings = () => {
             <Text style={themedStyles.infoText}>{info}</Text>
             
             <View style={themedStyles.inputGroup}>
-                <Text style={themedStyles.inputLabel}>API Key</Text>
+                <View style={themedStyles.inputLabelContainer}>
+                    <Text style={themedStyles.inputLabel}>API Key</Text>
+                    <TouchableOpacity onPress={() => Linking.openURL(apiKeyLink)}>
+                        <Text style={themedStyles.linkText}>Get API Key</Text>
+                    </TouchableOpacity>
+                </View>
                 <TextInput
                     style={themedStyles.input}
                     placeholder="Enter your API key"
@@ -472,7 +489,12 @@ const APISettings = () => {
             </View>
             
             <View style={themedStyles.inputGroup}>
-                <Text style={themedStyles.inputLabel}>Model Name</Text>
+                <View style={themedStyles.inputLabelContainer}>
+                    <Text style={themedStyles.inputLabel}>Model Name</Text>
+                    <TouchableOpacity onPress={() => Linking.openURL(modelLink)}>
+                        <Text style={themedStyles.linkText}>View Models</Text>
+                    </TouchableOpacity>
+                </View>
                 <TextInput
                     style={themedStyles.input}
                     placeholder={`Default: ${defaultModel}`}
@@ -545,7 +567,7 @@ const APISettings = () => {
                 > 
                     {renderApiSection(
                         "OpenAI",
-                        "bolt",
+                        "bolt", 
                         openaiKey, 
                         setOpenaiKey,
                         openaiModel,
@@ -556,7 +578,9 @@ const APISettings = () => {
                         openaiError,
                         "Your API key is stored securely and used only for making requests to OpenAI's services.",
                         "Examples: gpt-3.5-turbo, gpt-4-turbo, gpt-4o",
-                        DEFAULT_MODELS.openai
+                        DEFAULT_MODELS.openai,
+                        "https://platform.openai.com/api-keys",
+                        "https://platform.openai.com/settings/organization/limits"
                     )}
                     
                     {renderApiSection(
@@ -572,7 +596,9 @@ const APISettings = () => {
                         googleError,
                         "Required for accessing Google's Gemini models.",
                         "Examples: gemini-1.5-flash, gemini-1.5-pro",
-                        DEFAULT_MODELS.google
+                        DEFAULT_MODELS.google,
+                        "https://aistudio.google.com/app/apikey",
+                        "https://aistudio.google.com/app/prompts/new_chat"
                     )}
                     
                     {renderApiSection(
@@ -588,7 +614,9 @@ const APISettings = () => {
                         anthropicError,
                         "Required for accessing Anthropic's Claude models.",
                         "Examples: claude-3-opus-20240229, claude-3-sonnet-20240229",
-                        DEFAULT_MODELS.anthropic
+                        DEFAULT_MODELS.anthropic,
+                        "https://console.anthropic.com/settings/keys",
+                        "https://console.anthropic.com/workbench"
                     )}
                     
                     {renderApiSection(
@@ -604,7 +632,9 @@ const APISettings = () => {
                         openrouterError,
                         "OpenRouter provides access to multiple AI models through a single API.",
                         "Examples: openai/gpt-3.5-turbo, anthropic/claude-3-opus",
-                        DEFAULT_MODELS.openrouter
+                        DEFAULT_MODELS.openrouter,
+                        "https://openrouter.ai/settings/keys",
+                        "https://openrouter.ai/models?max_price=0"
                     )}
                     
                     {renderApiSection(
@@ -620,7 +650,9 @@ const APISettings = () => {
                         groqError,
                         "Required for accessing Groq's fast inference API.",
                         "Examples: llama3-8b-8192, llama3-70b-8192, mixtral-8x7b-32768",
-                        DEFAULT_MODELS.groq
+                        DEFAULT_MODELS.groq,
+                        "https://console.groq.com/keys",
+                        "https://console.groq.com/docs/rate-limits"
                     )}
                     
                     <View style={{ height: 40 }} />
