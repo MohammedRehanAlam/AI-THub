@@ -23,7 +23,7 @@ const COLORS = {
     primary: '#007AFF',
     border: 'rgba(150,150,150,0.2)',
     inactive: '#999999',
-    overlay: 'rgba(0, 0, 0, 0.1)',
+    overlay: 'rgba(0, 0, 0, 0.3)',
   },
   dark: {
     background: '#1a1a1a',
@@ -34,7 +34,7 @@ const COLORS = {
     primary: '#007AFF',
     border: 'rgba(150,150,150,0.2)',
     inactive: '#444444',
-    overlay: 'rgba(0, 0, 0, 0.1)',
+    overlay: 'rgba(0, 0, 0, 0.3)',
   }
 };
 
@@ -725,7 +725,10 @@ export default function Box1() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.inputContainer}>
+        <View style={[
+          styles.inputContainer, 
+          keyboardVisible && { paddingBottom: 4 }
+        ]}>
           <TextInput
             style={styles.input}
             placeholder={getPlaceholder()}

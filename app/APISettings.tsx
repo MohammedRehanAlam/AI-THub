@@ -151,14 +151,43 @@ const APISettings = () => {
                 }
             } else {
                 setOpenaiError(result.message || 'Failed to verify API key');
-                // Disable the provider if verification fails
-                await toggleProvider('openai', false);
+                
+                // Check if this is a usage limit error rather than an invalid credential error
+                const isUsageLimitError = result.message && (
+                    result.message.toLowerCase().includes('rate limit') ||
+                    result.message.toLowerCase().includes('quota') ||
+                    result.message.toLowerCase().includes('usage limit') ||
+                    result.message.toLowerCase().includes('credit') ||
+                    result.message.toLowerCase().includes('billing') ||
+                    result.message.toLowerCase().includes('payment') ||
+                    result.message.toLowerCase().includes('exceeded') ||
+                    result.message.toLowerCase().includes('capacity')
+                );
+                
+                const isCredentialError = result.message && (
+                    result.message.toLowerCase().includes('invalid api key') ||
+                    result.message.toLowerCase().includes('authentication') ||
+                    result.message.toLowerCase().includes('not found') ||
+                    result.message.toLowerCase().includes('insufficient permissions')
+                );
+                
+                // Only disable the provider if it's a credential error, not a usage limit error
+                if (isCredentialError && !isUsageLimitError) {
+                    await toggleProvider('openai', false);
+                } else if (isUsageLimitError) {
+                    // Save the API key even if there's a usage limit error
+                    const saved = await saveApiSettings('openai_api_key', openaiKey, 'openai_model', openaiModel);
+                    if (!saved) {
+                        setOpenaiError('Failed to save settings. Please try again.');
+                    }
+                    // Don't automatically change the toggle state for usage limit errors
+                }
             }
         } catch (error: any) {
             console.error('Error verifying OpenAI API key:', error);
             setOpenaiStatus(false);
             setOpenaiError('Network error. Please check your internet connection.');
-            // Disable the provider if verification fails
+            // Disable the provider if verification fails due to network error
             await toggleProvider('openai', false);
         } finally {
             setOpenaiLoading(false);
@@ -195,14 +224,43 @@ const APISettings = () => {
                 }
             } else {
                 setGoogleError(result.message || 'Failed to verify API key');
-                // Disable the provider if verification fails
-                await toggleProvider('google', false);
+                
+                // Check if this is a usage limit error rather than an invalid credential error
+                const isUsageLimitError = result.message && (
+                    result.message.toLowerCase().includes('rate limit') ||
+                    result.message.toLowerCase().includes('quota') ||
+                    result.message.toLowerCase().includes('usage limit') ||
+                    result.message.toLowerCase().includes('credit') ||
+                    result.message.toLowerCase().includes('billing') ||
+                    result.message.toLowerCase().includes('payment') ||
+                    result.message.toLowerCase().includes('exceeded') ||
+                    result.message.toLowerCase().includes('capacity')
+                );
+                
+                const isCredentialError = result.message && (
+                    result.message.toLowerCase().includes('invalid api key') ||
+                    result.message.toLowerCase().includes('authentication') ||
+                    result.message.toLowerCase().includes('not found') ||
+                    result.message.toLowerCase().includes('insufficient permissions')
+                );
+                
+                // Only disable the provider if it's a credential error, not a usage limit error
+                if (isCredentialError && !isUsageLimitError) {
+                    await toggleProvider('google', false);
+                } else if (isUsageLimitError) {
+                    // Save the API key even if there's a usage limit error
+                    const saved = await saveApiSettings('google_api_key', googleKey, 'google_model', googleModel);
+                    if (!saved) {
+                        setGoogleError('Failed to save settings. Please try again.');
+                    }
+                    // Don't automatically change the toggle state for usage limit errors
+                }
             }
         } catch (error: any) {
             console.error('Error verifying Google AI API key:', error);
             setGoogleStatus(false);
             setGoogleError('Network error. Please check your internet connection.');
-            // Disable the provider if verification fails
+            // Disable the provider if verification fails due to network error
             await toggleProvider('google', false);
         } finally {
             setGoogleLoading(false);
@@ -239,14 +297,43 @@ const APISettings = () => {
                 }
             } else {
                 setAnthropicError(result.message || 'Failed to verify API key');
-                // Disable the provider if verification fails
-                await toggleProvider('anthropic', false);
+                
+                // Check if this is a usage limit error rather than an invalid credential error
+                const isUsageLimitError = result.message && (
+                    result.message.toLowerCase().includes('rate limit') ||
+                    result.message.toLowerCase().includes('quota') ||
+                    result.message.toLowerCase().includes('usage limit') ||
+                    result.message.toLowerCase().includes('credit') ||
+                    result.message.toLowerCase().includes('billing') ||
+                    result.message.toLowerCase().includes('payment') ||
+                    result.message.toLowerCase().includes('exceeded') ||
+                    result.message.toLowerCase().includes('capacity')
+                );
+                
+                const isCredentialError = result.message && (
+                    result.message.toLowerCase().includes('invalid api key') ||
+                    result.message.toLowerCase().includes('authentication') ||
+                    result.message.toLowerCase().includes('not found') ||
+                    result.message.toLowerCase().includes('insufficient permissions')
+                );
+                
+                // Only disable the provider if it's a credential error, not a usage limit error
+                if (isCredentialError && !isUsageLimitError) {
+                    await toggleProvider('anthropic', false);
+                } else if (isUsageLimitError) {
+                    // Save the API key even if there's a usage limit error
+                    const saved = await saveApiSettings('anthropic_api_key', anthropicKey, 'anthropic_model', anthropicModel);
+                    if (!saved) {
+                        setAnthropicError('Failed to save settings. Please try again.');
+                    }
+                    // Don't automatically change the toggle state for usage limit errors
+                }
             }
         } catch (error: any) {
             console.error('Error verifying Anthropic API key:', error);
             setAnthropicStatus(false);
             setAnthropicError('Network error. Please check your internet connection.');
-            // Disable the provider if verification fails
+            // Disable the provider if verification fails due to network error
             await toggleProvider('anthropic', false);
         } finally {
             setAnthropicLoading(false);
@@ -283,14 +370,43 @@ const APISettings = () => {
                 }
             } else {
                 setOpenrouterError(result.message || 'Failed to verify API key');
-                // Disable the provider if verification fails
-                await toggleProvider('openrouter', false);
+                
+                // Check if this is a usage limit error rather than an invalid credential error
+                const isUsageLimitError = result.message && (
+                    result.message.toLowerCase().includes('rate limit') ||
+                    result.message.toLowerCase().includes('quota') ||
+                    result.message.toLowerCase().includes('usage limit') ||
+                    result.message.toLowerCase().includes('credit') ||
+                    result.message.toLowerCase().includes('billing') ||
+                    result.message.toLowerCase().includes('payment') ||
+                    result.message.toLowerCase().includes('exceeded') ||
+                    result.message.toLowerCase().includes('capacity')
+                );
+                
+                const isCredentialError = result.message && (
+                    result.message.toLowerCase().includes('invalid api key') ||
+                    result.message.toLowerCase().includes('authentication') ||
+                    result.message.toLowerCase().includes('not found') ||
+                    result.message.toLowerCase().includes('insufficient permissions')
+                );
+                
+                // Only disable the provider if it's a credential error, not a usage limit error
+                if (isCredentialError && !isUsageLimitError) {
+                    await toggleProvider('openrouter', false);
+                } else if (isUsageLimitError) {
+                    // Save the API key even if there's a usage limit error
+                    const saved = await saveApiSettings('openrouter_api_key', openrouterKey, 'openrouter_model', openrouterModel);
+                    if (!saved) {
+                        setOpenrouterError('Failed to save settings. Please try again.');
+                    }
+                    // Don't automatically change the toggle state for usage limit errors
+                }
             }
         } catch (error: any) {
             console.error('Error verifying OpenRouter API key:', error);
             setOpenrouterStatus(false);
             setOpenrouterError('Network error. Please check your internet connection.');
-            // Disable the provider if verification fails
+            // Disable the provider if verification fails due to network error
             await toggleProvider('openrouter', false);
         } finally {
             setOpenrouterLoading(false);
@@ -327,14 +443,43 @@ const APISettings = () => {
                 }
             } else {
                 setGroqError(result.message || 'Failed to verify API key');
-                // Disable the provider if verification fails
-                await toggleProvider('groq', false);
+                
+                // Check if this is a usage limit error rather than an invalid credential error
+                const isUsageLimitError = result.message && (
+                    result.message.toLowerCase().includes('rate limit') ||
+                    result.message.toLowerCase().includes('quota') ||
+                    result.message.toLowerCase().includes('usage limit') ||
+                    result.message.toLowerCase().includes('credit') ||
+                    result.message.toLowerCase().includes('billing') ||
+                    result.message.toLowerCase().includes('payment') ||
+                    result.message.toLowerCase().includes('exceeded') ||
+                    result.message.toLowerCase().includes('capacity')
+                );
+                
+                const isCredentialError = result.message && (
+                    result.message.toLowerCase().includes('invalid api key') ||
+                    result.message.toLowerCase().includes('authentication') ||
+                    result.message.toLowerCase().includes('not found') ||
+                    result.message.toLowerCase().includes('insufficient permissions')
+                );
+                
+                // Only disable the provider if it's a credential error, not a usage limit error
+                if (isCredentialError && !isUsageLimitError) {
+                    await toggleProvider('groq', false);
+                } else if (isUsageLimitError) {
+                    // Save the API key even if there's a usage limit error
+                    const saved = await saveApiSettings('groq_api_key', groqKey, 'groq_model', groqModel);
+                    if (!saved) {
+                        setGroqError('Failed to save settings. Please try again.');
+                    }
+                    // Don't automatically change the toggle state for usage limit errors
+                }
             }
         } catch (error: any) {
             console.error('Error verifying Groq API key:', error);
             setGroqStatus(false);
             setGroqError('Network error. Please check your internet connection.');
-            // Disable the provider if verification fails
+            // Disable the provider if verification fails due to network error
             await toggleProvider('groq', false);
         } finally {
             setGroqLoading(false);
@@ -527,7 +672,30 @@ const APISettings = () => {
         modelLink: string,
         providerType: ProviderType
     ) => {
-        const isToggleEnabled = status === true && keyValue.trim() !== '';
+        // Determine if the toggle should be enabled
+        // Allow toggling if:
+        // 1. API verification was successful (status === true)
+        // 2. OR if there's an error related to usage limits or credits, but the credentials are valid
+        const isCredentialError = error && (
+            error.toLowerCase().includes('invalid api key') || 
+            error.toLowerCase().includes('authentication') ||
+            error.toLowerCase().includes('not found') ||
+            error.toLowerCase().includes('insufficient permissions')
+        );
+        
+        const isUsageLimitError = error && (
+            error.toLowerCase().includes('rate limit') ||
+            error.toLowerCase().includes('quota') ||
+            error.toLowerCase().includes('usage limit') ||
+            error.toLowerCase().includes('credit') ||
+            error.toLowerCase().includes('billing') ||
+            error.toLowerCase().includes('payment') ||
+            error.toLowerCase().includes('exceeded') ||
+            error.toLowerCase().includes('capacity')
+        );
+        
+        // Enable toggle if API key is valid and either verification succeeded or it's just a usage limit error
+        const isToggleEnabled = keyValue.trim() !== '' && (status === true || (status === false && isUsageLimitError && !isCredentialError));
         
         const handleToggleChange = async (value: boolean) => {
             if (isToggleEnabled) {
