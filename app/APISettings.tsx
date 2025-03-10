@@ -323,6 +323,7 @@ const APISettings = () => {
         content: {
             flex: 1,
             padding: 16,
+            width: '100%',
         },
         text: {
             fontSize: 16,
@@ -337,6 +338,8 @@ const APISettings = () => {
             marginVertical: 8,
             color: isDark ? '#fff' : '#000',
             backgroundColor: isDark ? '#2d2d2d' : '#f5f5f5',
+            width: '100%',
+            minHeight: 45,
         },
         label: {
             fontSize: 16,
@@ -356,6 +359,7 @@ const APISettings = () => {
             padding: 16,
             borderWidth: 1,
             borderColor: isDark ? '#333' : '#eee',
+            width: '100%',
         },
         sectionHeader: {
             flexDirection: 'row',
@@ -404,6 +408,7 @@ const APISettings = () => {
         },
         inputGroup: {
             marginBottom: 12,
+            width: '100%',
         },
         inputLabel: {
             fontSize: 14,
@@ -485,6 +490,8 @@ const APISettings = () => {
                     value={keyValue}
                     onChangeText={onChangeKey}
                     secureTextEntry
+                    multiline={false}
+                    numberOfLines={1}
                 />
             </View>
             
@@ -501,6 +508,8 @@ const APISettings = () => {
                     placeholderTextColor={isDark ? '#888' : '#aaa'}
                     value={modelValue}
                     onChangeText={onChangeModel}
+                    multiline={false}
+                    numberOfLines={1}
                 />
                 <Text style={themedStyles.modelInfoText}>{modelInfo}</Text>
             </View>
