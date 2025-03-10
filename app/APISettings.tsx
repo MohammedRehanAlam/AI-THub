@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, Linking, Switch } from 'react-native';
 import { useTheme } from './context/ThemeContext';
+import { useProviders, ProviderType } from './context/ProviderContext';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,6 +19,7 @@ const DEFAULT_MODELS = {
 
 const APISettings = () => {
     const { currentTheme } = useTheme();
+    const { activeProviders, toggleProvider } = useProviders();
     const isDark = currentTheme === 'dark';
     const router = useRouter();
     
@@ -87,6 +89,15 @@ const APISettings = () => {
                 if (savedAnthropicModel) setAnthropicModel(savedAnthropicModel);
                 if (savedOpenrouterModel) setOpenrouterModel(savedOpenrouterModel);
                 if (savedGroqModel) setGroqModel(savedGroqModel);
+
+                // Check if API keys are valid and update provider states
+                // We don't want to actually test the API keys here to avoid rate limiting
+                // Instead, we'll just check if they exist and set the status accordingly
+                if (savedOpenaiKey) setOpenaiStatus(true);
+                if (savedGoogleKey) setGoogleStatus(true);
+                if (savedAnthropicKey) setAnthropicStatus(true);
+                if (savedOpenrouterKey) setOpenrouterStatus(true);
+                if (savedGroqKey) setGroqStatus(true);
             } catch (error) {
                 console.error('Error loading API settings:', error);
             }
@@ -130,17 +141,22 @@ const APISettings = () => {
             if (result.success) {
                 const saved = await saveApiSettings('openai_api_key', openaiKey, 'openai_model', openaiModel);
                 if (saved) {
-                    // Success, no need for an alert as we show the status visually
+                    // Automatically enable the provider when verified successfully
+                    await toggleProvider('openai', true);
                 } else {
                     setOpenaiError('Failed to save settings. Please try again.');
                 }
             } else {
                 setOpenaiError(result.message || 'Failed to verify API key');
+                // Disable the provider if verification fails
+                await toggleProvider('openai', false);
             }
         } catch (error: any) {
             console.error('Error verifying OpenAI API key:', error);
             setOpenaiStatus(false);
             setOpenaiError('Network error. Please check your internet connection.');
+            // Disable the provider if verification fails
+            await toggleProvider('openai', false);
         } finally {
             setOpenaiLoading(false);
         }
@@ -168,16 +184,23 @@ const APISettings = () => {
             
             if (result.success) {
                 const saved = await saveApiSettings('google_api_key', googleKey, 'google_model', googleModel);
-                if (!saved) {
+                if (saved) {
+                    // Automatically enable the provider when verified successfully
+                    await toggleProvider('google', true);
+                } else {
                     setGoogleError('Failed to save settings. Please try again.');
                 }
             } else {
                 setGoogleError(result.message || 'Failed to verify API key');
+                // Disable the provider if verification fails
+                await toggleProvider('google', false);
             }
         } catch (error: any) {
             console.error('Error verifying Google AI API key:', error);
             setGoogleStatus(false);
             setGoogleError('Network error. Please check your internet connection.');
+            // Disable the provider if verification fails
+            await toggleProvider('google', false);
         } finally {
             setGoogleLoading(false);
         }
@@ -205,16 +228,23 @@ const APISettings = () => {
             
             if (result.success) {
                 const saved = await saveApiSettings('anthropic_api_key', anthropicKey, 'anthropic_model', anthropicModel);
-                if (!saved) {
+                if (saved) {
+                    // Automatically enable the provider when verified successfully
+                    await toggleProvider('anthropic', true);
+                } else {
                     setAnthropicError('Failed to save settings. Please try again.');
                 }
             } else {
                 setAnthropicError(result.message || 'Failed to verify API key');
+                // Disable the provider if verification fails
+                await toggleProvider('anthropic', false);
             }
         } catch (error: any) {
             console.error('Error verifying Anthropic API key:', error);
             setAnthropicStatus(false);
             setAnthropicError('Network error. Please check your internet connection.');
+            // Disable the provider if verification fails
+            await toggleProvider('anthropic', false);
         } finally {
             setAnthropicLoading(false);
         }
@@ -242,16 +272,23 @@ const APISettings = () => {
             
             if (result.success) {
                 const saved = await saveApiSettings('openrouter_api_key', openrouterKey, 'openrouter_model', openrouterModel);
-                if (!saved) {
+                if (saved) {
+                    // Automatically enable the provider when verified successfully
+                    await toggleProvider('openrouter', true);
+                } else {
                     setOpenrouterError('Failed to save settings. Please try again.');
                 }
             } else {
                 setOpenrouterError(result.message || 'Failed to verify API key');
+                // Disable the provider if verification fails
+                await toggleProvider('openrouter', false);
             }
         } catch (error: any) {
             console.error('Error verifying OpenRouter API key:', error);
             setOpenrouterStatus(false);
             setOpenrouterError('Network error. Please check your internet connection.');
+            // Disable the provider if verification fails
+            await toggleProvider('openrouter', false);
         } finally {
             setOpenrouterLoading(false);
         }
@@ -279,16 +316,23 @@ const APISettings = () => {
             
             if (result.success) {
                 const saved = await saveApiSettings('groq_api_key', groqKey, 'groq_model', groqModel);
-                if (!saved) {
+                if (saved) {
+                    // Automatically enable the provider when verified successfully
+                    await toggleProvider('groq', true);
+                } else {
                     setGroqError('Failed to save settings. Please try again.');
                 }
             } else {
                 setGroqError(result.message || 'Failed to verify API key');
+                // Disable the provider if verification fails
+                await toggleProvider('groq', false);
             }
         } catch (error: any) {
             console.error('Error verifying Groq API key:', error);
             setGroqStatus(false);
             setGroqError('Network error. Please check your internet connection.');
+            // Disable the provider if verification fails
+            await toggleProvider('groq', false);
         } finally {
             setGroqLoading(false);
         }
@@ -443,7 +487,20 @@ const APISettings = () => {
             fontSize: 12,
             fontWeight: '500',
         },
-    }), [isDark]);
+        toggleContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginLeft: 'auto',
+        },
+        toggleLabel: {
+            fontSize: 14,
+            marginRight: 8,
+            color: isDark ? '#bbb' : '#555',
+        },
+        disabledText: {
+            color: isDark ? '#666' : '#aaa',
+        },
+    }), [isDark, activeProviders]);
 
     // Helper function to render API key input section with model name input
     const renderApiSection = (
@@ -461,8 +518,18 @@ const APISettings = () => {
         modelInfo: string,
         defaultModel: string,
         apiKeyLink: string,
-        modelLink: string
-    ) => (
+        modelLink: string,
+        providerType: ProviderType
+    ) => {
+        const isToggleEnabled = status === true && keyValue.trim() !== '';
+        
+        const handleToggleChange = async (value: boolean) => {
+            if (isToggleEnabled) {
+                await toggleProvider(providerType, value);
+            }
+        };
+        
+        return (
         <View style={themedStyles.section}>
             <View style={themedStyles.sectionHeader}>
                 <MaterialIcons 
@@ -472,6 +539,20 @@ const APISettings = () => {
                     style={themedStyles.sectionIcon} 
                 />
                 <Text style={themedStyles.label}>{title}</Text>
+                <View style={{ flex: 1 }} />
+                <View style={themedStyles.toggleContainer}>
+                    <Text style={[themedStyles.toggleLabel, !isToggleEnabled && themedStyles.disabledText]}>
+                        {activeProviders[providerType] ? 'Active' : 'Inactive'}
+                    </Text>
+                    <Switch
+                        trackColor={{ false: isDark ? '#444' : '#ccc', true: isDark ? '#4a90e2' : '#2196F3' }}
+                        thumbColor={activeProviders[providerType] ? (isDark ? '#fff' : '#fff') : (isDark ? '#888' : '#f4f3f4')}
+                        ios_backgroundColor={isDark ? '#444' : '#ccc'}
+                        onValueChange={handleToggleChange}
+                        value={activeProviders[providerType]}
+                        disabled={!isToggleEnabled}
+                    />
+                </View>
             </View>
             
             <Text style={themedStyles.infoText}>{info}</Text>
@@ -488,7 +569,13 @@ const APISettings = () => {
                     placeholder="Enter your API key"
                     placeholderTextColor={isDark ? '#888' : '#aaa'}
                     value={keyValue}
-                    onChangeText={onChangeKey}
+                    onChangeText={(text) => {
+                        onChangeKey(text);
+                        // If API key is cleared, disable the provider
+                        if (text.trim() === '') {
+                            toggleProvider(providerType, false);
+                        }
+                    }}
                     secureTextEntry
                     multiline={false}
                     numberOfLines={1}
@@ -551,7 +638,7 @@ const APISettings = () => {
                 </View>
             )}
         </View>
-    );
+    )};
 
     return (
         <SafeAreaView style={themedStyles.container}>   
@@ -589,7 +676,8 @@ const APISettings = () => {
                         "Examples: gpt-3.5-turbo, gpt-4-turbo, gpt-4o",
                         DEFAULT_MODELS.openai,
                         "https://platform.openai.com/api-keys",
-                        "https://platform.openai.com/settings/organization/limits"
+                        "https://platform.openai.com/settings/organization/limits",
+                        "openai"
                     )}
                     
                     {renderApiSection(
@@ -607,7 +695,8 @@ const APISettings = () => {
                         "Examples: gemini-1.5-flash, gemini-1.5-pro",
                         DEFAULT_MODELS.google,
                         "https://aistudio.google.com/app/apikey",
-                        "https://aistudio.google.com/app/prompts/new_chat"
+                        "https://aistudio.google.com/app/prompts/new_chat",
+                        "google"
                     )}
                     
                     {renderApiSection(
@@ -625,7 +714,8 @@ const APISettings = () => {
                         "Examples: claude-3-opus-20240229, claude-3-sonnet-20240229",
                         DEFAULT_MODELS.anthropic,
                         "https://console.anthropic.com/settings/keys",
-                        "https://console.anthropic.com/workbench"
+                        "https://console.anthropic.com/workbench",
+                        "anthropic"
                     )}
                     
                     {renderApiSection(
@@ -643,7 +733,8 @@ const APISettings = () => {
                         "Examples: openai/gpt-3.5-turbo, anthropic/claude-3-opus",
                         DEFAULT_MODELS.openrouter,
                         "https://openrouter.ai/settings/keys",
-                        "https://openrouter.ai/models?max_price=0"
+                        "https://openrouter.ai/models?max_price=0",
+                        "openrouter"
                     )}
                     
                     {renderApiSection(
@@ -661,7 +752,8 @@ const APISettings = () => {
                         "Examples: llama3-8b-8192, llama3-70b-8192, mixtral-8x7b-32768",
                         DEFAULT_MODELS.groq,
                         "https://console.groq.com/keys",
-                        "https://console.groq.com/docs/rate-limits"
+                        "https://console.groq.com/docs/rate-limits",
+                        "groq"
                     )}
                     
                     <View style={{ height: 40 }} />

@@ -6,6 +6,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { ThemeProvider as CustomThemeProvider } from './context/ThemeContext';
+import { ProviderProvider } from './context/ProviderContext';
 import * as SplashScreen from 'expo-splash-screen';
 import * as NavigationBar from 'expo-navigation-bar';
 import { initializeUpdates, checkAndInstallUpdates } from './_utils/updateUtils';
@@ -137,20 +138,22 @@ function RootLayoutNav() {
 
   return (
     <CustomThemeProvider>
-      <ThemeProvider value={currentColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack screenOptions={customScreenOptions as any}>
-          {/* only path is enough as i have made custom headers */}
-          <Stack.Screen name="index" options={{ gestureEnabled: false }} />
-          <Stack.Screen name="Settings" options={{ gestureEnabled: false }} />
-          <Stack.Screen name="APISettings" options={{ gestureEnabled: false }} />
-          <Stack.Screen name="About" options={{ gestureEnabled: false }} />
-          
-          <Stack.Screen name="tools/Box1" options={{ gestureEnabled: false }} />
-          <Stack.Screen name="tools/Box2" options={{ gestureEnabled: false }} />
-          <Stack.Screen name="tools/Box3" options={{ gestureEnabled: false }} />
-          <Stack.Screen name="tools/ComingSoon" options={{ gestureEnabled: false }} />
-        </Stack>
-      </ThemeProvider>
+      <ProviderProvider>
+        <ThemeProvider value={currentColorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack screenOptions={customScreenOptions as any}>
+            {/* only path is enough as i have made custom headers */}
+            <Stack.Screen name="index" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="Settings" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="APISettings" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="About" options={{ gestureEnabled: false }} />
+            
+            <Stack.Screen name="tools/Box1" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="tools/Box2" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="tools/Box3" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="tools/ComingSoon" options={{ gestureEnabled: false }} />
+          </Stack>
+        </ThemeProvider>
+      </ProviderProvider>
     </CustomThemeProvider>
   );
 }
