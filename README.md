@@ -11,6 +11,7 @@ A powerful translation application that leverages advanced AI technology to prov
 - Dark/Light mode support
 - Cross-platform compatibility (iOS, Android, Web)
 - Over-the-air updates via EAS Update
+- Multiple AI provider integration with custom SVG logos
 
 ## Tech Stack
 
@@ -18,6 +19,7 @@ A powerful translation application that leverages advanced AI technology to prov
 - Expo
 - TypeScript
 - Node.js
+- React Native SVG for vector graphics
 
 ## Getting Started
 
@@ -54,7 +56,8 @@ A powerful translation application that leverages advanced AI technology to prov
 ## Project Structure
 
 - `/app` - Main application screens and navigation
-- `/assets` - Static assets like images and fonts
+- `/assets` - Static assets like images, fonts, and SVG logos
+  - `/API_Providers_Logos` - SVG logos for different AI providers
 - `/components` - Reusable UI components
 - `/constants` - Application constants and theme settings
 - `/hooks` - Custom React hooks
@@ -90,12 +93,36 @@ A powerful translation application that leverages advanced AI technology to prov
 - Dark and light theme support
 - Responsive layout for all screen sizes
 - Sidebar navigation for easy access to features
+- Custom SVG logos for different AI providers
+
+### AI Provider Integration
+The app integrates with multiple AI providers:
+- OpenAI (GPT models)
+- Google AI (Gemini models)
+- Anthropic (Claude models)
+- OpenRouter (multi-provider access)
+- Groq (fast inference for open-source models)
+
+Each provider has a custom SVG logo that adapts to the app's theme.
 
 ### Additional Features
 - Translation history
 - Favorite translations
 - Language auto-detection
 - Offline mode support
+
+## SVG Implementation
+
+This project uses `react-native-svg` and `react-native-svg-transformer` to handle SVG files:
+
+- SVG files are stored in `/assets/API_Providers_Logos/`
+- React components for each logo are in `/app/components/LogoIcons.tsx`
+- The components adapt to the app's theme (dark/light mode)
+
+To add a new SVG logo:
+1. Add the SVG file to `/assets/API_Providers_Logos/`
+2. Create a new component in `/app/components/LogoIcons.tsx`
+3. Import and use the component where needed
 
 ## EAS Update
 
