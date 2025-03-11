@@ -13,6 +13,9 @@ module.exports = function(api) {
         },
       ],
       'react-native-reanimated/plugin',
+      ['transform-inline-environment-variables', {
+        include: ['EXPO_PUBLIC_GEMINI_API_KEY']
+      }]
     ],
   };
 }; 

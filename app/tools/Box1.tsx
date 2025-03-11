@@ -11,6 +11,8 @@ import { PLACEHOLDER_TRANSLATIONS } from '../components/placeholders';
 import LanguageSelector from '../components/LanguageSelector';
 import { BlurView } from 'expo-blur';
 import { useFocusEffect } from '@react-navigation/native';
+import Constants from 'expo-constants';
+import ErrorAlert from '../components/ErrorAlert';
 
 // Theme colors
 const COLORS = {
@@ -302,6 +304,21 @@ const createStyles = (isDark: boolean) => {
   });
 };
 
+// Add this type declaration for the manifest extra
+type ExtraType = {
+  GEMINI_API_KEY?: string;
+  // Add any other extra properties you might have
+};
+
+// You can also declare the type for expoConfig if needed
+declare global {
+  namespace ReactNativePaper {
+    interface ThemeColors {
+      customBackground: string;
+    }
+  }
+}
+
 export default function Box1() {
   const router = useRouter();
   const { currentTheme, themePreference, setTheme } = useTheme();
@@ -325,6 +342,9 @@ export default function Box1() {
   const [lastUser2ClickTime, setLastUser2ClickTime] = useState<number>(0);
   const [isSourceLanguageSelectorOpen, setIsSourceLanguageSelectorOpen] = useState<boolean>(false);
   const [isTargetLanguageSelectorOpen, setIsTargetLanguageSelectorOpen] = useState<boolean>(false);
+  const [errorAlertVisible, setErrorAlertVisible] = useState(false);
+  const [errorTitle, setErrorTitle] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const RATE_LIMIT_DELAY = 1000;
   const MAX_RETRIES = 3;
@@ -462,8 +482,13 @@ export default function Box1() {
       setLastTranslationTime(Date.now());
       setRequestQueue(prev => prev + 1);
 
-      const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+      // Get API key from Constants instead of process.env
+      const apiKey = Constants.expoConfig?.extra?.GEMINI_API_KEY || 
+                    (Constants.manifest && (Constants.manifest as any).extra?.GEMINI_API_KEY) || 
+                    process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+      
       if (!apiKey) {
+        console.error('API key missing. Constants:', JSON.stringify(Constants.expoConfig?.extra || {}));
         throw new Error('API key not configured. Please set it in your environment variables.');
       }
 
@@ -500,7 +525,20 @@ export default function Box1() {
 
     } catch (error) {
       console.error('Translation error:', error);
+      
+      // Log more detailed error information
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      
+      // Check for specific error conditions
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.error('Network error - check internet connection');
+      }
+      
       if (retryCount < MAX_RETRIES) {
+        console.log(`Retrying translation (${retryCount + 1}/${MAX_RETRIES})...`);
         await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
         return translateText(text, retryCount + 1);
       }
@@ -537,7 +575,25 @@ export default function Box1() {
 
       setMessages(prev => [...prev, translatedMessage]);
     } catch (error) {
-      Alert.alert('Translation Error', 'Failed to translate text. Please try again.');
+      console.error('Send error:', error);
+      
+      let errorTitle = 'Translation Error';
+      let errorMessage = 'Failed to translate text. Please try again.';
+      
+      // Provide more specific error messages based on the error type
+      if (error instanceof Error) {
+        if (error.message.includes('API key not configured')) {
+          errorMessage = 'API key not properly configured. Please check your app settings.';
+        } else if (error.message.includes('Network') || error.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your internet connection and try again.';
+        } else if (error.message.includes('rate limit')) {
+          errorMessage = 'Too many requests. Please wait a moment and try again.';
+        }
+      }
+      
+      setErrorTitle(errorTitle);
+      setErrorMessage(errorMessage);
+      setErrorAlertVisible(true);
       setMessages(prev => prev.slice(0, -1));
     }
   };
@@ -764,6 +820,14 @@ export default function Box1() {
         message="Are you sure you want to clear all messages?"
         onCancel={() => setAlertVisible(false)}
         onConfirm={clearChat}
+        isDark={isDark}
+      />
+
+      <ErrorAlert
+        visible={errorAlertVisible}
+        title={errorTitle}
+        message={errorMessage}
+        onDismiss={() => setErrorAlertVisible(false)}
         isDark={isDark}
       />
     </SafeAreaView>
