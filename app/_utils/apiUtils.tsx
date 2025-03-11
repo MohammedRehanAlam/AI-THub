@@ -345,4 +345,9 @@ export const translateText = async (
       response: error.response || null
     };
   }
-}; 
+};
+
+// Add a default export to satisfy Expo Router
+export default function ApiUtils() {
+  return null; // This component is never rendered
+} 

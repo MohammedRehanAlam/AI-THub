@@ -115,4 +115,9 @@ export const formatApiError = (
     message,
     detailedError
   };
-}; 
+};
+
+// Add a default export to satisfy Expo Router
+export default function ErrorUtils() {
+  return null; // This component is never rendered
+} 

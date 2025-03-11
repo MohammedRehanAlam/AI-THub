@@ -79,4 +79,9 @@ export const GroqLogo: React.FC<LogoProps> = ({ width = 24, height = 24, fill = 
       />
     </Svg>
   );
-}; 
+};
+
+// Add a default export to satisfy Expo Router
+export default function LogoIcons() {
+  return null; // This component is never rendered
+} 
