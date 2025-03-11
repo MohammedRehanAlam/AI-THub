@@ -189,14 +189,17 @@ export default function HomePage() {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: isDark ? '#333' : '#f0f0f0',
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 8,
-      gap: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 10,
+      gap: 10,
+      minWidth: 130,
+      borderWidth: 1,
+      borderColor: isDark ? '#555' : '#ddd',
     },
     providerText: {
       color: isDark ? '#fff' : '#000',
-      fontSize: 14,
+      fontSize: 16,
       fontWeight: '500',
     },
     dropdownModal: {
@@ -206,9 +209,9 @@ export default function HomePage() {
       backgroundColor: 'rgba(0,0,0,0.3)',
     },
     dropdownContent: {
-      marginTop: 80,
+      marginTop: 70,
       marginRight: 16,
-      width: 200,
+      width: 205,
       backgroundColor: isDark ? '#333' : '#fff',
       borderRadius: 8,
       padding: 8,
@@ -221,9 +224,9 @@ export default function HomePage() {
     dropdownItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 12,
-      borderRadius: 4,
-      gap: 8,
+      padding: 14,
+      borderRadius: 8,
+      gap: 10,
     },
     selectedItem: {
       backgroundColor: isDark ? '#444' : '#e0e0e0',
@@ -231,11 +234,12 @@ export default function HomePage() {
     dropdownItemText: {
       color: isDark ? '#fff' : '#000',
       fontSize: 16,
+      fontWeight: '500',
     },
     noProvidersText: {
       color: isDark ? '#999' : '#666',
-      fontSize: 14,
-      padding: 12,
+      fontSize: 15,
+      padding: 14,
       textAlign: 'center',
     },
     scrollContent: {
@@ -306,24 +310,24 @@ export default function HomePage() {
             >
               {selectedProvider ? (
                 <>
-                  {selectedProvider === 'openai' && <OpenAILogo width={20} height={20} useThemeColor={true} />}
-                  {selectedProvider === 'google' && <GeminiLogo width={20} height={20} />}
-                  {selectedProvider === 'anthropic' && <AnthropicLogo width={20} height={20} fill="#d97757" />}
-                  {selectedProvider === 'openrouter' && <OpenRouterLogo width={20} height={20} useThemeColor={true} />}
-                  {selectedProvider === 'groq' && <GroqLogo width={20} height={20} fill="#ffffff" />}
-                  <Text style={themedStyles.providerText}>
+                  {selectedProvider === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
+                  {selectedProvider === 'google' && <GeminiLogo width={24} height={24} />}
+                  {selectedProvider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
+                  {selectedProvider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
+                  {selectedProvider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
+                  <Text style={themedStyles.providerText} numberOfLines={1} ellipsizeMode="tail">
                     {PROVIDER_INFO[selectedProvider].name}
                   </Text>
                 </>
               ) : (
                 <>
-                  <Ionicons name="cloud-outline" size={20} color={isDark ? '#fff' : '#000'} />
-                  <Text style={themedStyles.providerText}>
+                  <Ionicons name="cloud-outline" size={24} color={isDark ? '#fff' : '#000'} />
+                  <Text style={themedStyles.providerText} numberOfLines={1} ellipsizeMode="tail">
                     {activeProvidersList.length > 0 ? 'Select Provider' : 'No Providers'}
                   </Text>
                 </>
               )}
-              <Ionicons name="chevron-down" size={16} color={isDark ? '#fff' : '#000'} />
+              <Ionicons name="chevron-down" size={20} color={isDark ? '#fff' : '#000'} />
             </TouchableOpacity>
           </View>
         </View>
@@ -355,19 +359,19 @@ export default function HomePage() {
                         await handleProviderSelect(item);
                       }}
                     >
-                      {item === 'openai' && <OpenAILogo width={20} height={20} useThemeColor={true} />}
-                      {item === 'google' && <GeminiLogo width={20} height={20} />}
-                      {item === 'anthropic' && <AnthropicLogo width={20} height={20} fill="#d97757" />}
-                      {item === 'openrouter' && <OpenRouterLogo width={20} height={20} useThemeColor={true} />}
-                      {item === 'groq' && <GroqLogo width={20} height={20} fill="#ffffff" />}
-                      <Text style={themedStyles.dropdownItemText}>
+                      {item === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
+                      {item === 'google' && <GeminiLogo width={24} height={24} />}
+                      {item === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
+                      {item === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
+                      {item === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
+                      <Text style={themedStyles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
                         {PROVIDER_INFO[item].name}
                       </Text>
                     </TouchableOpacity>
                   )}
                 />
               ) : (
-                <Text style={themedStyles.noProvidersText}>
+                <Text style={themedStyles.noProvidersText} numberOfLines={1} ellipsizeMode="tail">
                   No active providers. Please verify and enable providers in Settings.
                 </Text>
               )}
@@ -379,8 +383,8 @@ export default function HomePage() {
                   setDropdownVisible(false);
                 }}
               >
-                <Ionicons name="settings-outline" size={20} color={isDark ? '#fff' : '#000'} />
-                <Text style={themedStyles.dropdownItemText}>
+                <Ionicons name="settings-outline" size={24} color={isDark ? '#fff' : '#000'} />
+                <Text style={themedStyles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
                   Manage Providers
                 </Text>
               </TouchableOpacity>

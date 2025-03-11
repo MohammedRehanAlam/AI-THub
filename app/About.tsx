@@ -94,7 +94,7 @@ const About = () => {
             > 
                 <View style={themedStyles.section}>
                     <Text style={themedStyles.text}>
-                        Welcome to AI-THub, your comprehensive toolkit for AI-powered solutions.
+                        Welcome to AI T-Hub, your comprehensive toolkit for AI-powered solutions.
                     </Text>
                     <Text style={themedStyles.heading}>Features</Text>
                     <Text style={themedStyles.text}>• Advanced language processing</Text>
@@ -104,7 +104,7 @@ const About = () => {
                     <Text style={themedStyles.heading}>Version</Text>
                     <Text style={themedStyles.version}>1.0.0</Text>
                     <Text style={themedStyles.version}> </Text>
-                    <Text style={themedStyles.copyrightText}>© {getFullYear()} AI THub</Text>
+                    <Text style={themedStyles.copyrightText}>© {getFullYear()} AI T-Hub</Text>
                     <Text style={themedStyles.copyrightText}>All Rights Reserved</Text>
                 </View>
             </ScrollView>

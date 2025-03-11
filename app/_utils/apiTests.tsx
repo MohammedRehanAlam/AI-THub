@@ -205,7 +205,7 @@ export const testOpenRouterKey = async (apiKey: string, modelName = "openai/gpt-
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}`,
-                'HTTP-Referer': 'https://ai-thub.app' // Updated to match your app
+                'HTTP-Referer': 'https://ai-t-hub.app' // Updated to match your app
             },
             body: JSON.stringify({
                 model: modelName,

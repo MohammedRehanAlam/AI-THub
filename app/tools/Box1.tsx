@@ -17,6 +17,7 @@ import CollapsibleErrorAlert from '../components/CollapsibleErrorAlert';
 import { useProviders, ProviderType } from '../context/ProviderContext';
 import { translateText as apiTranslateText, TranslationRequest } from '../_utils/translatorApiUtils';
 import { formatApiError } from '../_utils/apiErrorUtils';
+import { OpenAILogo, GeminiLogo, AnthropicLogo, OpenRouterLogo, GroqLogo } from '../components/LogoIcons';
 
 // Theme colors
 const COLORS = {
@@ -81,7 +82,7 @@ const createStyles = (isDark: boolean) => {
       backgroundColor: colors.background,
     },
     header: {
-      padding: 16,
+      padding: 14,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -314,26 +315,36 @@ const createStyles = (isDark: boolean) => {
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 10,
-      paddingVertical: 5,
-      borderRadius: 5,
-      minWidth: 120,
+      paddingVertical: 10,
+      borderRadius: 10,
+      minWidth: 121,
+      width: 171,
+      gap: 5,
     },
-    dropdown: {
-      position: 'absolute',
-      top: '100%',
-      right: 0,
-      width: 156,
-      borderRadius: 5,
+    dropdownContent: {
+      backgroundColor: isDark ? '#333' : '#f0f0f0',
+      borderRadius: 8,
+      padding: 8,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
       elevation: 5,
-      zIndex: 20,
+      width: 225,
+      right: 15,
+    },
+    dropdownModal: {
+      flex: 1,
+      justifyContent: 'flex-start',
+      alignItems: 'flex-end',
+      backgroundColor: 'rgba(0,0,0,0.3)',
     },
     dropdownItem: {
-      paddingVertical: 10,
-      paddingHorizontal: 15,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
     },
     dropdownDivider: {
       height: 1,
@@ -356,6 +367,7 @@ const createStyles = (isDark: boolean) => {
     providerButtonContent: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: 10,
     },
     providerIcon: {
       marginRight: 4,
@@ -363,18 +375,14 @@ const createStyles = (isDark: boolean) => {
     globalProviderButton: {
       borderWidth: 1,
       borderColor: isDark ? '#555' : '#ddd',
+      paddingHorizontal: 8,
+      paddingRight: 8,
     },
     toolProviderButton: {
       borderWidth: 1,
-      borderColor: isDark ? '#007AFF' : '#007AFF',
+      borderColor: isDark ? '#555' : '#ddd',
     },
   });
-};
-
-// Add this type declaration for the manifest extra
-type ExtraType = {
-  GEMINI_API_KEY?: string;
-  // Add any other extra properties you might have
 };
 
 // You can also declare the type for expoConfig if needed
@@ -850,68 +858,131 @@ export default function Box1() {
               isUsingGlobalProvider ? styles.globalProviderButton : styles.toolProviderButton
             ]}
           >
-            <View style={styles.providerButtonContent}>
+            <View style={[styles.providerButtonContent, { flex: 1 }]}>
               {isUsingGlobalProvider && (
                 <Ionicons 
                   name="globe-outline" 
-                  size={14} 
+                  size={24} 
                   color={isDark ? '#fff' : '#000'} 
-                  style={styles.providerIcon}
+                  style={[styles.providerIcon]}
                 />
               )}
-              <Text style={{ color: isDark ? '#fff' : '#000', fontSize: 12 }}>
+              {selectedProvider && !isUsingGlobalProvider && (
+                <>
+                  {selectedProvider === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
+                  {selectedProvider === 'google' && <GeminiLogo width={24} height={24} />}
+                  {selectedProvider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
+                  {selectedProvider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
+                  {selectedProvider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
+                </>
+              )}
+              {!selectedProvider}
+              <Text 
+                style={{ 
+                  color: isDark ? '#fff' : '#000', 
+                  fontSize: 16, 
+                  fontWeight: '500',
+                  flex: 1
+                }}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {selectedProvider ? 
-                  `${getProviderDisplayName(selectedProvider)}${isUsingGlobalProvider ? ' (Global)' : ''}` : 
-                  'Select Provider'}
+                  `${getProviderDisplayName(selectedProvider)}` : 'Select Provider'}
               </Text>
+              <Ionicons 
+                name={dropdownVisible ? "chevron-up" : "chevron-down"} 
+                size={20} 
+                color={isDark ? '#fff' : '#000'} 
+              />
             </View>
-            <Ionicons 
-              name={dropdownVisible ? "chevron-up" : "chevron-down"} 
-              size={16} 
-              color={isDark ? '#fff' : '#000'} 
-            />
           </TouchableOpacity>
           
-          {dropdownVisible && (
-            <View style={[
-              styles.dropdown,
-              { backgroundColor: isDark ? '#333' : '#f0f0f0' }
-            ]}>
-              {activeProvidersList.length > 0 ? (
-                <>
-                  {activeProvidersList.map((provider) => (
+          {/* Provider Selection Dropdown */}
+          <Modal
+            visible={dropdownVisible}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setDropdownVisible(false)}
+          >
+            <TouchableOpacity 
+              style={styles.dropdownModal}
+              activeOpacity={1}
+              onPress={() => setDropdownVisible(false)}
+            >
+              <View style={[
+                styles.dropdownContent,
+                { marginTop: 70, marginRight: 16 }
+              ]}>
+                {activeProvidersList.length > 0 ? (
+                  <>
+                    {activeProvidersList.map((provider) => (
+                      <TouchableOpacity
+                        key={provider}
+                        style={[
+                          styles.dropdownItem,
+                          selectedProvider === provider && {
+                            backgroundColor: isDark ? '#555' : '#ddd'
+                          }
+                        ]}
+                        onPress={() => handleProviderSelect(provider)}
+                      >
+                        {provider === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
+                        {provider === 'google' && <GeminiLogo width={24} height={24} />}
+                        {provider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
+                        {provider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
+                        {provider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
+                        <Text 
+                          style={{ 
+                            color: isDark ? '#fff' : '#000', 
+                            fontSize: 16, 
+                            fontWeight: '500',
+                            flex: 1
+                          }}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {getProviderDisplayName(provider)}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                    <View style={styles.dropdownDivider} />
                     <TouchableOpacity
-                      key={provider}
-                      style={[
-                        styles.dropdownItem,
-                        selectedProvider === provider && {
-                          backgroundColor: isDark ? '#555' : '#ddd'
-                        }
-                      ]}
-                      onPress={() => handleProviderSelect(provider)}
+                      style={styles.dropdownItem}
+                      onPress={resetToGlobalProvider}
                     >
-                      <Text style={{ color: isDark ? '#fff' : '#000' }}>
-                        {getProviderDisplayName(provider)}
+                      <Ionicons name="globe-outline" size={24} color={isDark ? '#fff' : '#000'} />
+                      <Text 
+                        style={{ 
+                          color: isDark ? '#fff' : '#000', 
+                          fontSize: 16, 
+                          fontWeight: '500',
+                          flex: 1
+                        }}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        Use Global Provider
                       </Text>
                     </TouchableOpacity>
-                  ))}
-                  <View style={styles.dropdownDivider} />
-                  <TouchableOpacity
-                    style={styles.dropdownItem}
-                    onPress={resetToGlobalProvider}
+                  </>
+                ) : (
+                  <Text 
+                    style={{ 
+                      color: isDark ? '#999' : '#666',
+                      fontSize: 15,
+                      padding: 14,
+                      textAlign: 'center'
+                    }}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
                   >
-                    <Text style={{ color: isDark ? '#fff' : '#000' }}>
-                      Use Global Provider
-                    </Text>
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <Text style={[styles.dropdownItem, { color: isDark ? '#fff' : '#000' }]}>
-                  No active providers
-                </Text>
-              )}
-            </View>
-          )}
+                    No active providers
+                  </Text>
+                )}
+              </View>
+            </TouchableOpacity>
+          </Modal>
         </View>
         
         <TouchableOpacity 

@@ -206,7 +206,7 @@ export const translateWithOpenRouter = async (
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://ai-thub.app'
+        'HTTP-Referer': 'https://ai-t-hub.app'
       },
       body: JSON.stringify({
         model: model,

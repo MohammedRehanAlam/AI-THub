@@ -278,7 +278,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             </ScrollView>
             <View style={themedStyles.footerContent}>
                 <View style={themedStyles.footerContainer}>
-                    <Text style={themedStyles.copyrightText}> © {getFullYear()} AI THub</Text>
+                    <Text style={themedStyles.copyrightText}>© {getFullYear()} AI T-Hub</Text>
                     <Text style={themedStyles.copyrightText}>All Rights Reserved</Text>
                 </View>
             </View>
