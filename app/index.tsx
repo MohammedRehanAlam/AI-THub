@@ -189,7 +189,7 @@ export default function HomePage() {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: isDark ? '#333' : '#f0f0f0',
-      paddingHorizontal: 16,
+      paddingHorizontal: 10,
       paddingVertical: 10,
       borderRadius: 10,
       gap: 10,
