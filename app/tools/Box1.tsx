@@ -15,8 +15,8 @@ import Constants from 'expo-constants';
 import ErrorAlert from '../components/ErrorAlert';
 import CollapsibleErrorAlert from '../components/CollapsibleErrorAlert';
 import { useProviders, ProviderType } from '../context/ProviderContext';
-import { translateText as apiTranslateText, TranslationRequest } from '../_utils/apiUtils';
-import { formatApiError } from '../_utils/errorUtils';
+import { translateText as apiTranslateText, TranslationRequest } from '../_utils/translatorApiUtils';
+import { formatApiError } from '../_utils/apiErrorUtils';
 
 // Theme colors
 const COLORS = {

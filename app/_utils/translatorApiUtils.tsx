@@ -1,4 +1,4 @@
-// API Utilities for different providers
+// Translator API Utilities for different providers
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ProviderType } from '../context/ProviderContext';
 
@@ -348,6 +348,6 @@ export const translateText = async (
 };
 
 // Add a default export to satisfy Expo Router
-export default function ApiUtils() {
+export default function TranslatorApiUtils() {
   return null; // This component is never rendered
 } 
