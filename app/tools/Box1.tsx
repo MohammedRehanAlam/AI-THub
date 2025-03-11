@@ -82,31 +82,37 @@ const createStyles = (isDark: boolean) => {
       backgroundColor: colors.background,
     },
     header: {
-      padding: 14,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
+      width: '100%',
     },
     headerLeft: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 12,
+      gap: 8,
+      flex: 0.4,
+      minWidth: 100,
     },
     toggleButton: {
       padding: 4,
     },
     clearButton: {
-      padding: 4,
+      paddingRight: 4,
+      paddingLeft: 4,
     },
     clearButtonDisabled: {
       opacity: 0.3,
     },
     logo: {
-      fontSize: 24,
+      fontSize: 20,
       fontWeight: 'bold',
       color: colors.text,
+      flexShrink: 1,
     },
     languageSelector: {
       padding: 16,
@@ -309,20 +315,42 @@ const createStyles = (isDark: boolean) => {
     providerSelector: {
       position: 'relative',
       zIndex: 10,
+      flex: 1,
+      alignItems: 'flex-end',
+      paddingLeft: 4,
+      paddingRight: 4,
     },
     providerButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
+      backgroundColor: isDark ? '#333' : '#f0f0f0',
       paddingHorizontal: 10,
       paddingVertical: 10,
       borderRadius: 10,
-      minWidth: 121,
-      width: 171,
-      gap: 5,
+      gap: 10,
+      minWidth: 115,
+      maxWidth: '100%',
+      borderWidth: 1,
+      borderColor: isDark ? '#555' : '#ddd',
+    },
+    providerButtonContent: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      flexWrap: 'nowrap',
+    },
+    providerText: {
+      color: isDark ? '#fff' : '#000',
+      fontSize: 16,
+      fontWeight: '500',
+      flex: 1,
     },
     dropdownContent: {
-      backgroundColor: isDark ? '#333' : '#f0f0f0',
+      marginTop: 10,
+      marginRight: 0,
+      width: 220,
+      backgroundColor: isDark ? '#333' : '#fff',
       borderRadius: 8,
       padding: 8,
       shadowColor: '#000',
@@ -330,8 +358,8 @@ const createStyles = (isDark: boolean) => {
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
       elevation: 5,
-      width: 225,
-      right: 15,
+      right: 20,
+      top: 60,
     },
     dropdownModal: {
       flex: 1,
@@ -340,16 +368,25 @@ const createStyles = (isDark: boolean) => {
       backgroundColor: 'rgba(0,0,0,0.3)',
     },
     dropdownItem: {
-      paddingVertical: 14,
-      paddingHorizontal: 16,
       flexDirection: 'row',
       alignItems: 'center',
+      padding: 14,
+      borderRadius: 8,
       gap: 10,
+    },
+    selectedItem: {
+      backgroundColor: isDark ? '#444' : '#e0e0e0',
+    },
+    dropdownItemText: {
+      color: isDark ? '#fff' : '#000',
+      fontSize: 16,
+      fontWeight: '500',
+      flex: 1,
     },
     dropdownDivider: {
       height: 1,
       backgroundColor: isDark ? '#555' : '#ddd',
-      marginVertical: 5,
+      marginVertical: 3,
     },
     errorContainer: {
       backgroundColor: 'rgba(255, 0, 0, 0.1)',
@@ -364,23 +401,11 @@ const createStyles = (isDark: boolean) => {
       color: 'red',
       textAlign: 'center',
     },
-    providerButtonContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-    },
-    providerIcon: {
-      marginRight: 4,
-    },
-    globalProviderButton: {
-      borderWidth: 1,
-      borderColor: isDark ? '#555' : '#ddd',
-      paddingHorizontal: 8,
-      paddingRight: 8,
-    },
-    toolProviderButton: {
-      borderWidth: 1,
-      borderColor: isDark ? '#555' : '#ddd',
+    noProvidersText: {
+      color: isDark ? '#999' : '#666',
+      fontSize: 15,
+      padding: 14,
+      textAlign: 'center',
     },
   });
 };
@@ -852,49 +877,29 @@ export default function Box1() {
         <View style={styles.providerSelector}>
           <TouchableOpacity 
             onPress={() => setDropdownVisible(!dropdownVisible)}
-            style={[
-              styles.providerButton,
-              { backgroundColor: isDark ? '#333' : '#f0f0f0' },
-              isUsingGlobalProvider ? styles.globalProviderButton : styles.toolProviderButton
-            ]}
+            style={styles.providerButton}
           >
-            <View style={[styles.providerButtonContent, { flex: 1 }]}>
-              {isUsingGlobalProvider && (
-                <Ionicons 
-                  name="globe-outline" 
-                  size={24} 
-                  color={isDark ? '#fff' : '#000'} 
-                  style={[styles.providerIcon]}
-                />
-              )}
-              {selectedProvider && !isUsingGlobalProvider && (
+            <View style={styles.providerButtonContent}>
+              {selectedProvider ? (
                 <>
                   {selectedProvider === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
                   {selectedProvider === 'google' && <GeminiLogo width={24} height={24} />}
                   {selectedProvider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
                   {selectedProvider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
                   {selectedProvider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
+                  <Text style={styles.providerText} numberOfLines={1} ellipsizeMode="tail">
+                    {getProviderDisplayName(selectedProvider)}
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Ionicons name="cloud-outline" size={24} color={isDark ? '#fff' : '#000'} />
+                  <Text style={styles.providerText} numberOfLines={1} ellipsizeMode="tail">
+                    {activeProvidersList.length > 0 ? 'Select Provider' : 'No Providers'}
+                  </Text>
                 </>
               )}
-              {!selectedProvider}
-              <Text 
-                style={{ 
-                  color: isDark ? '#fff' : '#000', 
-                  fontSize: 16, 
-                  fontWeight: '500',
-                  flex: 1
-                }}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {selectedProvider ? 
-                  `${getProviderDisplayName(selectedProvider)}` : 'Select Provider'}
-              </Text>
-              <Ionicons 
-                name={dropdownVisible ? "chevron-up" : "chevron-down"} 
-                size={20} 
-                color={isDark ? '#fff' : '#000'} 
-              />
+              <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={isDark ? '#fff' : '#000'} />
             </View>
           </TouchableOpacity>
           
@@ -910,10 +915,7 @@ export default function Box1() {
               activeOpacity={1}
               onPress={() => setDropdownVisible(false)}
             >
-              <View style={[
-                styles.dropdownContent,
-                { marginTop: 70, marginRight: 16 }
-              ]}>
+              <View style={[styles.dropdownContent]}>
                 {activeProvidersList.length > 0 ? (
                   <>
                     {activeProvidersList.map((provider) => (
@@ -921,9 +923,7 @@ export default function Box1() {
                         key={provider}
                         style={[
                           styles.dropdownItem,
-                          selectedProvider === provider && {
-                            backgroundColor: isDark ? '#555' : '#ddd'
-                          }
+                          selectedProvider === provider && styles.selectedItem
                         ]}
                         onPress={() => handleProviderSelect(provider)}
                       >
@@ -932,16 +932,7 @@ export default function Box1() {
                         {provider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
                         {provider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
                         {provider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
-                        <Text 
-                          style={{ 
-                            color: isDark ? '#fff' : '#000', 
-                            fontSize: 16, 
-                            fontWeight: '500',
-                            flex: 1
-                          }}
-                          numberOfLines={1}
-                          ellipsizeMode="tail"
-                        >
+                        <Text style={styles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
                           {getProviderDisplayName(provider)}
                         </Text>
                       </TouchableOpacity>
@@ -952,31 +943,13 @@ export default function Box1() {
                       onPress={resetToGlobalProvider}
                     >
                       <Ionicons name="globe-outline" size={24} color={isDark ? '#fff' : '#000'} />
-                      <Text 
-                        style={{ 
-                          color: isDark ? '#fff' : '#000', 
-                          fontSize: 16, 
-                          fontWeight: '500',
-                          flex: 1
-                        }}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
+                      <Text style={styles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
                         Use Global Provider
                       </Text>
                     </TouchableOpacity>
                   </>
                 ) : (
-                  <Text 
-                    style={{ 
-                      color: isDark ? '#999' : '#666',
-                      fontSize: 15,
-                      padding: 14,
-                      textAlign: 'center'
-                    }}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
+                  <Text style={styles.noProvidersText}>
                     No active providers
                   </Text>
                 )}

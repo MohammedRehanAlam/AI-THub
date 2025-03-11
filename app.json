@@ -51,7 +51,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "f14cdf6c-881b-499b-9951-1c14f0b25548"
+        "projectId": "06530dcd-e7c9-44f6-977a-5b922967a805"
       }
     },
     "experiments": {
@@ -62,7 +62,7 @@
     },
     "owner": "rehanalam7036",
     "updates": {
-      "url": "https://u.expo.dev/f14cdf6c-881b-499b-9951-1c14f0b25548",
+      "url": "https://u.expo.dev/06530dcd-e7c9-44f6-977a-5b922967a805",
       "enabled": true,
       "fallbackToCacheTimeout": 0,
       "checkAutomatically": "ON_LOAD"

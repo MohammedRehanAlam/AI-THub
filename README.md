@@ -4,30 +4,37 @@ A powerful translation application that leverages advanced AI technology to prov
 
 ## Features
 
-- Real-time translation
-- Support for multiple languages
-- Context-aware translations
-- User-friendly interface
-- Dark/Light mode support
+- Real-time translation with minimal latency
+- Support for 100+ languages with high accuracy
+- Context-aware translations that understand nuance and idioms
+- User-friendly interface with intuitive controls
+- Dark/Light mode support with automatic system theme detection
 - Cross-platform compatibility (iOS, Android, Web)
 - Over-the-air updates via EAS Update
 - Multiple AI provider integration with custom SVG logos
+- Offline mode for basic translations
+- History tracking and favorites system
 
 ## Tech Stack
 
-- React Native
-- Expo
+- React Native / Expo
 - TypeScript
 - Node.js
+- React Navigation for routing
 - React Native SVG for vector graphics
+- Expo Router for file-based routing
+- Reanimated for smooth animations
+- EAS Update for OTA updates
+- AsyncStorage for local data persistence
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
-- npm or yarn
-- Expo CLI
+- Node.js (v16 or higher)
+- npm (v8+) or yarn (v1.22+)
+- Expo CLI (`npm install -g expo-cli`)
+- Git
 
 ### Installation
 
@@ -44,20 +51,25 @@ A powerful translation application that leverages advanced AI technology to prov
    yarn install
    ```
 
-3. Set up environment variables:
-   - Copy `.env.example` to `.env`
-   - Update the values as needed
-
-4. Start the development server:
+3. Start the development server:
    ```bash
    npx expo start
    ```
 
+4. Run on your preferred platform:
+   - Press `i` for iOS simulator
+   - Press `a` for Android emulator
+   - Press `w` for web browser
+   - Scan the QR code with Expo Go app on your physical device
+
 ## Project Structure
 
 - `/app` - Main application screens and navigation
+  - `/components` - UI components specific to screens
+  - `/context` - React context providers
+  - `/tools` - Utility tools for the app
+  - `/_utils` - Helper functions
 - `/assets` - Static assets like images, fonts, and SVG logos
-  - `/API_Providers_Logos` - SVG logos for different AI providers
 - `/components` - Reusable UI components
 - `/constants` - Application constants and theme settings
 - `/hooks` - Custom React hooks
@@ -79,7 +91,9 @@ A powerful translation application that leverages advanced AI technology to prov
 - `npm run web` or `yarn web`: Run on web browser
 - `npm run lint` or `yarn lint`: Run ESLint
 - `npm run test` or `yarn test`: Run tests
-- `npm run publish-update` or `yarn publish-update`: Publish an update via EAS Update
+- `npm run build:android`: Build Android APK/AAB
+- `npm run build:ios`: Build iOS IPA
+- `npm run publish-update`: Publish an update via EAS Update
 
 ## Features in Detail
 
@@ -87,29 +101,38 @@ A powerful translation application that leverages advanced AI technology to prov
 - Real-time translation between multiple languages
 - Context-aware translations for improved accuracy
 - Support for text, document, and conversation translations
+- Voice input and text-to-speech output
+- Image-to-text translation (OCR)
 
 ### User Interface
 - Clean and intuitive design
-- Dark and light theme support
+- Dark and light theme support with auto-switching
 - Responsive layout for all screen sizes
 - Sidebar navigation for easy access to features
 - Custom SVG logos for different AI providers
+- Haptic feedback for better user experience
+- Accessibility features (VoiceOver, TalkBack support)
 
 ### AI Provider Integration
 The app integrates with multiple AI providers:
-- OpenAI (GPT models)
+- OpenAI (GPT-3.5, GPT-4)
 - Google AI (Gemini models)
 - Anthropic (Claude models)
 - OpenRouter (multi-provider access)
 - Groq (fast inference for open-source models)
+- Mistral AI
+- Cohere
 
 Each provider has a custom SVG logo that adapts to the app's theme.
 
 ### Additional Features
-- Translation history
-- Favorite translations
+- Translation history with search and filtering
+- Favorite translations for quick access
 - Language auto-detection
-- Offline mode support
+- Offline mode support for basic translations
+- Customizable translation settings
+- Export translations to various formats
+- Share translations via social media or messaging apps
 
 ## SVG Implementation
 
@@ -182,8 +205,46 @@ import UpdateButton from '../components/UpdateButton';
 
 ## Deployment
 
-Follow the Expo documentation for building and deploying your application:
-[Expo Deployment Guide](https://docs.expo.dev/distribution/introduction/)
+### EAS Build
+
+This project uses EAS Build for creating production-ready builds:
+
+```bash
+# Build for internal testing
+eas build --profile preview --platform all
+
+# Build for production
+eas build --profile production --platform all
+```
+
+### App Store / Play Store Submission
+
+Follow the Expo documentation for submitting your application to app stores:
+[Expo Submission Guide](https://docs.expo.dev/submit/introduction/)
+
+```bash
+# Submit to App Store
+eas submit --platform ios
+
+# Submit to Play Store
+eas submit --platform android
+```
+
+## Troubleshooting
+
+### Common Issues
+
+- **Metro bundler issues**: Try clearing the cache with `npx expo start -c`
+- **Dependency conflicts**: Run `npm dedupe` or `yarn dedupe`
+- **Build failures**: Check the EAS build logs and ensure all configuration is correct
+- **SVG rendering issues**: Ensure SVGs are properly optimized and follow the format requirements
+
+### Getting Help
+
+If you encounter issues not covered here, please:
+1. Check the [Expo documentation](https://docs.expo.dev/)
+2. Search for similar issues in the GitHub repository
+3. Open a new issue with detailed information about your problem
 
 ## Contributing
 
@@ -195,10 +256,19 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+Please ensure your code follows the project's coding standards and includes appropriate tests.
+
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Contact
 
-For support or feedback, please contact us at: support@aithub.com 
+For support or feedback, please contact us at: support@aithub.com
+
+## Acknowledgements
+
+- [Expo](https://expo.dev/) for the amazing React Native toolchain
+- [OpenAI](https://openai.com/) for their powerful language models
+- [React Native Community](https://reactnative.dev/community/overview) for their invaluable packages
+- All contributors who have helped improve this project 

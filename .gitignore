@@ -2,6 +2,8 @@
 
 # dependencies
 node_modules/
+.pnp/
+.pnp.js
 
 # Expo
 .expo/
@@ -36,9 +38,6 @@ yarn-error.*
 # local env files
 .env
 .env*.local
-.env.development
-.env.test
-.env.production
 
 # typescript
 *.tsbuildinfo
@@ -52,11 +51,14 @@ yarn-error.*
 
 # testing
 coverage/
+.jest/
+jest-*.json
 
 # production build
 build/
 dist/
 out/
+.next/
 
 # IDE specific files
 .idea/
@@ -67,24 +69,28 @@ out/
 !.vscode/launch.json
 *.swp
 *.swo
+*.sublime-*
+.history/
+.project
+.classpath
 
 # misc
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
 # app specific
 app-example
 
 # EAS
 .eas/local/
+eas-build-local/
 
 # Temporary files
 *.tmp
 .tmp/
 tmp/
+.cache/
 
 # Generated files
 .generated/
@@ -95,6 +101,13 @@ android/.gradle
 android/local.properties
 android/*.iml
 android/.idea/
+
+# iOS
+ios/build/
+ios/Pods/
+ios/DerivedData/
+ios/*.xcworkspace
+ios/*.xcodeproj/xcuserdata/
 
 # Do NOT ignore these important files
 !app.json

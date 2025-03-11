@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, View } from 'react-native';
-import { checkAndInstallUpdates } from '../utils/updateUtils';
+import { checkAndInstallUpdates } from '../_utils/updateUtils';
 
 interface UpdateButtonProps {
   label?: string;
