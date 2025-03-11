@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform, Keyboard, Modal, AppState } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform, Keyboard, Modal, AppState, KeyboardAvoidingView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +13,10 @@ import { BlurView } from 'expo-blur';
 import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import ErrorAlert from '../components/ErrorAlert';
+import CollapsibleErrorAlert from '../components/CollapsibleErrorAlert';
+import { useProviders, ProviderType } from '../context/ProviderContext';
+import { translateText as apiTranslateText, TranslationRequest } from '../_utils/apiUtils';
+import { formatApiError } from '../_utils/errorUtils';
 
 // Theme colors
 const COLORS = {
@@ -301,6 +305,69 @@ const createStyles = (isDark: boolean) => {
       padding: 8,
       paddingBottom: 14,
     },
+    providerSelector: {
+      position: 'relative',
+      zIndex: 10,
+    },
+    providerButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 5,
+      minWidth: 120,
+    },
+    dropdown: {
+      position: 'absolute',
+      top: '100%',
+      right: 0,
+      width: 156,
+      borderRadius: 5,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+      zIndex: 20,
+    },
+    dropdownItem: {
+      paddingVertical: 10,
+      paddingHorizontal: 15,
+    },
+    dropdownDivider: {
+      height: 1,
+      backgroundColor: isDark ? '#555' : '#ddd',
+      marginVertical: 5,
+    },
+    errorContainer: {
+      backgroundColor: 'rgba(255, 0, 0, 0.1)',
+      padding: 10,
+      marginHorizontal: 10,
+      marginTop: 10,
+      borderRadius: 5,
+      borderWidth: 1,
+      borderColor: 'rgba(255, 0, 0, 0.3)',
+    },
+    errorText: {
+      color: 'red',
+      textAlign: 'center',
+    },
+    providerButtonContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    providerIcon: {
+      marginRight: 4,
+    },
+    globalProviderButton: {
+      borderWidth: 1,
+      borderColor: isDark ? '#555' : '#ddd',
+    },
+    toolProviderButton: {
+      borderWidth: 1,
+      borderColor: isDark ? '#007AFF' : '#007AFF',
+    },
   });
 };
 
@@ -345,11 +412,23 @@ export default function Box1() {
   const [errorAlertVisible, setErrorAlertVisible] = useState(false);
   const [errorTitle, setErrorTitle] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [detailedError, setDetailedError] = useState<string | undefined>(undefined);
+  const [isUsingGlobalProvider, setIsUsingGlobalProvider] = useState(true);
 
   const RATE_LIMIT_DELAY = 1000;
   const MAX_RETRIES = 3;
   const RETRY_DELAY = 1000;
   const DOUBLE_CLICK_DELAY = 300;
+
+  const { activeProviders, isProviderActive } = useProviders();
+  const [selectedProvider, setSelectedProvider] = useState<ProviderType | null>(null);
+  const [providerError, setProviderError] = useState<string | null>(null);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [activeProvidersList, setActiveProvidersList] = useState<ProviderType[]>([]);
+
+  // Constants for storage keys
+  const TOOL_PROVIDER_KEY = 'box1_selected_provider';
+  const GLOBAL_PROVIDER_KEY = 'selected_provider';
 
   useEffect(() => {
     const loadSavedData = async () => {
@@ -460,6 +539,95 @@ export default function Box1() {
     }, [messages.length])
   );
 
+  // Load the selected provider from AsyncStorage
+  useEffect(() => {
+    const loadSelectedProvider = async () => {
+      try {
+        // First try to load the tool-specific provider
+        const toolProvider = await AsyncStorage.getItem(TOOL_PROVIDER_KEY);
+        
+        if (toolProvider && isProviderActive(toolProvider as ProviderType)) {
+          // If there's a saved tool-specific provider and it's active, use it
+          setSelectedProvider(toolProvider as ProviderType);
+          setIsUsingGlobalProvider(false);
+        } else {
+          // If no tool-specific provider, try to load the global provider
+          const globalProvider = await AsyncStorage.getItem(GLOBAL_PROVIDER_KEY);
+          
+          if (globalProvider && isProviderActive(globalProvider as ProviderType)) {
+            // If there's a saved global provider and it's active, use it
+            setSelectedProvider(globalProvider as ProviderType);
+            setIsUsingGlobalProvider(true);
+          } else {
+            // If no provider is selected or the saved providers are not active,
+            // find the first active one
+            const activeProvs = Object.entries(activeProviders)
+              .filter(([_, isActive]) => isActive)
+              .map(([provider]) => provider as ProviderType);
+            
+            if (activeProvs.length > 0) {
+              setSelectedProvider(activeProvs[0]);
+              // Save the selected provider to tool-specific AsyncStorage
+              await AsyncStorage.setItem(TOOL_PROVIDER_KEY, activeProvs[0]);
+              setIsUsingGlobalProvider(false);
+            } else {
+              setSelectedProvider(null);
+              setProviderError('No active AI provider found. Please enable a provider in the API settings.');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading selected provider:', error);
+        setProviderError('Error loading AI provider. Please check your settings.');
+      }
+    };
+    
+    loadSelectedProvider();
+  }, [activeProviders, isProviderActive]);
+
+  // Load active providers list
+  useEffect(() => {
+    const loadActiveProvidersList = async () => {
+      try {
+        // Get list of active providers
+        const activeProvs = Object.entries(activeProviders)
+          .filter(([_, isActive]) => isActive)
+          .map(([provider]) => provider as ProviderType);
+        
+        setActiveProvidersList(activeProvs);
+      } catch (error) {
+        console.error('Error loading active providers list:', error);
+      }
+    };
+    
+    loadActiveProvidersList();
+  }, [activeProviders]);
+
+  // Handle provider selection
+  const handleProviderSelect = async (provider: ProviderType) => {
+    try {
+      setSelectedProvider(provider);
+      // Save to tool-specific storage key
+      await AsyncStorage.setItem(TOOL_PROVIDER_KEY, provider);
+      setIsUsingGlobalProvider(false);
+      setDropdownVisible(false);
+    } catch (error) {
+      console.error('Error saving selected provider:', error);
+    }
+  };
+
+  // Get provider display name
+  const getProviderDisplayName = (provider: ProviderType): string => {
+    const displayNames: Record<ProviderType, string> = {
+      openai: 'OpenAI',
+      google: 'Google',
+      anthropic: 'Anthropic',
+      openrouter: 'OpenRouter',
+      groq: 'Groq'
+    };
+    return displayNames[provider] || provider;
+  };
+
   const getPlaceholder = () => {
     const lang = activeUser === 1 ? sourceLanguage : targetLanguage;
     return PLACEHOLDER_TRANSLATIONS[lang] || "Type your message...";
@@ -482,70 +650,66 @@ export default function Box1() {
       setLastTranslationTime(Date.now());
       setRequestQueue(prev => prev + 1);
 
-      // Get API key from Constants instead of process.env
-      const apiKey = Constants.expoConfig?.extra?.GEMINI_API_KEY || 
-                    (Constants.manifest && (Constants.manifest as any).extra?.GEMINI_API_KEY) || 
-                    process.env.EXPO_PUBLIC_GEMINI_API_KEY;
-      
-      if (!apiKey) {
-        console.error('API key missing. Constants:', JSON.stringify(Constants.expoConfig?.extra || {}));
-        throw new Error('API key not configured. Please set it in your environment variables.');
+      // Check if we have a selected provider
+      if (!selectedProvider) {
+        throw new Error('No AI provider selected. Please select a provider in the API settings.');
+      }
+
+      // Check if the selected provider is active
+      if (!isProviderActive(selectedProvider)) {
+        throw new Error(`The selected provider (${selectedProvider}) is not active. Please enable it in the API settings.`);
       }
 
       const fromLanguage = activeUser === 1 ? sourceLanguage : targetLanguage;
       const toLanguage = activeUser === 1 ? targetLanguage : sourceLanguage;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{
-                text: `Translate the following text from ${fromLanguage} to ${toLanguage}. Only provide the translation, no additional text: ${text}`
-              }]
-            }]
-          })
-        }
-      );
+      // Create translation request
+      const request: TranslationRequest = {
+        text,
+        fromLanguage,
+        toLanguage
+      };
 
-      if (!response.ok) {
-        throw new Error(`Translation failed: ${response.status}`);
+      // Call the API utility function to translate
+      const result = await apiTranslateText(request, selectedProvider);
+
+      if (!result.success) {
+        const error = new Error(result.error || 'Translation failed');
+        // Attach the API response to the error object
+        (error as any).response = result.response;
+        (error as any).providerInfo = result.providerInfo;
+        throw error;
       }
 
-      const data = await response.json();
-      if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-        throw new Error('Invalid response from translation service');
-      }
-
-      return data.candidates[0].content.parts[0].text.trim();
-
-    } catch (error) {
-      console.error('Translation error:', error);
-      
-      // Log more detailed error information
-      if (error instanceof Error) {
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-      }
-      
-      // Check for specific error conditions
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        console.error('Network error - check internet connection');
-      }
-      
-      if (retryCount < MAX_RETRIES) {
-        console.log(`Retrying translation (${retryCount + 1}/${MAX_RETRIES})...`);
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-        return translateText(text, retryCount + 1);
-      }
-      throw error;
-    } finally {
       setIsTranslating(false);
       setRequestQueue(prev => prev - 1);
+      return result.translatedText;
+    } catch (error: any) {
+      console.error('Translation error:', error);
+      setIsTranslating(false);
+      setRequestQueue(prev => prev - 1);
+      
+      // Handle rate limiting errors by retrying
+      if (error.message.includes('rate limit') && retryCount < 3) {
+        console.log(`Rate limit hit, retrying (${retryCount + 1}/3)...`);
+        await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1)));
+        return translateText(text, retryCount + 1);
+      }
+      
+      // Format and show error using the utility function
+      const additionalInfo = {
+        'From': activeUser === 1 ? sourceLanguage : targetLanguage,
+        'To': activeUser === 1 ? targetLanguage : sourceLanguage
+      };
+      
+      const formattedError = formatApiError(error, selectedProvider, additionalInfo);
+      
+      setErrorTitle(formattedError.title);
+      setErrorMessage(formattedError.message);
+      setDetailedError(formattedError.detailedError);
+      setErrorAlertVisible(true);
+      
+      throw error;
     }
   };
 
@@ -574,26 +738,18 @@ export default function Box1() {
       };
 
       setMessages(prev => [...prev, translatedMessage]);
-    } catch (error) {
-      console.error('Send error:', error);
+    } catch (error: any) {
+      console.error('Error sending message:', error);
       
-      let errorTitle = 'Translation Error';
-      let errorMessage = 'Failed to translate text. Please try again.';
+      // Format and show error using the utility function
+      const formattedError = formatApiError(error, selectedProvider);
       
-      // Provide more specific error messages based on the error type
-      if (error instanceof Error) {
-        if (error.message.includes('API key not configured')) {
-          errorMessage = 'API key not properly configured. Please check your app settings.';
-        } else if (error.message.includes('Network') || error.message.includes('fetch')) {
-          errorMessage = 'Network error. Please check your internet connection and try again.';
-        } else if (error.message.includes('rate limit')) {
-          errorMessage = 'Too many requests. Please wait a moment and try again.';
-        }
-      }
-      
-      setErrorTitle(errorTitle);
-      setErrorMessage(errorMessage);
+      setErrorTitle(formattedError.title);
+      setErrorMessage(formattedError.message);
+      setDetailedError(formattedError.detailedError);
       setErrorAlertVisible(true);
+      
+      // Remove the pending message
       setMessages(prev => prev.slice(0, -1));
     }
   };
@@ -617,6 +773,64 @@ export default function Box1() {
     }
   };
 
+  // Reset to global provider
+  const resetToGlobalProvider = async () => {
+    try {
+      // Get the global provider
+      const globalProvider = await AsyncStorage.getItem(GLOBAL_PROVIDER_KEY);
+      
+      if (globalProvider && isProviderActive(globalProvider as ProviderType)) {
+        // Set the selected provider to the global provider
+        setSelectedProvider(globalProvider as ProviderType);
+        
+        // Remove the tool-specific provider
+        await AsyncStorage.removeItem(TOOL_PROVIDER_KEY);
+        setIsUsingGlobalProvider(true);
+      } else {
+        // If no global provider or it's not active, find the first active one
+        const activeProvs = Object.entries(activeProviders)
+          .filter(([_, isActive]) => isActive)
+          .map(([provider]) => provider as ProviderType);
+        
+        if (activeProvs.length > 0) {
+          setSelectedProvider(activeProvs[0]);
+          setIsUsingGlobalProvider(true);
+        } else {
+          setSelectedProvider(null);
+          setProviderError('No active AI provider found. Please enable a provider in the API settings.');
+        }
+      }
+    } catch (error) {
+      console.error('Error resetting to global provider:', error);
+    }
+  };
+
+  // Listen for changes to the global provider
+  useEffect(() => {
+    const checkGlobalProvider = async () => {
+      try {
+        // Only check if we're currently using the global provider
+        if (isUsingGlobalProvider) {
+          const globalProvider = await AsyncStorage.getItem(GLOBAL_PROVIDER_KEY);
+          
+          if (globalProvider && isProviderActive(globalProvider as ProviderType) && 
+              globalProvider !== selectedProvider) {
+            // If the global provider has changed and it's active, update our selected provider
+            setSelectedProvider(globalProvider as ProviderType);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking global provider:', error);
+      }
+    };
+    
+    // Set up an interval to check for changes to the global provider
+    const intervalId = setInterval(checkGlobalProvider, 2000);
+    
+    // Clean up the interval when the component unmounts
+    return () => clearInterval(intervalId);
+  }, [isUsingGlobalProvider, selectedProvider, isProviderActive]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -626,6 +840,80 @@ export default function Box1() {
           </TouchableOpacity>
           <Text style={styles.logo}>Translator</Text>
         </View>
+        
+        <View style={styles.providerSelector}>
+          <TouchableOpacity 
+            onPress={() => setDropdownVisible(!dropdownVisible)}
+            style={[
+              styles.providerButton,
+              { backgroundColor: isDark ? '#333' : '#f0f0f0' },
+              isUsingGlobalProvider ? styles.globalProviderButton : styles.toolProviderButton
+            ]}
+          >
+            <View style={styles.providerButtonContent}>
+              {isUsingGlobalProvider && (
+                <Ionicons 
+                  name="globe-outline" 
+                  size={14} 
+                  color={isDark ? '#fff' : '#000'} 
+                  style={styles.providerIcon}
+                />
+              )}
+              <Text style={{ color: isDark ? '#fff' : '#000', fontSize: 12 }}>
+                {selectedProvider ? 
+                  `${getProviderDisplayName(selectedProvider)}${isUsingGlobalProvider ? ' (Global)' : ''}` : 
+                  'Select Provider'}
+              </Text>
+            </View>
+            <Ionicons 
+              name={dropdownVisible ? "chevron-up" : "chevron-down"} 
+              size={16} 
+              color={isDark ? '#fff' : '#000'} 
+            />
+          </TouchableOpacity>
+          
+          {dropdownVisible && (
+            <View style={[
+              styles.dropdown,
+              { backgroundColor: isDark ? '#333' : '#f0f0f0' }
+            ]}>
+              {activeProvidersList.length > 0 ? (
+                <>
+                  {activeProvidersList.map((provider) => (
+                    <TouchableOpacity
+                      key={provider}
+                      style={[
+                        styles.dropdownItem,
+                        selectedProvider === provider && {
+                          backgroundColor: isDark ? '#555' : '#ddd'
+                        }
+                      ]}
+                      onPress={() => handleProviderSelect(provider)}
+                    >
+                      <Text style={{ color: isDark ? '#fff' : '#000' }}>
+                        {getProviderDisplayName(provider)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                  <View style={styles.dropdownDivider} />
+                  <TouchableOpacity
+                    style={styles.dropdownItem}
+                    onPress={resetToGlobalProvider}
+                  >
+                    <Text style={{ color: isDark ? '#fff' : '#000' }}>
+                      Use Global Provider
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <Text style={[styles.dropdownItem, { color: isDark ? '#fff' : '#000' }]}>
+                  No active providers
+                </Text>
+              )}
+            </View>
+          )}
+        </View>
+        
         <TouchableOpacity 
           onPress={handleClearButtonPress} 
           style={[
@@ -637,7 +925,14 @@ export default function Box1() {
           <Ionicons name="trash-outline" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
-
+      
+      {/* Add provider error message */}
+      {providerError && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{providerError}</Text>
+        </View>
+      )}
+      
       <View style={styles.languageSelector}>
         <View style={styles.languageSelectorContainer}>
           <View style={styles.languageBox}>
@@ -823,10 +1118,11 @@ export default function Box1() {
         isDark={isDark}
       />
 
-      <ErrorAlert
+      <CollapsibleErrorAlert
         visible={errorAlertVisible}
         title={errorTitle}
         message={errorMessage}
+        detailedError={detailedError}
         onDismiss={() => setErrorAlertVisible(false)}
         isDark={isDark}
       />

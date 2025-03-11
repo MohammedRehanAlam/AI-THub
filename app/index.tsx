@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Modal, FlatList } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Modal, FlatList, Dimensions, Animated, Platform, Linking, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from './context/ThemeContext';
 import { useProviders, ProviderType } from './context/ProviderContext';
@@ -35,6 +35,12 @@ const PROVIDER_INFO = {
   }
 };
 
+// Constants for storage keys
+const GLOBAL_PROVIDER_KEY = 'selected_provider';
+const TOOL1_PROVIDER_KEY = 'box1_selected_provider';
+const TOOL2_PROVIDER_KEY = 'box2_selected_provider';
+const TOOL3_PROVIDER_KEY = 'box3_selected_provider';
+
 export default function HomePage() {
   const { currentTheme } = useTheme();
   const [isSettingsOpen] = useState(false);
@@ -43,6 +49,25 @@ export default function HomePage() {
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [activeProvidersList, setActiveProvidersList] = useState<ProviderType[]>([]);
   const router = useRouter();
+  
+  // Load saved provider from AsyncStorage when the app starts
+  useEffect(() => {
+    const loadSavedProvider = async () => {
+      try {
+        const savedProvider = await AsyncStorage.getItem(GLOBAL_PROVIDER_KEY);
+        if (savedProvider) {
+          // Check if the saved provider is still active
+          if (isProviderActive(savedProvider as ProviderType)) {
+            setSelectedProvider(savedProvider as ProviderType);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading saved provider:', error);
+      }
+    };
+    
+    loadSavedProvider();
+  }, []);
   
   // Load active providers and set default selected provider
   useEffect(() => {
@@ -55,9 +80,18 @@ export default function HomePage() {
         
         setActiveProvidersList(activeProvs);
         
-        // Set the first active provider as selected, or null if none are active
+        // Only set a default provider if no provider is currently selected
         if (activeProvs.length > 0 && !selectedProvider) {
-          setSelectedProvider(activeProvs[0]);
+          // Check if there's a saved provider in AsyncStorage
+          const savedProvider = await AsyncStorage.getItem(GLOBAL_PROVIDER_KEY);
+          
+          if (savedProvider && isProviderActive(savedProvider as ProviderType)) {
+            // If there's a saved provider and it's active, use it
+            setSelectedProvider(savedProvider as ProviderType);
+          } else {
+            // Otherwise, use the first active provider
+            setSelectedProvider(activeProvs[0]);
+          }
         }
         
         // If the currently selected provider is no longer active, select the first active one
@@ -73,6 +107,25 @@ export default function HomePage() {
     
     loadActiveProviders();
   }, [activeProviders, selectedProvider]);
+  
+  // Update AsyncStorage when selected provider changes
+  useEffect(() => {
+    const saveSelectedProvider = async () => {
+      if (selectedProvider) {
+        try {
+          // Save to global provider key
+          await AsyncStorage.setItem(GLOBAL_PROVIDER_KEY, selectedProvider);
+          
+          // We don't update tool-specific providers here
+          // Each tool will check the global provider if it doesn't have a tool-specific one
+        } catch (error) {
+          console.error('Error saving selected provider:', error);
+        }
+      }
+    };
+    
+    saveSelectedProvider();
+  }, [selectedProvider]);
   
   // Individual boxes for better control over position and properties
   type BoxRoute = '/tools/Box1' | '/tools/Box2' | '/tools/Box3' | '/tools/ComingSoon';
@@ -218,7 +271,18 @@ export default function HomePage() {
   },
   }), [isDark]);
 
- 
+  // Handle provider selection from dropdown
+  const handleProviderSelect = async (provider: ProviderType) => {
+    try {
+      setSelectedProvider(provider);
+      setDropdownVisible(false);
+      
+      // Save the selected provider to global AsyncStorage
+      await AsyncStorage.setItem(GLOBAL_PROVIDER_KEY, provider);
+    } catch (error) {
+      console.error('Error saving selected provider:', error);
+    }
+  };
 
   return (
     <SafeAreaView style={themedStyles.container}>
@@ -287,9 +351,8 @@ export default function HomePage() {
                         themedStyles.dropdownItem,
                         selectedProvider === item && themedStyles.selectedItem
                       ]}
-                      onPress={() => {
-                        setSelectedProvider(item);
-                        setDropdownVisible(false);
+                      onPress={async () => {
+                        await handleProviderSelect(item);
                       }}
                     >
                       {item === 'openai' && <OpenAILogo width={20} height={20} useThemeColor={true} />}
