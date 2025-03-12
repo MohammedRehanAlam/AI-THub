@@ -175,7 +175,7 @@ export default function HomePage() {
       right: 16,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 12,
+      // gap: 1,
     },
     toggleButton: {
       padding: 4,
@@ -189,17 +189,17 @@ export default function HomePage() {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: isDark ? '#333' : '#f0f0f0',
-      paddingHorizontal: 10,
-      paddingVertical: 10,
+      paddingHorizontal: 7,
+      paddingVertical: 8,
       borderRadius: 10,
-      gap: 10,
-      minWidth: 120,
+      gap: 8,
+      minWidth: 100,
       borderWidth: 1,
       borderColor: isDark ? '#555' : '#ddd',
     },
     providerText: {
       color: isDark ? '#fff' : '#000',
-      fontSize: 16,
+      fontSize: 14,
       fontWeight: '500',
     },
     dropdownModal: {
@@ -327,7 +327,7 @@ export default function HomePage() {
                   </Text>
                 </>
               )}
-              <Ionicons name="chevron-down" size={20} color={isDark ? '#fff' : '#000'} />
+              <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={isDark ? '#fff' : '#000'} />
             </TouchableOpacity>
           </View>
         </View>
