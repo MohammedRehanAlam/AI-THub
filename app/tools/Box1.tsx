@@ -104,7 +104,7 @@ const createStyles = (isDark: boolean) => {
     },
     clearButton: {
       paddingRight: 4,
-      paddingLeft: 4,
+      paddingLeft: 2,
     },
     clearButtonDisabled: {
       opacity: 0.3,
