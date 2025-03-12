@@ -1,5 +1,5 @@
 import * as Updates from 'expo-updates';
-import { Platform, Alert } from 'react-native';
+import { Alert } from 'react-native';
 
 /**
  * Checks for updates and returns whether an update is available
