@@ -193,7 +193,7 @@ export default function HomePage() {
       paddingVertical: 10,
       borderRadius: 10,
       gap: 10,
-      minWidth: 130,
+      minWidth: 120,
       borderWidth: 1,
       borderColor: isDark ? '#555' : '#ddd',
     },
@@ -371,7 +371,7 @@ export default function HomePage() {
                   )}
                 />
               ) : (
-                <Text style={themedStyles.noProvidersText} numberOfLines={1} ellipsizeMode="tail">
+                <Text style={themedStyles.noProvidersText}  ellipsizeMode="tail">
                   No active providers. Please verify and enable providers in Settings.
                 </Text>
               )}
