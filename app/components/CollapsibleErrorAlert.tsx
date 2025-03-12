@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, Dimensions, ScrollView, Linking } from 'react-native';
+import React from 'react';
+import { View, Text, Modal, TouchableOpacity, StyleSheet, Dimensions, Linking } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Ionicons } from '@expo/vector-icons';
 
 interface CollapsibleErrorAlertProps {
   visible: boolean;
@@ -16,70 +15,14 @@ const CollapsibleErrorAlert: React.FC<CollapsibleErrorAlertProps> = ({
   visible, 
   title, 
   message, 
-  detailedError, 
+  detailedError,
   onDismiss, 
   isDark 
 }) => {
-  const [expanded, setExpanded] = useState(false);
-
-  const toggleExpand = () => {
-    setExpanded(!expanded);
-  };
-
-  // Function to detect URLs in text and make them clickable
-  const renderTextWithLinks = (text: string) => {
-    // Regular expression to match URLs
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    
-    // Split the text by URLs
-    const parts = text.split(urlRegex);
-    
-    // Find all URLs in the text
-    const urls = text.match(urlRegex) || [];
-    
-    // Combine parts and URLs
-    const result = [];
-    for (let i = 0; i < parts.length; i++) {
-      // Add the text part
-      if (parts[i]) {
-        result.push(
-          <Text 
-            key={`text-${i}`} 
-            style={{ 
-              color: isDark ? '#E0E0E0' : '#333333',
-              fontSize: 16,
-              lineHeight: 22,
-              textAlign: 'center'
-            }}
-          >
-            {parts[i]}
-          </Text>
-        );
-      }
-      
-      // Add the URL part if it exists
-      if (urls[i - 1]) {
-        result.push(
-          <TouchableOpacity 
-            key={`link-${i-1}`} 
-            onPress={() => Linking.openURL(urls[i - 1])}
-          >
-            <Text 
-              style={{ 
-                color: isDark ? '#0A84FF' : '#007AFF', 
-                textDecorationLine: 'underline',
-                fontSize: 16,
-                lineHeight: 22
-              }}
-            >
-              {urls[i - 1]}
-            </Text>
-          </TouchableOpacity>
-        );
-      }
+  const handleLearnMore = () => {
+    if (detailedError && detailedError.startsWith('http')) {
+      Linking.openURL(detailedError);
     }
-    
-    return result;
   };
 
   return (
@@ -99,45 +42,15 @@ const CollapsibleErrorAlert: React.FC<CollapsibleErrorAlertProps> = ({
             <Text style={[styles.title, { color: isDark ? '#FFFFFF' : '#000000' }]}>{title}</Text>
           </View>
           <View style={styles.messageContainer}>
-            <View style={styles.messageTextContainer}>
-              {renderTextWithLinks(message)}
-            </View>
-            
-            {detailedError && (
-              <View style={styles.detailedErrorContainer}>
-                <TouchableOpacity 
-                  style={styles.expandButton} 
-                  onPress={toggleExpand}
-                >
-                  <Text style={[styles.expandButtonText, { color: isDark ? '#0A84FF' : '#007AFF' }]}>
-                    {expanded ? 'Hide Details' : 'Show Details'}
-                  </Text>
-                  <Ionicons 
-                    name={expanded ? 'chevron-up' : 'chevron-down'} 
-                    size={16} 
-                    color={isDark ? '#0A84FF' : '#007AFF'} 
-                  />
-                </TouchableOpacity>
-                
-                {expanded && (
-                  <ScrollView 
-                    style={styles.detailedErrorScroll}
-                    contentContainerStyle={styles.detailedErrorContent}
-                  >
-                    <View style={[
-                      styles.detailedErrorBox, 
-                      { backgroundColor: isDark ? '#1C1C1E' : '#F2F2F7' }
-                    ]}>
-                      <Text style={[
-                        styles.detailedErrorText, 
-                        { color: isDark ? '#E0E0E0' : '#333333' }
-                      ]}>
-                        {detailedError}
-                      </Text>
-                    </View>
-                  </ScrollView>
-                )}
-              </View>
+            <Text style={[styles.message, { color: isDark ? '#E0E0E0' : '#333333' }]}>
+              {message}
+            </Text>
+            {detailedError && detailedError.startsWith('http') && (
+              <TouchableOpacity onPress={handleLearnMore}>
+                <Text style={[styles.learnMore, { color: isDark ? '#0A84FF' : '#007AFF' }]}>
+                  Learn More
+                </Text>
+              </TouchableOpacity>
             )}
           </View>
           <TouchableOpacity
@@ -186,45 +99,16 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 20,
   },
-  messageTextContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
   message: {
     fontSize: 16,
     lineHeight: 22,
-    textAlign: 'center',
   },
-  detailedErrorContainer: {
-    marginTop: 10,
-  },
-  expandButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-  },
-  expandButtonText: {
-    fontSize: 15,
-    fontWeight: '500',
-    marginRight: 5,
-  },
-  detailedErrorScroll: {
-    maxHeight: 200,
-  },
-  detailedErrorContent: {
-    paddingVertical: 5,
-  },
-  detailedErrorBox: {
-    padding: 12,
-    borderRadius: 8,
-  },
-  detailedErrorText: {
+  learnMore: {
     fontSize: 14,
-    fontFamily: 'monospace',
+    fontWeight: '500',
+    marginTop: 12,
+    textAlign: 'center',
+    textDecorationLine: 'none',
   },
   button: {
     padding: 16,

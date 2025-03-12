@@ -57,21 +57,32 @@ export const formatApiError = (
         error.message.includes('exceeded')) {
       title = 'Quota Error';
       
-      // For OpenAI quota errors
+      // Build the complete message with provider and model info
+      let fullMessage = 'You exceeded your current quota. Check your plan and billing details.\n\n';
+      
+      // Add provider and model info
+      if (error.providerInfo) {
+        fullMessage += `Provider: ${error.providerInfo.provider}\n`;
+        fullMessage += `Model: ${error.providerInfo.model}\n`;
+      } else if (provider) {
+        fullMessage += `Provider: ${provider}\n`;
+        if (error.response?.model) {
+          fullMessage += `Model: ${error.response.model}\n`;
+        }
+      }
+      
+      // Add the learn more link
       if (error.message.includes('openai') || (provider === 'openai')) {
-        message = 'You exceeded your current quota. Check your plan and billing details. For more information: https://platform.openai.com/docs/guides/error-codes/api-errors';
+        message = fullMessage;
+        detailedError = 'https://platform.openai.com/docs/guides/error-codes/api-errors';
       } 
-      // For Google quota errors
       else if (error.message.includes('google') || (provider === 'google')) {
-        message = 'You exceeded your current quota. Check your plan and billing details. For more information: https://ai.google.dev/docs/error_codes';
+        message = fullMessage;
+        detailedError = 'https://ai.google.dev/docs/error_codes';
       }
-      // For Anthropic quota errors
       else if (error.message.includes('anthropic') || (provider === 'anthropic')) {
-        message = 'You exceeded your current quota. Check your plan and billing details. For more information: https://docs.anthropic.com/claude/reference/errors';
-      }
-      // Generic quota error
-      else {
-        message = 'You exceeded your current quota. Please check your plan and billing details.';
+        message = fullMessage;
+        detailedError = 'https://docs.anthropic.com/claude/reference/errors';
       }
     }
     // Handle API key errors
