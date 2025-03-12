@@ -45,6 +45,23 @@ const COLORS = {
   }
 };
 
+// Configurable UI constants
+const UI_CONFIG = {
+  // Input field height configuration
+  // To change the height of the input field:
+  // 1. Increase INPUT_MIN_HEIGHT for a taller default input field
+  // 2. Increase INPUT_MAX_HEIGHT to allow more lines of text before scrolling begins
+  // 3. Both values are in pixels and can be adjusted based on your preference
+  INPUT_MIN_HEIGHT: 48,  // Minimum height of the input field (default single line)
+  INPUT_MAX_HEIGHT: 120, // Maximum height of the input field when expanded with multi-line text
+  
+  // Keyboard offset configuration
+  // Controls how far above the keyboard the input field should appear
+  // Increase this value to move the input field higher above the keyboard
+  // Decrease this value to keep the input field closer to the keyboard
+  KEYBOARD_OFFSET: 10,   // Distance in pixels between keyboard and input field
+};
+
 interface Message {
   text: string;
   isUser1: boolean;
@@ -80,6 +97,8 @@ const createStyles = (isDark: boolean) => {
     container: {
       flex: 1,
       backgroundColor: colors.background,
+      position: 'relative',
+      height: '100%',
     },
     header: {
       paddingVertical: 10,
@@ -90,7 +109,7 @@ const createStyles = (isDark: boolean) => {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
       width: '100%',
-      gap: 8,
+      gap: 6,
     },
     headerLeft: {
       flexDirection: 'row',
@@ -235,8 +254,9 @@ const createStyles = (isDark: boolean) => {
     bottomContainer: {
       borderTopWidth: 1,
       borderTopColor: colors.border,
-      paddingBottom: Platform.OS === 'ios' ? 30 : 16,
       backgroundColor: colors.background,
+      width: '100%',
+      paddingBottom: 10,
     },
     userToggle: {
       flexDirection: 'row',
@@ -250,7 +270,7 @@ const createStyles = (isDark: boolean) => {
     userButton: {
       flex: 1,
       padding: 10,
-      paddingVertical: 12,
+      paddingVertical: 10,
       borderRadius: 20,
       alignItems: 'center',
       borderWidth: 2,
@@ -303,8 +323,8 @@ const createStyles = (isDark: boolean) => {
       paddingTop: 10,
       fontSize: 16,
       textAlignVertical: 'center',
-      minHeight: 48,
-      maxHeight: 144,
+      minHeight: UI_CONFIG.INPUT_MIN_HEIGHT,
+      maxHeight: UI_CONFIG.INPUT_MAX_HEIGHT,
       backgroundColor: colors.surface,
       color: colors.text,
     },
@@ -440,6 +460,7 @@ export default function Box1() {
   const [errorMessage, setErrorMessage] = useState('');
   const [detailedError, setDetailedError] = useState<string | undefined>(undefined);
   const [isUsingGlobalProvider, setIsUsingGlobalProvider] = useState(true);
+  const [needsReset, setNeedsReset] = useState(false);
 
   const RATE_LIMIT_DELAY = 1000;
   const MAX_RETRIES = 3;
@@ -511,18 +532,56 @@ export default function Box1() {
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
-      () => setKeyboardVisible(true)
+      (event) => {
+        setKeyboardVisible(true);
+        // Scroll to bottom when keyboard appears with a slight delay to ensure everything is rendered
+        if (messages.length > 0) {
+          setTimeout(() => {
+            scrollViewRef.current?.scrollToEnd({ animated: false });
+          }, 150);
+        }
+      }
     );
     const keyboardDidHideListener = Keyboard.addListener(
       'keyboardDidHide',
-      () => setKeyboardVisible(false)
+      () => {
+        setKeyboardVisible(false);
+        // Mark that we need to reset the UI
+        setNeedsReset(true);
+        // Scroll to bottom when keyboard disappears to reset the view
+        if (messages.length > 0) {
+          setTimeout(() => {
+            scrollViewRef.current?.scrollToEnd({ animated: false });
+          }, 100);
+        }
+      }
     );
+    
+    // Add keyboard will show listener to prepare the UI before keyboard appears
+    const keyboardWillShowListener = Platform.OS === 'ios' 
+      ? Keyboard.addListener('keyboardWillShow', () => {
+          // Prepare UI for keyboard appearance
+          if (messages.length > 0) {
+            scrollViewRef.current?.scrollToEnd({ animated: true });
+          }
+        })
+      : { remove: () => {} }; // Dummy for Android
+      
+    // Add keyboard will hide listener to prepare the UI before keyboard disappears
+    const keyboardWillHideListener = Platform.OS === 'ios'
+      ? Keyboard.addListener('keyboardWillHide', () => {
+          // Mark that we need to reset the UI
+          setNeedsReset(true);
+        })
+      : { remove: () => {} }; // Dummy for Android
 
     return () => {
       keyboardDidShowListener.remove();
       keyboardDidHideListener.remove();
+      keyboardWillShowListener.remove();
+      keyboardWillHideListener.remove();
     };
-  }, []);
+  }, [messages.length]);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -531,14 +590,6 @@ export default function Box1() {
       }, 100);
     }
   }, [messages, shouldAnimateScroll]);
-
-  useEffect(() => {
-    if (keyboardVisible && messages.length > 0) {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: false });
-      }, 100);
-    }
-  }, [keyboardVisible, messages.length]);
 
   // Use useFocusEffect to scroll to bottom when screen comes into focus
   useFocusEffect(
@@ -857,8 +908,34 @@ export default function Box1() {
     return () => clearInterval(intervalId);
   }, [isUsingGlobalProvider, selectedProvider, isProviderActive]);
 
+  // Function to reset UI positioning
+  const resetUIPositioning = () => {
+    if (needsReset) {
+      // Force a re-render to reset positioning
+      setNeedsReset(false);
+      // Small delay to ensure the reset happens after keyboard is fully dismissed
+      setTimeout(() => {
+        // This will trigger a re-render and reset the position
+        setInputText(inputText => inputText);
+      }, 100);
+    }
+  };
+
+  // Effect to handle UI reset when keyboard is dismissed
+  useEffect(() => {
+    if (!keyboardVisible && needsReset) {
+      // Reset the UI positioning
+      setTimeout(() => {
+        setNeedsReset(false);
+        // Force a re-render to reset positioning
+        setInputText(inputText => inputText);
+      }, 100);
+    }
+  }, [keyboardVisible, needsReset]);
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      {/* Fixed Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity style={styles.toggleButton} onPress={() => router.push('/')}>
@@ -970,6 +1047,7 @@ export default function Box1() {
         </View>
       )}
       
+      {/* Fixed Language Selector */}
       <View style={styles.languageSelector}>
         <View style={styles.languageSelectorContainer}>
           <View style={styles.languageBox}>
@@ -1004,147 +1082,172 @@ export default function Box1() {
         </View>
       </View>
 
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.messagesContainer}
-        contentContainerStyle={styles.messagesContent}
-        showsVerticalScrollIndicator={false}
-        onContentSizeChange={() => {
-          if (messages.length > 0) {
-            scrollViewRef.current?.scrollToEnd({ animated: shouldAnimateScroll });
-          }
-        }}
-        onLayout={() => {
-          if (messages.length > 0) {
-            scrollViewRef.current?.scrollToEnd({ animated: shouldAnimateScroll });
-          }
-        }}
-      >
-        {messages.map((message, index) => (
-          <View
-            key={index}
-            style={[
-              styles.messageContainer,
-              message.isUser1 ? styles.user1Container : styles.user2Container,
-            ]}
-          >
+      {/* Main content area with messages - Use a container with position relative */}
+      <View style={{ flex: 1, position: 'relative' }}>
+        {/* Scrollable Messages Area */}
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.messagesContainer}
+          contentContainerStyle={[
+            styles.messagesContent,
+            { paddingBottom: keyboardVisible ? 10 : 130 }
+          ]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          onContentSizeChange={() => {
+            if (messages.length > 0) {
+              scrollViewRef.current?.scrollToEnd({ animated: shouldAnimateScroll });
+            }
+          }}
+          onLayout={() => {
+            if (messages.length > 0) {
+              scrollViewRef.current?.scrollToEnd({ animated: shouldAnimateScroll });
+            }
+          }}
+        >
+          {messages.map((message, index) => (
             <View
+              key={index}
               style={[
-                styles.messageBubble,
-                message.isUser1 ? styles.user1Bubble : styles.user2Bubble,
+                styles.messageContainer,
+                message.isUser1 ? styles.user1Container : styles.user2Container,
               ]}
             >
-              <Text style={styles.messageText}>
-                {message.text}
-              </Text>
-              {message.originalText && (
-                <TouchableOpacity
-                  onPress={() => toggleMessageExpansion(index)}
-                  style={styles.originalTextButton}
-                >
-                  <Text style={styles.originalTextButtonText}>
-                    {message.expanded ? 'Hide Original' : 'Show Original'}
-                  </Text>
-                  {message.expanded && (
-                    <Text style={styles.originalText}>
-                      {message.originalText}
+              <View
+                style={[
+                  styles.messageBubble,
+                  message.isUser1 ? styles.user1Bubble : styles.user2Bubble,
+                ]}
+              >
+                <Text style={styles.messageText}>
+                  {message.text}
+                </Text>
+                {message.originalText && (
+                  <TouchableOpacity
+                    onPress={() => toggleMessageExpansion(index)}
+                    style={styles.originalTextButton}
+                  >
+                    <Text style={styles.originalTextButtonText}>
+                      {message.expanded ? 'Hide Original' : 'Show Original'}
                     </Text>
-                  )}
-                </TouchableOpacity>
-              )}
+                    {message.expanded && (
+                      <Text style={styles.originalText}>
+                        {message.originalText}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
-          </View>
-        ))}
-      </ScrollView>
-
-      <View style={styles.bottomContainer}>
-        <View style={styles.userToggle}>
-          <TouchableOpacity
-            style={[
-              styles.userButton,
-              activeUser === 1 && styles.activeUserButton,
-            ]}
-            onPress={() => {
-              const now = new Date().getTime();
-              if (now - lastUser1ClickTime < DOUBLE_CLICK_DELAY) {
-                setIsSourceLanguageSelectorOpen(true);
-              } else {
-                setActiveUser(1);
-              }
-              setLastUser1ClickTime(now);
-            }}
-          >
-            <View style={[
-              styles.userLanguageLegend,
-              { backgroundColor: activeUser === 1 ? colors.primary : colors.inactive }
-            ]}>
-              <Text style={styles.userLanguageLegendText}>{sourceLanguage}</Text>
-            </View>
-            <Text style={[
-              styles.userButtonText,
-              activeUser === 1 && styles.activeUserButtonText,
-            ]}>User 1</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.userButton,
-              activeUser === 2 && styles.activeUserButton,
-            ]}
-            onPress={() => {
-              const now = new Date().getTime();
-              if (now - lastUser2ClickTime < DOUBLE_CLICK_DELAY) {
-                setIsTargetLanguageSelectorOpen(true);
-              } else {
-                setActiveUser(2);
-              }
-              setLastUser2ClickTime(now);
-            }}
-          >
-            <View style={[
-              styles.userLanguageLegend,
-              { backgroundColor: activeUser === 2 ? colors.primary : colors.inactive }
-            ]}>
-              <Text style={styles.userLanguageLegendText}>{targetLanguage}</Text>
-            </View>
-            <Text style={[
-              styles.userButtonText,
-              activeUser === 2 && styles.activeUserButtonText,
-            ]}>User 2</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={[
-          styles.inputContainer, 
-          keyboardVisible && { paddingBottom: 4 }
-        ]}>
-          <TextInput
-            style={styles.input}
-            placeholder={getPlaceholder()}
-            placeholderTextColor={isDark ? '#888' : '#666'}
-            value={inputText}
-            onChangeText={setInputText}
-            multiline
-            maxLength={500}
-            keyboardType="default"
-            returnKeyType="send"
-            autoCapitalize="none"
-            autoCorrect={true}
-            enablesReturnKeyAutomatically={true}
-            onSubmitEditing={handleSend}
-          />
-          <TouchableOpacity
-            style={[styles.sendButton, { opacity: inputText.trim() ? 1 : 0.5 }]}
-            onPress={handleSend}
-            disabled={!inputText.trim() || isTranslating}
-          >
-            {isTranslating ? (
-              <ActivityIndicator color={colors.text} />
-            ) : (
-              <Ionicons name="send" size={24} color={colors.text} />
-            )}
-          </TouchableOpacity>
-        </View>
+          ))}
+        </ScrollView>
       </View>
+
+      {/* Fixed Bottom Input Area - Outside of KeyboardAvoidingView to stay at bottom */}
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+        keyboardVerticalOffset={UI_CONFIG.KEYBOARD_OFFSET}
+        enabled={keyboardVisible}
+        style={{ width: '100%' }}
+      >
+        <View style={[
+          styles.bottomContainer,
+          !keyboardVisible && { position: 'absolute', bottom: 0, left: 0, right: 0 },
+          keyboardVisible && { paddingBottom: 0 }
+        ]}>
+          <View style={styles.userToggle}>
+            <TouchableOpacity
+              style={[
+                styles.userButton,
+                activeUser === 1 && styles.activeUserButton,
+              ]}
+              onPress={() => {
+                const now = new Date().getTime();
+                if (now - lastUser1ClickTime < DOUBLE_CLICK_DELAY) {
+                  setIsSourceLanguageSelectorOpen(true);
+                } else {
+                  setActiveUser(1);
+                }
+                setLastUser1ClickTime(now);
+              }}
+            >
+              <View style={[
+                styles.userLanguageLegend,
+                { backgroundColor: activeUser === 1 ? colors.primary : colors.inactive }
+              ]}>
+                <Text style={styles.userLanguageLegendText}>{sourceLanguage}</Text>
+              </View>
+              <Text style={[
+                styles.userButtonText,
+                activeUser === 1 && styles.activeUserButtonText,
+              ]}>User 1</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.userButton,
+                activeUser === 2 && styles.activeUserButton,
+              ]}
+              onPress={() => {
+                const now = new Date().getTime();
+                if (now - lastUser2ClickTime < DOUBLE_CLICK_DELAY) {
+                  setIsTargetLanguageSelectorOpen(true);
+                } else {
+                  setActiveUser(2);
+                }
+                setLastUser2ClickTime(now);
+              }}
+            >
+              <View style={[
+                styles.userLanguageLegend,
+                { backgroundColor: activeUser === 2 ? colors.primary : colors.inactive }
+              ]}>
+                <Text style={styles.userLanguageLegendText}>{targetLanguage}</Text>
+              </View>
+              <Text style={[
+                styles.userButtonText,
+                activeUser === 2 && styles.activeUserButtonText,
+              ]}>User 2</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder={getPlaceholder()}
+              placeholderTextColor={isDark ? '#888' : '#666'}
+              value={inputText}
+              onChangeText={setInputText}
+              multiline
+              maxLength={500}
+              keyboardType="default"
+              returnKeyType="send"
+              autoCapitalize="none"
+              autoCorrect={true}
+              enablesReturnKeyAutomatically={true}
+              onSubmitEditing={handleSend}
+              onSelectionChange={() => {
+                // Ensure the input field is visible when selection changes
+                if (keyboardVisible) {
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: false });
+                  }, 50);
+                }
+              }}
+            />
+            <TouchableOpacity
+              style={[styles.sendButton, { opacity: inputText.trim() ? 1 : 0.5 }]}
+              onPress={handleSend}
+              disabled={!inputText.trim() || isTranslating}
+            >
+              {isTranslating ? (
+                <ActivityIndicator color={colors.text} />
+              ) : (
+                <Ionicons name="send" size={24} color={colors.text} />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
 
       <CustomAlert 
         visible={isAlertVisible}

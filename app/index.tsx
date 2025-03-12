@@ -141,9 +141,6 @@ export default function HomePage() {
     { id: 2, route: '/tools/Box2', title: 'Box 2 two' },
     { id: 3, route: '/tools/Box3', title: 'Box 3 three' },
     { id: 4, route: '/tools/ComingSoon', title: 'Coming Soon' },
-    { id: 5, route: '/tools/ComingSoon', title: 'Coming Soon' },
-    { id: 6, route: '/tools/ComingSoon', title: 'Coming Soon' },
-    { id: 7, route: '/tools/ComingSoon', title: 'Coming Soon' },
   ];
 
   const isDark = currentTheme === 'dark';
