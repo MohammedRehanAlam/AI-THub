@@ -534,43 +534,39 @@ export default function Box1() {
       'keyboardDidShow',
       (event) => {
         setKeyboardVisible(true);
-        // Scroll to bottom when keyboard appears with a slight delay to ensure everything is rendered
-        if (messages.length > 0) {
-          setTimeout(() => {
-            scrollViewRef.current?.scrollToEnd({ animated: false });
-          }, 150);
-        }
+        // Immediately scroll to bottom when keyboard appears
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+          // Force layout update to ensure correct positioning
+          setNeedsReset(false);
+        }, 10);
       }
     );
     const keyboardDidHideListener = Keyboard.addListener(
       'keyboardDidHide',
       () => {
         setKeyboardVisible(false);
-        // Mark that we need to reset the UI
         setNeedsReset(true);
-        // Scroll to bottom when keyboard disappears to reset the view
-        if (messages.length > 0) {
-          setTimeout(() => {
-            scrollViewRef.current?.scrollToEnd({ animated: false });
-          }, 100);
-        }
+        // Reset scroll position when keyboard hides
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 10);
       }
     );
     
-    // Add keyboard will show listener to prepare the UI before keyboard appears
+    // Add keyboard will show listener with improved handling
     const keyboardWillShowListener = Platform.OS === 'ios' 
       ? Keyboard.addListener('keyboardWillShow', () => {
-          // Prepare UI for keyboard appearance
-          if (messages.length > 0) {
+          // Pre-emptively prepare UI for keyboard
+          setKeyboardVisible(true);
+          setTimeout(() => {
             scrollViewRef.current?.scrollToEnd({ animated: true });
-          }
+          }, 10);
         })
       : { remove: () => {} }; // Dummy for Android
       
-    // Add keyboard will hide listener to prepare the UI before keyboard disappears
     const keyboardWillHideListener = Platform.OS === 'ios'
       ? Keyboard.addListener('keyboardWillHide', () => {
-          // Mark that we need to reset the UI
           setNeedsReset(true);
         })
       : { remove: () => {} }; // Dummy for Android
@@ -587,7 +583,7 @@ export default function Box1() {
     if (messages.length > 0) {
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: shouldAnimateScroll });
-      }, 100);
+      }, 10);
     }
   }, [messages, shouldAnimateScroll]);
 
@@ -598,7 +594,7 @@ export default function Box1() {
         // Small delay to ensure the view is fully rendered
         setTimeout(() => {
           scrollViewRef.current?.scrollToEnd({ animated: false });
-        }, 300);
+        }, 10);
       }
       
       // Also handle app state changes to scroll when app comes back from background
@@ -606,7 +602,7 @@ export default function Box1() {
         if (nextAppState === 'active' && messages.length > 0) {
           setTimeout(() => {
             scrollViewRef.current?.scrollToEnd({ animated: false });
-          }, 300);
+          }, 10);
         }
       });
       
@@ -1082,15 +1078,14 @@ export default function Box1() {
         </View>
       </View>
 
-      {/* Main content area with messages - Use a container with position relative */}
-      <View style={{ flex: 1, position: 'relative' }}>
-        {/* Scrollable Messages Area */}
+      {/* Main content area with messages - Modified container style */}
+      <View style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
         <ScrollView
           ref={scrollViewRef}
           style={styles.messagesContainer}
           contentContainerStyle={[
             styles.messagesContent,
-            { paddingBottom: keyboardVisible ? 10 : 130 }
+            { paddingBottom: keyboardVisible ? 10 : 130 }  // Adjusted padding for keyboard open : close
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -1101,7 +1096,7 @@ export default function Box1() {
           }}
           onLayout={() => {
             if (messages.length > 0) {
-              scrollViewRef.current?.scrollToEnd({ animated: shouldAnimateScroll });
+              scrollViewRef.current?.scrollToEnd({ animated: false });
             }
           }}
         >
@@ -1143,17 +1138,17 @@ export default function Box1() {
         </ScrollView>
       </View>
 
-      {/* Fixed Bottom Input Area - Outside of KeyboardAvoidingView to stay at bottom */}
+      {/* Modified KeyboardAvoidingView configuration */}
       <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+        behavior={Platform.OS === 'ios' ? keyboardVisible ? 'padding' : 'height' : keyboardVisible ? 'padding' : 'height'}
         keyboardVerticalOffset={UI_CONFIG.KEYBOARD_OFFSET}
-        enabled={keyboardVisible}
+        enabled={true}
         style={{ width: '100%' }}
       >
         <View style={[
           styles.bottomContainer,
           !keyboardVisible && { position: 'absolute', bottom: 0, left: 0, right: 0 },
-          keyboardVisible && { paddingBottom: 0 }
+          keyboardVisible && { position: 'relative', paddingBottom: 0 }
         ]}>
           <View style={styles.userToggle}>
             <TouchableOpacity
