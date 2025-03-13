@@ -540,8 +540,8 @@ const APISettings = () => {
         },
         separator: {
             height: 1,
-            backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
-            marginVertical: 16,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+            marginVertical: 10,
         },
         section: {
             marginBottom: 24,
@@ -677,7 +677,7 @@ const APISettings = () => {
             color: '#fff',
         },
         summaryContainer: {
-            marginBottom: 24,
+            marginBottom: 16,
             padding: 16,
             backgroundColor: isDark ? '#252525' : '#f9f9f9',
             borderRadius: 12,
@@ -930,7 +930,7 @@ const APISettings = () => {
                     <Text style={themedStyles.logo}>API Settings</Text>
                 </View>
             </View>
-            <View style={themedStyles.separator} />
+            <View style={[themedStyles.separator, { backgroundColor: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }]} />
             
             <KeyboardAvoidingView 
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -981,7 +981,7 @@ const APISettings = () => {
                         </View>
                     </View>
                     
-                    <View style={themedStyles.separator} />
+                    <View style={[themedStyles.separator, { marginBottom: 26 }]} />
                     
                     {renderApiSection(
                         "OpenAI",

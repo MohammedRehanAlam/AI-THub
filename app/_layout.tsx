@@ -9,7 +9,7 @@ import { ThemeProvider as CustomThemeProvider } from './context/ThemeContext';
 import { ProviderProvider } from './context/ProviderContext';
 import * as SplashScreen from 'expo-splash-screen';
 import * as NavigationBar from 'expo-navigation-bar';
-import { initializeUpdates, checkAndInstallUpdates } from './_utils/updateUtils';
+import { initializeUpdates, checkAndInstallUpdates } from '../utils/updateUtils';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 export { ErrorBoundary } from 'expo-router';
