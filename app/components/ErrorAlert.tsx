@@ -1,16 +1,29 @@
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { View, Text, Modal, TouchableOpacity, StyleSheet, Dimensions, Linking } from 'react-native';
 
 interface ErrorAlertProps {
   visible: boolean;
   title: string;
   message: string;
+  learnMoreUrl?: string;
   onDismiss: () => void;
   isDark: boolean;
 }
 
-const ErrorAlert: React.FC<ErrorAlertProps> = ({ visible, title, message, onDismiss, isDark }) => {
+const ErrorAlert: React.FC<ErrorAlertProps> = ({ 
+  visible, 
+  title, 
+  message, 
+  learnMoreUrl,
+  onDismiss, 
+  isDark 
+}) => {
+  const handleLearnMore = () => {
+    if (learnMoreUrl) {
+      Linking.openURL(learnMoreUrl);
+    }
+  };
+
   return (
     <Modal
       transparent
@@ -18,17 +31,28 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ visible, title, message, onDism
       animationType="fade"
       onRequestClose={onDismiss}
     >
-      <BlurView
-        intensity={10}
-        tint={isDark ? 'dark' : 'light'}
-        style={styles.blurContainer}
-      >
+      <View style={[styles.blurContainer, { backgroundColor: 'rgba(0, 0, 0, 0.3)' }]}>
         <View style={[styles.alertContainer, { backgroundColor: isDark ? '#2C2C2E' : '#FFFFFF' }]}>
           <View style={styles.headerContainer}>
             <Text style={[styles.title, { color: isDark ? '#FFFFFF' : '#000000' }]}>{title}</Text>
           </View>
           <View style={styles.messageContainer}>
-            <Text style={[styles.message, { color: isDark ? '#E0E0E0' : '#333333' }]}>{message}</Text>
+            <Text style={[styles.message, { color: isDark ? '#E0E0E0' : '#333333' }]}>
+              {message}
+            </Text>
+            {learnMoreUrl && (
+              <TouchableOpacity 
+                onPress={handleLearnMore}
+                style={[
+                  styles.learnMoreContainer,
+                  { backgroundColor: isDark ? '#3A3A3C' : '#F2F2F7' }
+                ]}
+              >
+                <Text style={[styles.learnMore, { color: isDark ? '#0A84FF' : '#007AFF' }]}>
+                  Learn More →
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
           <TouchableOpacity
             style={[styles.button, { backgroundColor: isDark ? '#3A3A3C' : '#F2F2F7' }]}
@@ -37,7 +61,7 @@ const ErrorAlert: React.FC<ErrorAlertProps> = ({ visible, title, message, onDism
             <Text style={[styles.buttonText, { color: isDark ? '#0A84FF' : '#007AFF' }]}>OK</Text>
           </TouchableOpacity>
         </View>
-      </BlurView>
+      </View>
     </Modal>
   );
 };
@@ -51,7 +75,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   alertContainer: {
-    width: width * 0.8,
+    width: width * 0.85,
+    maxHeight: '80%',
     borderRadius: 14,
     overflow: 'hidden',
     elevation: 5,
@@ -78,7 +103,18 @@ const styles = StyleSheet.create({
   message: {
     fontSize: 16,
     lineHeight: 22,
-    textAlign: 'center',
+  },
+  learnMoreContainer: {
+    alignItems: 'center',
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  learnMore: {
+    fontSize: 16,
+    fontWeight: '600',
+    textDecorationLine: 'none',
   },
   button: {
     padding: 16,

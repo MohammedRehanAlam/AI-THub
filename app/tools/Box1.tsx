@@ -13,7 +13,6 @@ import { BlurView } from 'expo-blur';
 import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import ErrorAlert from '../components/ErrorAlert';
-import CollapsibleErrorAlert from '../components/CollapsibleErrorAlert';
 import { useProviders, ProviderType } from '../context/ProviderContext';
 import { translateText as apiTranslateText, TranslationRequest } from '../_utils/translatorApiUtils';
 import { formatApiError } from '../_utils/apiErrorUtils';
@@ -89,8 +88,8 @@ const CustomAlert = ({ visible, title, message, onCancel, onConfirm, isDark }: {
   
   return (
     <Modal transparent={true} visible={visible} animationType='fade'>
-      <BlurView intensity={10} tint={isDark ? 'dark' : 'light'} style={styles.overlay}>
-        <View style={[styles.alertBox, { backgroundColor: isDark ? 'rgba(26, 26, 26, 0.95)' : 'rgba(255, 255, 255, 0.95)' }]}> 
+      <View style={[styles.overlay, { backgroundColor: 'rgba(0, 0, 0, 0.3)' }]}>
+        <View style={[styles.alertBox, { backgroundColor: isDark ? '#1a1a1a' : '#ffffff' }]}> 
           <Text style={[styles.alertTitle, { color: colors.text }]}>{title}</Text>
           <Text style={[styles.alertMessage, { color: colors.text }]}>{message}</Text>
           <View style={[styles.buttonContainer, { justifyContent: 'center' }]}>
@@ -98,7 +97,7 @@ const CustomAlert = ({ visible, title, message, onCancel, onConfirm, isDark }: {
             <TouchableOpacity onPress={onConfirm} style={styles.button}><Text style={styles.buttonText}>CLEAR</Text></TouchableOpacity>
           </View>
         </View>
-      </BlurView>
+      </View>
     </Modal>
   );
 };
@@ -574,6 +573,7 @@ export default function Box1() {
   const [errorAlertVisible, setErrorAlertVisible] = useState(false);
   const [errorTitle, setErrorTitle] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [learnMoreUrl, setLearnMoreUrl] = useState<string | undefined>(undefined);
   const [detailedError, setDetailedError] = useState<string | undefined>(undefined);
   const [isUsingGlobalProvider, setIsUsingGlobalProvider] = useState(true);
   const [needsReset, setNeedsReset] = useState(false);
@@ -899,6 +899,7 @@ export default function Box1() {
       
       setErrorTitle(formattedError.title);
       setErrorMessage(formattedError.message);
+      setLearnMoreUrl(formattedError.learnMoreUrl);
       setDetailedError(formattedError.detailedError);
       setErrorAlertVisible(true);
       
@@ -941,6 +942,7 @@ export default function Box1() {
         
         setErrorTitle(formattedError.title);
         setErrorMessage(formattedError.message);
+        setLearnMoreUrl(formattedError.learnMoreUrl);
         setDetailedError(formattedError.detailedError);
         setErrorAlertVisible(true);
         
@@ -1556,11 +1558,11 @@ export default function Box1() {
         isDark={isDark}
       />
 
-      <CollapsibleErrorAlert
+      <ErrorAlert
         visible={errorAlertVisible}
         title={errorTitle}
         message={errorMessage}
-        detailedError={detailedError}
+        learnMoreUrl={learnMoreUrl}
         onDismiss={() => setErrorAlertVisible(false)}
         isDark={isDark}
       />
