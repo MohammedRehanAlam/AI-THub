@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform, Keyboard, Modal, AppState, KeyboardAvoidingView } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform, Keyboard, Modal, AppState, KeyboardAvoidingView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,6 +18,7 @@ import { useProviders, ProviderType } from '../context/ProviderContext';
 import { translateText as apiTranslateText, TranslationRequest } from '../_utils/translatorApiUtils';
 import { formatApiError } from '../_utils/apiErrorUtils';
 import { OpenAILogo, GeminiLogo, AnthropicLogo, OpenRouterLogo, GroqLogo } from '../components/LogoIcons';
+import * as ImagePicker from 'expo-image-picker';
 
 // Theme colors
 const COLORS = {
@@ -31,6 +32,11 @@ const COLORS = {
     border: 'rgba(150,150,150,0.2)',
     inactive: '#999999',
     overlay: 'rgba(0, 0, 0, 0.3)',
+    mediaBackground: '#ffffff',
+    mediaButtonBackground: '#f5f5f5',
+    mediaButtonBorder: '#e0e0e0',
+    mediaOptionHighlight: '#f0f0f0',
+    mediaButtonIcon: '#666666',
   },
   dark: {
     background: '#1a1a1a',
@@ -42,6 +48,11 @@ const COLORS = {
     border: 'rgba(150,150,150,0.2)',
     inactive: '#444444',
     overlay: 'rgba(0, 0, 0, 0.3)',
+    mediaBackground: '#2a2a2a',
+    mediaButtonBackground: '#333333',
+    mediaButtonBorder: '#404040',
+    mediaOptionHighlight: '#404040',
+    mediaButtonIcon: '#ffffff',
   }
 };
 
@@ -68,6 +79,8 @@ interface Message {
   timestamp: number;
   originalText?: string;
   expanded?: boolean;
+  imageUri?: string;
+  originalImageUri?: string;
 }
 
 const CustomAlert = ({ visible, title, message, onCancel, onConfirm, isDark }: { visible: boolean; title: string; message: string; onCancel: () => void; onConfirm: () => void; isDark: boolean; }) => {
@@ -209,7 +222,6 @@ const createStyles = (isDark: boolean) => {
     },
     messagesContent: {
       padding: 16,
-      gap: 16,
     },
     messageContainer: {
       flexDirection: 'row',
@@ -237,6 +249,19 @@ const createStyles = (isDark: boolean) => {
       fontSize: 16,
       lineHeight: 22,
       color: colors.text,
+      marginTop: 8,
+    },
+    messageTextWithImage: {
+      fontSize: 16,
+      lineHeight: 22,
+      color: colors.text,
+      marginTop: 8,
+    },
+    messageTextOnly: {
+      fontSize: 16,
+      lineHeight: 22,
+      color: colors.text,
+      marginTop: 0,
     },
     originalTextButton: {
       marginTop: 8,
@@ -310,10 +335,15 @@ const createStyles = (isDark: boolean) => {
       color: isDark ? '#fff' : '#000',
     },
     inputContainer: {
-      flexDirection: 'row',
+      flexDirection: 'column',
       width: 'auto',
       paddingLeft: 16,
       paddingRight: 16,    
+      gap: 5,
+    },
+    inputRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
       gap: 5,
     },
     input: {
@@ -327,6 +357,42 @@ const createStyles = (isDark: boolean) => {
       maxHeight: UI_CONFIG.INPUT_MAX_HEIGHT,
       backgroundColor: colors.surface,
       color: colors.text,
+    },
+    previewImageContainer: {
+      maxWidth: '40%',
+      padding: 8,
+      backgroundColor: colors.surface,
+      borderRadius: 20,
+      marginBottom: 8,
+    },
+    previewImage: {
+      width: '100%',
+      height: 100,
+      borderRadius: 8,
+    },
+    clearImageButton: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      margin: 8,
+      padding: 4,
+    },
+    messageContent: {
+      gap: 4,
+    },
+    messageImage: {
+      width: 250,
+      height: 250,
+      borderRadius: 8,
+      marginVertical: 4,
+    },
+    originalMessageImage: {
+      width: 150,
+      height: 150,
+      borderRadius: 8,
+      marginTop: 8,
     },
     sendButton: {
       alignSelf: 'flex-end',
@@ -420,6 +486,57 @@ const createStyles = (isDark: boolean) => {
       padding: 14,
       textAlign: 'center',
     },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.3)',
+      justifyContent: 'flex-end',
+    },
+    mediaOptionsContainer: {
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+      backgroundColor: colors.mediaBackground,
+      borderTopWidth: 1,
+      borderColor: colors.mediaButtonBorder,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 5,
+      elevation: 5,
+    },
+    mediaOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 15,
+      gap: 15,
+      borderRadius: 12,
+      backgroundColor: colors.mediaButtonBackground,
+      marginVertical: 4,
+    },
+    mediaOptionActive: {
+      backgroundColor: colors.mediaOptionHighlight,
+    },
+    mediaOptionText: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: colors.text,
+    },
+    mediaOptionDivider: {
+      height: 1,
+      width: '100%',
+      backgroundColor: colors.border,
+      marginVertical: 8,
+    },
+    mediaButton: {
+      padding: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+      // borderRadius: 12,
+      // backgroundColor: colors.mediaButtonBackground,
+      // borderWidth: 1,
+      // borderColor: colors.mediaButtonBorder,
+    },
   });
 };
 
@@ -448,7 +565,6 @@ export default function Box1() {
   const [isTranslating, setIsTranslating] = useState(false);
   const [lastTranslationTime, setLastTranslationTime] = useState<number>(0);
   const [requestQueue, setRequestQueue] = useState<number>(0);
-  const [shouldAnimateScroll, setShouldAnimateScroll] = useState(true);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [isAlertVisible, setAlertVisible] = useState(false);
   const [lastUser1ClickTime, setLastUser1ClickTime] = useState<number>(0);
@@ -461,6 +577,11 @@ export default function Box1() {
   const [detailedError, setDetailedError] = useState<string | undefined>(undefined);
   const [isUsingGlobalProvider, setIsUsingGlobalProvider] = useState(true);
   const [needsReset, setNeedsReset] = useState(false);
+  const [isMediaOptionsVisible, setIsMediaOptionsVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isTogglingMessage, setIsTogglingMessage] = useState(false);
+  const [preventScroll, setPreventScroll] = useState(false);
+  const scrollPositionRef = useRef(0);
 
   const RATE_LIMIT_DELAY = 1000;
   const MAX_RETRIES = 3;
@@ -501,10 +622,6 @@ export default function Box1() {
             expanded: msg.originalText ? false : undefined
           }));
           setMessages(updatedMessages);
-          setShouldAnimateScroll(false);
-          setTimeout(() => {
-            setShouldAnimateScroll(true);
-          }, 500);
         }
       } catch (error) {
         console.error('Error loading data:', error);
@@ -580,12 +697,15 @@ export default function Box1() {
   }, [messages.length]);
 
   useEffect(() => {
-    if (messages.length > 0) {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: shouldAnimateScroll });
-      }, 10);
+    if (messages.length > 0 && !preventScroll) {
+      const isNewMessage = messages[messages.length - 1].timestamp > Date.now() - 1000;
+      if (isNewMessage) {
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 10);
+      }
     }
-  }, [messages, shouldAnimateScroll]);
+  }, [messages, preventScroll]);
 
   // Use useFocusEffect to scroll to bottom when screen comes into focus
   useFocusEffect(
@@ -787,50 +907,76 @@ export default function Box1() {
   };
 
   const handleSend = async () => {
-    if (!inputText.trim()) return;
-
-    const trimmedText = inputText.trim();
-    setInputText('');
+    if (!inputText.trim() && !previewImage) return;
 
     const newMessage: Message = {
-      text: trimmedText,
+      text: inputText.trim(),
       isUser1: activeUser === 1,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      imageUri: previewImage || undefined
     };
 
     setMessages(prev => [...prev, newMessage]);
+    setInputText('');
+    setPreviewImage(null);
 
-    try {
-      const translatedText = await translateText(trimmedText);
-      const translatedMessage: Message = {
-        text: translatedText,
-        isUser1: activeUser !== 1,
-        originalText: trimmedText,
-        timestamp: Date.now(),
-        expanded: false
-      };
+    if (inputText.trim()) {
+      try {
+        const translatedText = await translateText(inputText.trim());
+        const translatedMessage: Message = {
+          text: translatedText,
+          isUser1: activeUser !== 1,
+          originalText: inputText.trim(),
+          timestamp: Date.now(),
+          expanded: false,
+          originalImageUri: newMessage.imageUri,
+          imageUri: undefined
+        };
 
-      setMessages(prev => [...prev, translatedMessage]);
-    } catch (error: any) {
-      console.error('Error sending message:', error);
-      
-      // Format and show error using the utility function
-      const formattedError = formatApiError(error, selectedProvider);
-      
-      setErrorTitle(formattedError.title);
-      setErrorMessage(formattedError.message);
-      setDetailedError(formattedError.detailedError);
-      setErrorAlertVisible(true);
-      
-      // Remove the pending message
-      setMessages(prev => prev.slice(0, -1));
+        setMessages(prev => [...prev, translatedMessage]);
+      } catch (error: any) {
+        console.error('Error sending message:', error);
+        
+        const formattedError = formatApiError(error, selectedProvider);
+        
+        setErrorTitle(formattedError.title);
+        setErrorMessage(formattedError.message);
+        setDetailedError(formattedError.detailedError);
+        setErrorAlertVisible(true);
+        
+        setMessages(prev => prev.slice(0, -1));
+      }
+    }
+  };
+
+  const handleScroll = (event: any) => {
+    if (!preventScroll) {
+      scrollPositionRef.current = event.nativeEvent.contentOffset.y;
     }
   };
 
   const toggleMessageExpansion = (index: number) => {
-    setMessages(prev => prev.map((msg, i) => 
-      i === index ? { ...msg, expanded: !msg.expanded } : msg
-    ));
+    const currentScrollPosition = scrollPositionRef.current;
+    setPreventScroll(true);
+    
+    setMessages(prevMessages => {
+      const newMessages = [...prevMessages];
+      newMessages[index] = {
+        ...newMessages[index],
+        expanded: !newMessages[index].expanded
+      };
+      return newMessages;
+    });
+
+    // Use requestAnimationFrame to maintain scroll position
+    requestAnimationFrame(() => {
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: currentScrollPosition, animated: false });
+        setTimeout(() => {
+          setPreventScroll(false);
+        }, 300);
+      }
+    });
   };
 
   const clearChat = () => {
@@ -928,6 +1074,105 @@ export default function Box1() {
       }, 100);
     }
   }, [keyboardVisible, needsReset]);
+
+  // Add media option handlers
+  const handleTakePhoto = async () => {
+    setIsMediaOptionsVisible(false);
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please grant camera permissions to take photos.');
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+        allowsEditing: false,
+        aspect: undefined,
+        allowsMultipleSelection: false
+      });
+
+      if (!result.canceled) {
+        setPreviewImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
+    }
+  };
+
+  const handleUploadPicture = async () => {
+    setIsMediaOptionsVisible(false);
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please grant media library permissions to upload pictures.');
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+        allowsEditing: false,
+        aspect: undefined,
+        allowsMultipleSelection: false
+      });
+
+      if (!result.canceled) {
+        setPreviewImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error selecting picture:', error);
+      Alert.alert('Error', 'Failed to select picture. Please try again.');
+    }
+  };
+
+  // Add media options modal component
+  const MediaOptionsModal = () => (
+    <Modal
+      visible={isMediaOptionsVisible}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setIsMediaOptionsVisible(false)}
+    >
+      <TouchableOpacity 
+        style={styles.modalOverlay}
+        activeOpacity={1}
+        onPress={() => setIsMediaOptionsVisible(false)}
+      >
+        <View style={styles.mediaOptionsContainer}>
+          <TouchableOpacity
+            style={styles.mediaOption}
+            onPress={handleTakePhoto}
+            activeOpacity={0.7}
+          >
+            <Ionicons 
+              name="camera-outline" 
+              size={24} 
+              color={colors.mediaButtonIcon} 
+            />
+            <Text style={styles.mediaOptionText}>Take Photo</Text>
+          </TouchableOpacity>
+          <View style={styles.mediaOptionDivider} />
+          <TouchableOpacity
+            style={styles.mediaOption}
+            onPress={handleUploadPicture}
+            activeOpacity={0.7}
+          >
+            <Ionicons 
+              name="image-outline" 
+              size={24} 
+              color={colors.mediaButtonIcon} 
+            />
+            <Text style={styles.mediaOptionText}>Upload Picture</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -1085,17 +1330,23 @@ export default function Box1() {
           style={styles.messagesContainer}
           contentContainerStyle={[
             styles.messagesContent,
-            { paddingBottom: keyboardVisible ? 10 : 130 }  // Adjusted padding for keyboard open : close
+            { paddingBottom: keyboardVisible ? 10 : 130 }
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
           onContentSizeChange={() => {
-            if (messages.length > 0) {
-              scrollViewRef.current?.scrollToEnd({ animated: shouldAnimateScroll });
+            // Only scroll to bottom for new messages
+            const isNewMessage = messages.length > 0 && 
+              messages[messages.length - 1].timestamp > Date.now() - 1000;
+            if (isNewMessage && !preventScroll) {
+              scrollViewRef.current?.scrollToEnd({ animated: true });
             }
           }}
           onLayout={() => {
-            if (messages.length > 0) {
+            // Only scroll on initial layout
+            if (messages.length > 0 && !preventScroll) {
               scrollViewRef.current?.scrollToEnd({ animated: false });
             }
           }}
@@ -1114,24 +1365,47 @@ export default function Box1() {
                   message.isUser1 ? styles.user1Bubble : styles.user2Bubble,
                 ]}
               >
-                <Text style={styles.messageText}>
-                  {message.text}
-                </Text>
-                {message.originalText && (
-                  <TouchableOpacity
-                    onPress={() => toggleMessageExpansion(index)}
-                    style={styles.originalTextButton}
-                  >
-                    <Text style={styles.originalTextButtonText}>
-                      {message.expanded ? 'Hide Original' : 'Show Original'}
+                <View style={styles.messageContent}>
+                  {message.imageUri && !message.originalText && (
+                    <Image 
+                      source={{ uri: message.imageUri }} 
+                      style={styles.messageImage}
+                      resizeMode="contain"
+                    />
+                  )}
+                  {message.text && (
+                    <Text style={[
+                      styles.messageText,
+                      message.imageUri ? styles.messageTextWithImage : styles.messageTextOnly
+                    ]}>
+                      {message.text}
                     </Text>
-                    {message.expanded && (
-                      <Text style={styles.originalText}>
-                        {message.originalText}
+                  )}
+                  {message.originalText && (
+                    <TouchableOpacity
+                      onPress={() => toggleMessageExpansion(index)}
+                      style={styles.originalTextButton}
+                    >
+                      <Text style={styles.originalTextButtonText}>
+                        {message.expanded ? 'Hide Original' : 'Show Original'}
                       </Text>
-                    )}
-                  </TouchableOpacity>
-                )}
+                      {message.expanded && (
+                        <>
+                          <Text style={styles.originalText}>
+                            {message.originalText}
+                          </Text>
+                          {message.originalImageUri && (
+                            <Image 
+                              source={{ uri: message.originalImageUri }} 
+                              style={styles.originalMessageImage}
+                              resizeMode="contain"
+                            />
+                          )}
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
             </View>
           ))}
@@ -1206,33 +1480,60 @@ export default function Box1() {
           </View>
 
           <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder={getPlaceholder()}
-              placeholderTextColor={isDark ? '#888' : '#666'}
-              value={inputText}
-              onChangeText={setInputText}
-              multiline
-              maxLength={500}
-              keyboardType="default"
-              returnKeyType="send"
-              autoCapitalize="none"
-              autoCorrect={true}
-              enablesReturnKeyAutomatically={true}
-              onSubmitEditing={handleSend}
-              onSelectionChange={() => {
-                // Ensure the input field is visible when selection changes
-                if (keyboardVisible) {
-                  setTimeout(() => {
-                    scrollViewRef.current?.scrollToEnd({ animated: false });
-                  }, 50);
-                }
-              }}
-            />
+            {previewImage && (
+              <View style={styles.previewImageContainer}>
+                <Image 
+                  source={{ uri: previewImage }} 
+                  style={styles.previewImage}
+                  resizeMode="cover"
+                />
+                <TouchableOpacity
+                  style={styles.clearImageButton}
+                  onPress={() => setPreviewImage(null)}
+                >
+                  <Ionicons name="close-circle" size={24} color={colors.text} />
+                </TouchableOpacity>
+              </View>
+            )}
+            <View style={styles.inputRow}>
+              <TouchableOpacity
+                style={styles.mediaButton}
+                onPress={() => setIsMediaOptionsVisible(true)}
+                activeOpacity={0.7}
+              >
+                <Ionicons 
+                  name="add-circle-outline" 
+                  size={24} 
+                  color={colors.mediaButtonIcon} 
+                />
+              </TouchableOpacity>
+              <TextInput
+                style={styles.input}
+                placeholder={getPlaceholder()}
+                placeholderTextColor={isDark ? '#888' : '#666'}
+                value={inputText}
+                onChangeText={setInputText}
+                multiline
+                maxLength={500}
+                keyboardType="default"
+                returnKeyType="send"
+                autoCapitalize="none"
+                autoCorrect={true}
+                enablesReturnKeyAutomatically={true}
+                onSubmitEditing={handleSend}
+                onSelectionChange={() => {
+                  if (keyboardVisible) {
+                    setTimeout(() => {
+                      scrollViewRef.current?.scrollToEnd({ animated: false });
+                    }, 50);
+                  }
+                }}
+              />
+            
             <TouchableOpacity
-              style={[styles.sendButton, { opacity: inputText.trim() ? 1 : 0.5 }]}
+              style={[styles.sendButton, { opacity: (inputText.trim() || previewImage) ? 1 : 0.5 }]}
               onPress={handleSend}
-              disabled={!inputText.trim() || isTranslating}
+              disabled={!inputText.trim() && !previewImage || isTranslating}
             >
               {isTranslating ? (
                 <ActivityIndicator color={colors.text} />
@@ -1240,7 +1541,9 @@ export default function Box1() {
                 <Ionicons name="send" size={24} color={colors.text} />
               )}
             </TouchableOpacity>
+            </View>
           </View>
+          <MediaOptionsModal />
         </View>
       </KeyboardAvoidingView>
 
