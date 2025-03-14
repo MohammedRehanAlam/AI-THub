@@ -380,12 +380,14 @@ const createStyles = (isDark: boolean) => {
     },
     messageContent: {
       gap: 4,
+      alignItems: 'center',
     },
     messageImage: {
       width: 250,
       height: 250,
       borderRadius: 8,
       marginVertical: 4,
+      alignSelf: 'center',
     },
     originalMessageImage: {
       width: 150,
@@ -921,13 +923,76 @@ export default function Box1() {
     setInputText('');
     setPreviewImage(null);
 
-    if (inputText.trim()) {
-      try {
-        const translatedText = await translateText(inputText.trim());
+    try {
+      let textToTranslate = inputText.trim();
+      let isImageMessage = false;
+      let combinedInput = false;
+      
+      // If there's an image, convert it to base64
+      if (previewImage) {
+        try {
+          const response = await fetch(previewImage);
+          const blob = await response.blob();
+          const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              if (typeof reader.result === 'string') {
+                resolve(reader.result);
+              } else {
+                reject(new Error('Failed to convert image to base64'));
+              }
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          
+          isImageMessage = true;
+          
+          // If there's also text input, we'll handle them separately in the translation request
+          if (textToTranslate) {
+            combinedInput = true;
+            // Create a combined request that includes both image and text
+            const request: TranslationRequest = {
+              text: base64,
+              additionalText: textToTranslate, // This will be handled in translatorApiUtils
+              fromLanguage: activeUser === 1 ? sourceLanguage : targetLanguage,
+              toLanguage: activeUser === 1 ? targetLanguage : sourceLanguage
+            };
+
+            const translatedResult = await apiTranslateText(request, selectedProvider as ProviderType);
+            
+            if (!translatedResult.success) {
+              throw new Error(translatedResult.error || 'Translation failed');
+            }
+
+            const translatedMessage: Message = {
+              text: translatedResult.translatedText,
+              isUser1: activeUser !== 1,
+              originalText: textToTranslate,
+              timestamp: Date.now(),
+              expanded: false,
+              originalImageUri: newMessage.imageUri,
+              imageUri: undefined
+            };
+
+            setMessages(prev => [...prev, translatedMessage]);
+          } else {
+            // Image only translation
+            textToTranslate = base64;
+          }
+        } catch (error) {
+          console.error('Error processing image and text:', error);
+          throw new Error('Failed to process image and text for translation. Please try again.');
+        }
+      }
+
+      // Handle text-only or image-only cases
+      if (!combinedInput && textToTranslate) {
+        const translatedText = await translateText(textToTranslate);
         const translatedMessage: Message = {
           text: translatedText,
           isUser1: activeUser !== 1,
-          originalText: inputText.trim(),
+          originalText: isImageMessage ? inputText.trim() || "Image only" : inputText.trim(),
           timestamp: Date.now(),
           expanded: false,
           originalImageUri: newMessage.imageUri,
@@ -935,19 +1000,19 @@ export default function Box1() {
         };
 
         setMessages(prev => [...prev, translatedMessage]);
-      } catch (error: any) {
-        console.error('Error sending message:', error);
-        
-        const formattedError = formatApiError(error, selectedProvider);
-        
-        setErrorTitle(formattedError.title);
-        setErrorMessage(formattedError.message);
-        setLearnMoreUrl(formattedError.learnMoreUrl);
-        setDetailedError(formattedError.detailedError);
-        setErrorAlertVisible(true);
-        
-        setMessages(prev => prev.slice(0, -1));
       }
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+      
+      const formattedError = formatApiError(error, selectedProvider);
+      
+      setErrorTitle(formattedError.title);
+      setErrorMessage(formattedError.message);
+      setLearnMoreUrl(formattedError.learnMoreUrl);
+      setDetailedError(formattedError.detailedError);
+      setErrorAlertVisible(true);
+      
+      setMessages(prev => prev.slice(0, -1));
     }
   };
 
@@ -1383,7 +1448,7 @@ export default function Box1() {
                       {message.text}
                     </Text>
                   )}
-                  {message.originalText && (
+                  {(message.originalText || message.originalImageUri) && (
                     <TouchableOpacity
                       onPress={() => toggleMessageExpansion(index)}
                       style={styles.originalTextButton}
@@ -1393,9 +1458,11 @@ export default function Box1() {
                       </Text>
                       {message.expanded && (
                         <>
-                          <Text style={styles.originalText}>
-                            {message.originalText}
-                          </Text>
+                          {message.originalText && message.originalText !== "Image only" && (
+                            <Text style={styles.originalText}>
+                              {message.originalText}
+                            </Text>
+                          )}
                           {message.originalImageUri && (
                             <Image 
                               source={{ uri: message.originalImageUri }} 
