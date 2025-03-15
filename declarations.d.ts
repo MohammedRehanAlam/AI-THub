@@ -4,12 +4,12 @@ declare module './HomeScreen';
 declare module './Settings';
 declare module './APISettings';
 declare module './About';
-
+declare module './APISettingsAuth';
 declare module './tools/Box1';
 declare module './tools/Box2';
 declare module './tools/Box3';
 declare module './tools/ComingSoon';
-declare module './components/TranslatorApp';
+
 
 declare module "*.svg" {
   import React from "react";
@@ -23,12 +23,11 @@ type RootDrawerParamList = {
   Settings: undefined;
   APISettings: undefined;
   About: undefined;
-  
+  APISettingsAuth: undefined;
   Box1: undefined;
   Box2: undefined;
   Box3: undefined;
   ComingSoon: undefined;
-  TranslatorApp: undefined;
 };
 
 type HomeScreenNavigationProp = DrawerNavigationProp<RootDrawerParamList, 'Home'>;

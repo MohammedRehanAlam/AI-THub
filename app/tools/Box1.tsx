@@ -833,9 +833,11 @@ const createStyles = (isDark: boolean): StylesType => {
       marginVertical: 8,
     },
     mediaButton: {
-      padding: 10,
+      padding: 2,
+      paddingVertical: 10,
       justifyContent: 'center',
       alignItems: 'center',
+      // backgroundColor: colors.surface,
     },
     markdownContainer: {
       flex: 1,

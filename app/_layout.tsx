@@ -11,7 +11,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as NavigationBar from 'expo-navigation-bar';
 import { initializeUpdates, checkAndInstallUpdates } from '../utils/updateUtils';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
-
+import { DrawerScreenProps } from '@react-navigation/drawer';
 export { ErrorBoundary } from 'expo-router';
 
 export const unstable_settings = {
@@ -144,6 +144,7 @@ function RootLayoutNav() {
             {/* only path is enough as i have made custom headers */}
             <Stack.Screen name="index" options={{ gestureEnabled: false }} />
             <Stack.Screen name="Settings" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="APISettingsAuth" options={{ gestureEnabled: false }} />
             <Stack.Screen name="APISettings" options={{ gestureEnabled: false }} />
             <Stack.Screen name="About" options={{ gestureEnabled: false }} />
             

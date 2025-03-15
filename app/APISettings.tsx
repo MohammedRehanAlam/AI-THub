@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, Linking, Switch } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, Linking, Switch, Modal, Alert } from 'react-native';
 import { useTheme } from './context/ThemeContext';
 import { useProviders, ProviderType } from './context/ProviderContext';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -61,6 +61,9 @@ const APISettings = () => {
     const [openrouterError, setOpenrouterError] = useState<string | null>(null);
     const [groqError, setGroqError] = useState<string | null>(null);
 
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [hasPassword, setHasPassword] = useState(false);
+
     // Load saved API keys and models on component mount
     useEffect(() => {
         const loadApiSettings = async () => {
@@ -101,6 +104,10 @@ const APISettings = () => {
                 if (savedAnthropicKey) setAnthropicStatus(true);
                 if (savedOpenrouterKey) setOpenrouterStatus(true);
                 if (savedGroqKey) setGroqStatus(true);
+
+                // Check if password is set
+                const storedPassword = await AsyncStorage.getItem('api_settings_password');
+                setHasPassword(!!storedPassword);
             } catch (error) {
                 console.error('Error loading API settings:', error);
             }
@@ -486,6 +493,100 @@ const APISettings = () => {
         }
     };
 
+    
+    // Add password management functions
+    const handleResetPassword = async () => {
+        Alert.alert(
+            'Reset Password',
+            'Are you sure you want to reset your API Settings password?',
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel'
+                },
+                {
+                    text: 'Reset',
+                    style: 'destructive',
+                    onPress: async () => {
+                        await AsyncStorage.removeItem('api_settings_password');
+                        Alert.alert('Success', 'Password has been reset successfully');
+                        router.push('/Settings');
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleEnablePassword = async () => {
+        setShowPasswordModal(false);
+        // Instead of navigating, just set the password flag
+        await AsyncStorage.setItem('api_settings_password', 'pending');
+        setHasPassword(true);
+        Alert.alert('Success', 'Password protection has been enabled. You will need to set your password when accessing API Settings next time.');
+    };
+
+    const handleDisablePassword = async () => { 
+        Alert.alert( 
+            'Disable Password Protection',
+            'Are you sure you want to disable password protection for API Settings?',
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel'
+                },
+                {
+                    text: 'Disable',
+                    style: 'destructive',
+                    onPress: async () => {
+                        await AsyncStorage.removeItem('api_settings_password');
+                        setHasPassword(false);
+                        setShowPasswordModal(false);
+                        Alert.alert('Success', 'Password protection has been disabled');
+                    }
+                }
+            ]
+        );
+    };
+
+    const PasswordSettingsModal = () => (
+        <Modal
+            visible={showPasswordModal}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setShowPasswordModal(false)}
+        >
+            <TouchableOpacity 
+                style={themedStyles.modalOverlay}
+                activeOpacity={1}
+                onPress={() => setShowPasswordModal(false)}
+            >
+                <View style={[themedStyles.modalContent, { backgroundColor: isDark ? '#252525' : '#fff' }]}>
+                    {hasPassword ? (
+                        <TouchableOpacity 
+                            style={themedStyles.modalOption}
+                            onPress={handleDisablePassword}
+                        >
+                            <Ionicons name="lock-open" size={24} color={isDark ? '#fff' : '#000'} />
+                            <Text style={[themedStyles.modalOptionText, { color: isDark ? '#fff' : '#000' }]}>
+                                Disable Password Protection
+                            </Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity 
+                            style={themedStyles.modalOption}
+                            onPress={handleEnablePassword}
+                        >
+                            <Ionicons name="lock-closed" size={24} color={isDark ? '#fff' : '#000'} />
+                            <Text style={[themedStyles.modalOptionText, { color: isDark ? '#fff' : '#000' }]}>
+                                Enable Password Protection
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </TouchableOpacity>
+        </Modal>
+    );
+
     const themedStyles = useMemo(() => StyleSheet.create({
         container: {
             flex: 1,
@@ -503,6 +604,11 @@ const APISettings = () => {
             flexDirection: 'row',
             alignItems: 'center',
             gap: 12,
+        },
+        headerRight: {
+            position: 'absolute',
+            right: 16,
+            padding: 8,
         },
         toggleButton: {
             padding: 4,
@@ -722,7 +828,41 @@ const APISettings = () => {
             color: isDark ? '#aaa' : '#666',
             textAlign: 'center',
         },
-    }), [isDark, activeProviders]);
+        modalOverlay: {
+            flex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            paddingTop: 70,
+            paddingRight: 16,
+            justifyContent: 'flex-start',
+            alignItems: 'flex-end',
+        },
+        modalContent: {
+            width: '80%',
+            maxWidth: 400,
+            borderRadius: 12,
+            padding: 16,
+            elevation: 5,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+        },
+        modalOption: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            padding: 16,
+            gap: 12,
+        },
+        modalOptionText: {
+            fontSize: 16,
+            fontWeight: '500',
+        },
+        modalDivider: {
+            height: 1,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+            marginVertical: 8,
+        },
+    }), [isDark]);
 
     // Helper function to render API key input section with model name input
     const renderApiSection = (
@@ -929,8 +1069,20 @@ const APISettings = () => {
                     </TouchableOpacity>
                     <Text style={themedStyles.logo}>API Settings</Text>
                 </View>
+                <TouchableOpacity 
+                    style={themedStyles.headerRight}
+                    onPress={() => setShowPasswordModal(true)}
+                >
+                    <Ionicons 
+                        name={hasPassword ? "lock-closed" : "lock-open-outline"} 
+                        size={24} 
+                        color={isDark ? '#fff' : '#000'} 
+                    />
+                </TouchableOpacity>
             </View>
             <View style={[themedStyles.separator, { backgroundColor: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }]} />
+            
+            <PasswordSettingsModal />
             
             <KeyboardAvoidingView 
                 behavior={Platform.OS === "ios" ? "padding" : "height"}

@@ -155,7 +155,8 @@ export default function HomePage() {
       flex: 1,
     },
     header: {
-      padding: 34,      
+      padding: 34,
+      // paddingBottom: 10,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
@@ -297,7 +298,7 @@ export default function HomePage() {
                 color={isDark ? '#fff' : '#000'}
               />
             </TouchableOpacity>
-            <Text style={themedStyles.logo}>AppLogo</Text>
+            <Text style={themedStyles.logo}>AI T-Hub</Text>
           </View>
           
           <View style={themedStyles.headerRight}>

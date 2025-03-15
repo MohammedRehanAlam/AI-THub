@@ -7,6 +7,7 @@ import Home from './index';
 import Settings from './Settings';
 import APISettings from './APISettings';
 import About from './About';
+import APISettingsAuth from './APISettingsAuth';
 
 import Box1 from './tools/Box1';
 import Box2 from './tools/Box2';
@@ -28,6 +29,7 @@ const AppNavigator = () => {
         <Drawer.Screen name="Settings" component={SettingsWrapper} options={{ title: 'Settings' }} />
         <Drawer.Screen name="APISettings" component={APISettings} options={{ title: 'API Settings' }} />
         <Drawer.Screen name="About" component={About} options={{ title: 'About' }} />
+        <Drawer.Screen name="APISettingsAuth" component={APISettingsAuth} options={{ title: 'API Settings Auth' }} />
         
         <Drawer.Screen name="Box1" component={Box1} options={{ title: 'Translator' }} />
         <Drawer.Screen name="Box2" component={Box2} options={{ title: 'Box 2' }} />

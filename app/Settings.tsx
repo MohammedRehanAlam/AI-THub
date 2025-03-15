@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface SettingsProps {
     isOpen?: boolean;
@@ -160,6 +161,15 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
         outputRange: ['0deg', '90deg'],
     });
 
+    const handleAPISettingsPress = async () => {
+        const hasPassword = await AsyncStorage.getItem('api_settings_password');
+        if (hasPassword) {
+            router.push('/APISettingsAuth');
+        } else {
+            router.push('/APISettings');
+        }
+    };
+
     return (
         <SafeAreaView style={themedStyles.container}>
             <View style={themedStyles.header}>
@@ -181,7 +191,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                 <View style={themedStyles.menuItems}>
                     <TouchableOpacity 
                         style={themedStyles.menuItem}
-                        onPress={() => router.push('/APISettings')}
+                        onPress={handleAPISettingsPress}
                     >
                         <View style={themedStyles.iconContainer}>
                             <Ionicons name="key-outline" size={20} color={isDark ? '#fff' : '#000'} />
