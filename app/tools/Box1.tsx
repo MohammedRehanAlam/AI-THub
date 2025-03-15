@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform, Keyboard, Modal, AppState, KeyboardAvoidingView, Image } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform, Keyboard, Modal, AppState, KeyboardAvoidingView, Image, ViewStyle, TextStyle, ImageStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,6 +18,7 @@ import { translateText as apiTranslateText, TranslationRequest } from '../_utils
 import { formatApiError } from '../_utils/apiErrorUtils';
 import { OpenAILogo, GeminiLogo, AnthropicLogo, OpenRouterLogo, GroqLogo } from '../components/LogoIcons';
 import * as ImagePicker from 'expo-image-picker';
+import Markdown from '@ronradtke/react-native-markdown-display';
 
 // Theme colors
 const COLORS = {
@@ -82,6 +83,102 @@ interface Message {
   originalImageUri?: string;
 }
 
+type MarkdownStylesType = {
+  body: TextStyle;
+  heading1: TextStyle;
+  heading2: TextStyle;
+  heading3: TextStyle;
+  paragraph: TextStyle;
+  link: TextStyle;
+  list_item: TextStyle;
+  bullet_list: ViewStyle;
+  ordered_list: ViewStyle;
+  code_inline: TextStyle;
+  code_block: TextStyle;
+  blockquote: ViewStyle;
+  image: ImageStyle;
+  hr: ViewStyle;
+  table: ViewStyle;
+  thead: ViewStyle;
+  th: TextStyle;
+  td: TextStyle;
+}
+
+type StylesType = {
+  container: ViewStyle;
+  header: ViewStyle;
+  headerLeft: ViewStyle;
+  toggleButton: ViewStyle;
+  clearButton: ViewStyle;
+  clearButtonDisabled: ViewStyle;
+  logo: TextStyle;
+  languageSelector: ViewStyle;
+  languageSelectorContainer: ViewStyle;
+  languageBox: ViewStyle;
+  swapButton: ViewStyle;
+  overlay: ViewStyle;
+  alertBox: ViewStyle;
+  alertTitle: TextStyle;
+  alertMessage: TextStyle;
+  buttonContainer: ViewStyle;
+  button: ViewStyle;
+  buttonText: TextStyle;
+  messagesContainer: ViewStyle;
+  messagesContent: ViewStyle;
+  messageContainer: ViewStyle;
+  user1Container: ViewStyle;
+  user2Container: ViewStyle;
+  messageBubble: ViewStyle;
+  user1Bubble: ViewStyle;
+  user2Bubble: ViewStyle;
+  messageContent: ViewStyle;
+  messageText: TextStyle;
+  messageTextWithImage: TextStyle;
+  messageTextOnly: TextStyle;
+  originalTextButton: ViewStyle;
+  originalTextButtonText: TextStyle;
+  originalText: TextStyle;
+  bottomContainer: ViewStyle;
+  userToggle: ViewStyle;
+  userButton: ViewStyle;
+  activeUserButton: ViewStyle;
+  userButtonText: TextStyle;
+  userLanguageText: TextStyle;
+  userLanguageLegend: ViewStyle;
+  userLanguageLegendText: TextStyle;
+  activeUserButtonText: TextStyle;
+  inputContainer: ViewStyle;
+  inputRow: ViewStyle;
+  input: TextStyle;
+  previewImageContainer: ViewStyle;
+  previewImage: ImageStyle;
+  clearImageButton: ViewStyle;
+  messageImage: ImageStyle;
+  originalMessageImage: ImageStyle;
+  sendButton: ViewStyle;
+  providerSelector: ViewStyle;
+  providerButton: ViewStyle;
+  providerButtonContent: ViewStyle;
+  providerText: TextStyle;
+  dropdownContent: ViewStyle;
+  dropdownModal: ViewStyle;
+  dropdownItem: ViewStyle;
+  selectedItem: ViewStyle;
+  dropdownItemText: TextStyle;
+  dropdownDivider: ViewStyle;
+  errorContainer: ViewStyle;
+  errorText: TextStyle;
+  noProvidersText: TextStyle;
+  modalOverlay: ViewStyle;
+  mediaOptionsContainer: ViewStyle;
+  mediaOption: ViewStyle;
+  mediaOptionActive: ViewStyle;
+  mediaOptionText: TextStyle;
+  mediaOptionDivider: ViewStyle;
+  mediaButton: ViewStyle;
+  markdownContainer: ViewStyle;
+}
+
 const CustomAlert = ({ visible, title, message, onCancel, onConfirm, isDark }: { visible: boolean; title: string; message: string; onCancel: () => void; onConfirm: () => void; isDark: boolean; }) => {
   const styles = createStyles(isDark);
   const colors = isDark ? COLORS.dark : COLORS.light;
@@ -102,10 +199,211 @@ const CustomAlert = ({ visible, title, message, onCancel, onConfirm, isDark }: {
   );
 };
 
-const createStyles = (isDark: boolean) => {
+const createMarkdownStyles = (isDark: boolean): MarkdownStylesType => {
   const colors = isDark ? COLORS.dark : COLORS.light;
   
-  return StyleSheet.create({
+  return {
+    body: {
+      color: colors.text,
+      fontSize: 16,
+      lineHeight: 22,
+    },
+    heading1: {
+      fontSize: 18,
+      lineHeight: 22,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginVertical: 6,
+    },
+    heading2: {
+      fontSize: 17,
+      lineHeight: 21,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginVertical: 5,
+    },
+    heading3: {
+      fontSize: 16,
+      lineHeight: 20,
+      fontWeight: 'bold',
+      color: colors.text,
+      marginVertical: 4,
+    },
+    paragraph: {
+      marginVertical: 4,
+      color: colors.text,
+    },
+    link: {
+      color: colors.primary,
+    },
+    list_item: {
+      marginVertical: 2,
+      color: colors.text,
+    },
+    bullet_list: {
+      marginVertical: 4,
+    },
+    ordered_list: {
+      marginVertical: 4,
+    },
+    code_inline: {
+      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+      backgroundColor: isDark ? '#333' : '#f0f0f0',
+      paddingHorizontal: 4,
+      borderRadius: 4,
+      color: colors.text,
+    },
+    code_block: {
+      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+      backgroundColor: isDark ? '#333' : '#f0f0f0',
+      padding: 8,
+      borderRadius: 6,
+      marginVertical: 4,
+      color: colors.text,
+    },
+    blockquote: {
+      borderLeftWidth: 4,
+      borderLeftColor: colors.primary,
+      paddingLeft: 8,
+      opacity: 0.8,
+      marginVertical: 4,
+    },
+    image: {
+      maxWidth: '100%',
+      borderRadius: 8,
+    },
+    hr: {
+      backgroundColor: colors.border,
+      height: 1,
+      marginVertical: 8,
+    },
+    table: {
+      borderColor: colors.border,
+    },
+    thead: {
+      backgroundColor: isDark ? '#333' : '#f0f0f0',
+    },
+    th: {
+      padding: 6,
+      color: colors.text,
+    },
+    td: {
+      padding: 6,
+      color: colors.text,
+    },
+  };
+};
+
+const createOriginalMarkdownStyles = (isDark: boolean): MarkdownStylesType => {
+  const colors = isDark ? COLORS.dark : COLORS.light;
+  
+  return {
+    body: {
+      color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+      fontSize: 16,
+      lineHeight: 22,
+    },
+    heading1: {
+      fontSize: 18,
+      lineHeight: 22,
+      fontWeight: 'bold',
+      color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+      marginVertical: 6,
+    },
+    heading2: {
+      fontSize: 17,
+      lineHeight: 21,
+      fontWeight: 'bold',
+      color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+      marginVertical: 5,
+    },
+    heading3: {
+      fontSize: 16,
+      lineHeight: 20,
+      fontWeight: 'bold',
+      color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+      marginVertical: 4,
+    },
+    paragraph: {
+      marginVertical: 4,
+      fontSize: 16,
+      lineHeight: 22,
+      color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+    },
+    link: {
+      color: isDark ? 'rgba(0, 122, 255, 0.8)' : 'rgba(0, 122, 255, 0.7)',
+      fontSize: 16,
+    },
+    list_item: {
+      marginVertical: 2,
+      fontSize: 16,
+      lineHeight: 22,
+      color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+    },
+    bullet_list: {
+      marginVertical: 4,
+    },
+    ordered_list: {
+      marginVertical: 4,
+    },
+    code_inline: {
+      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+      backgroundColor: isDark ? 'rgba(51, 51, 51, 0.7)' : 'rgba(240, 240, 240, 0.7)',
+      paddingHorizontal: 4,
+      borderRadius: 4,
+      fontSize: 16,
+      color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+    },
+    code_block: {
+      fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+      backgroundColor: isDark ? 'rgba(51, 51, 51, 0.7)' : 'rgba(240, 240, 240, 0.7)',
+      padding: 8,
+      borderRadius: 6,
+      marginVertical: 4,
+      fontSize: 16,
+      lineHeight: 22,
+      color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+    },
+    blockquote: {
+      borderLeftWidth: 4,
+      borderLeftColor: isDark ? 'rgba(0, 122, 255, 0.6)' : 'rgba(0, 122, 255, 0.5)',
+      paddingLeft: 8,
+      opacity: 0.7,
+      marginVertical: 4,
+    },
+    image: {
+      maxWidth: '100%',
+      borderRadius: 8,
+      opacity: 0.9,
+    },
+    hr: {
+      backgroundColor: isDark ? 'rgba(150, 150, 150, 0.2)' : 'rgba(150, 150, 150, 0.15)',
+      height: 1,
+      marginVertical: 8,
+    },
+    table: {
+      borderColor: isDark ? 'rgba(150, 150, 150, 0.2)' : 'rgba(150, 150, 150, 0.15)',
+    },
+    thead: {
+      backgroundColor: isDark ? 'rgba(51, 51, 51, 0.7)' : 'rgba(240, 240, 240, 0.7)',
+    },
+    th: {
+      padding: 6,
+      fontSize: 16,
+      color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+    },
+    td: {
+      padding: 6,
+      fontSize: 16,
+      color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+    },
+  };
+};
+
+const createStyles = (isDark: boolean): StylesType => {
+  const colors = isDark ? COLORS.dark : COLORS.light;
+  
+  return StyleSheet.create<StylesType>({
     container: {
       flex: 1,
       backgroundColor: colors.background,
@@ -237,6 +535,7 @@ const createStyles = (isDark: boolean) => {
       padding: 12,
       borderRadius: 16,
       backgroundColor: colors.surface,
+      // width: '100%',   // this is to make the bubble full width
     },
     user1Bubble: {
       borderBottomLeftRadius: 4,
@@ -264,10 +563,13 @@ const createStyles = (isDark: boolean) => {
     },
     originalTextButton: {
       marginTop: 8,
+      alignSelf: 'flex-start',
+      width: '100%',
     },
     originalTextButtonText: {
       color: colors.primary,
       fontSize: 14,
+      marginBottom: 4,
     },
     originalText: {
       marginTop: 4,
@@ -380,20 +682,21 @@ const createStyles = (isDark: boolean) => {
     },
     messageContent: {
       gap: 4,
-      alignItems: 'center',
+      alignItems: 'flex-start',
+      width: '100%',
     },
     messageImage: {
-      width: 250,
-      height: 250,
+      width: 230,
+      height: 230,
       borderRadius: 8,
       marginVertical: 4,
-      alignSelf: 'center',
     },
     originalMessageImage: {
       width: 150,
       height: 150,
       borderRadius: 8,
       marginTop: 8,
+      alignSelf: 'center',
     },
     sendButton: {
       alignSelf: 'flex-end',
@@ -533,10 +836,11 @@ const createStyles = (isDark: boolean) => {
       padding: 10,
       justifyContent: 'center',
       alignItems: 'center',
-      // borderRadius: 12,
-      // backgroundColor: colors.mediaButtonBackground,
-      // borderWidth: 1,
-      // borderColor: colors.mediaButtonBorder,
+    },
+    markdownContainer: {
+      flex: 1,
+      width: '100%',
+      alignSelf: 'flex-start',
     },
   });
 };
@@ -599,6 +903,9 @@ export default function Box1() {
   // Constants for storage keys
   const TOOL_PROVIDER_KEY = 'box1_selected_provider';
   const GLOBAL_PROVIDER_KEY = 'selected_provider';
+
+  const markdownStyles = createMarkdownStyles(isDark);
+  const originalMarkdownStyles = createOriginalMarkdownStyles(isDark);
 
   useEffect(() => {
     const loadSavedData = async () => {
@@ -925,8 +1232,6 @@ export default function Box1() {
 
     try {
       let textToTranslate = inputText.trim();
-      let isImageMessage = false;
-      let combinedInput = false;
       
       // If there's an image, convert it to base64
       if (previewImage) {
@@ -946,27 +1251,27 @@ export default function Box1() {
             reader.readAsDataURL(blob);
           });
           
-          isImageMessage = true;
-          
-          // If there's also text input, we'll handle them separately in the translation request
+          // Handle both image and text if present
           if (textToTranslate) {
-            combinedInput = true;
-            // Create a combined request that includes both image and text
+            // First, translate the text
+            const translatedText = await translateText(textToTranslate);
+            
+            // Then, translate the image
             const request: TranslationRequest = {
               text: base64,
-              additionalText: textToTranslate, // This will be handled in translatorApiUtils
               fromLanguage: activeUser === 1 ? sourceLanguage : targetLanguage,
               toLanguage: activeUser === 1 ? targetLanguage : sourceLanguage
             };
 
-            const translatedResult = await apiTranslateText(request, selectedProvider as ProviderType);
+            const imageTranslationResult = await apiTranslateText(request, selectedProvider as ProviderType);
             
-            if (!translatedResult.success) {
-              throw new Error(translatedResult.error || 'Translation failed');
+            if (!imageTranslationResult.success) {
+              throw new Error(imageTranslationResult.error || 'Image translation failed');
             }
 
+            // Create a combined message with both translations
             const translatedMessage: Message = {
-              text: translatedResult.translatedText,
+              text: `${translatedText}\n\n${imageTranslationResult.translatedText}`,
               isUser1: activeUser !== 1,
               originalText: textToTranslate,
               timestamp: Date.now(),
@@ -978,25 +1283,43 @@ export default function Box1() {
             setMessages(prev => [...prev, translatedMessage]);
           } else {
             // Image only translation
-            textToTranslate = base64;
+            const request: TranslationRequest = {
+              text: base64,
+              fromLanguage: activeUser === 1 ? sourceLanguage : targetLanguage,
+              toLanguage: activeUser === 1 ? targetLanguage : sourceLanguage
+            };
+
+            const imageTranslationResult = await apiTranslateText(request, selectedProvider as ProviderType);
+            
+            if (!imageTranslationResult.success) {
+              throw new Error(imageTranslationResult.error || 'Translation failed');
+            }
+
+            const translatedMessage: Message = {
+              text: imageTranslationResult.translatedText,
+              isUser1: activeUser !== 1,
+              originalText: "Image only",
+              timestamp: Date.now(),
+              expanded: false,
+              originalImageUri: newMessage.imageUri,
+              imageUri: undefined
+            };
+
+            setMessages(prev => [...prev, translatedMessage]);
           }
         } catch (error) {
           console.error('Error processing image and text:', error);
           throw new Error('Failed to process image and text for translation. Please try again.');
         }
-      }
-
-      // Handle text-only or image-only cases
-      if (!combinedInput && textToTranslate) {
+      } else if (textToTranslate) {
+        // Text only translation
         const translatedText = await translateText(textToTranslate);
         const translatedMessage: Message = {
           text: translatedText,
           isUser1: activeUser !== 1,
-          originalText: isImageMessage ? inputText.trim() || "Image only" : inputText.trim(),
+          originalText: textToTranslate,
           timestamp: Date.now(),
-          expanded: false,
-          originalImageUri: newMessage.imageUri,
-          imageUri: undefined
+          expanded: false
         };
 
         setMessages(prev => [...prev, translatedMessage]);
@@ -1126,7 +1449,7 @@ export default function Box1() {
       setTimeout(() => {
         // This will trigger a re-render and reset the position
         setInputText(inputText => inputText);
-      }, 100);
+      }, 10);
     }
   };
 
@@ -1138,7 +1461,7 @@ export default function Box1() {
         setNeedsReset(false);
         // Force a re-render to reset positioning
         setInputText(inputText => inputText);
-      }, 100);
+      }, 10);
     }
   }, [keyboardVisible, needsReset]);
 
@@ -1441,12 +1764,14 @@ export default function Box1() {
                     />
                   )}
                   {message.text && (
-                    <Text style={[
-                      styles.messageText,
-                      message.imageUri ? styles.messageTextWithImage : styles.messageTextOnly
-                    ]}>
-                      {message.text}
-                    </Text>
+                    <View style={styles.markdownContainer}>
+                      <Markdown 
+                        style={markdownStyles}
+                        mergeStyle={false}
+                      >
+                        {message.text}
+                      </Markdown>
+                    </View>
                   )}
                   {(message.originalText || message.originalImageUri) && (
                     <TouchableOpacity
@@ -1459,10 +1784,15 @@ export default function Box1() {
                       {message.expanded && (
                         <>
                           {message.originalText && message.originalText !== "Image only" && (
-                            <Text style={styles.originalText}>
-                              {message.originalText}
-                            </Text>
-                          )}
+                              <View style={styles.markdownContainer}>
+                                <Markdown 
+                                  style={originalMarkdownStyles}
+                                  mergeStyle={false}
+                                >
+                                  {message.originalText}
+                                </Markdown>
+                              </View>
+                            )}
                           {message.originalImageUri && (
                             <Image 
                               source={{ uri: message.originalImageUri }} 
