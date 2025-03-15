@@ -63,6 +63,8 @@ const APISettings = () => {
 
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [hasPassword, setHasPassword] = useState(false);
+    const [isPasswordPending, setIsPasswordPending] = useState(false);
+    const [disablePasswordStep, setDisablePasswordStep] = useState(0);
 
     // Load saved API keys and models on component mount
     useEffect(() => {
@@ -108,6 +110,7 @@ const APISettings = () => {
                 // Check if password is set
                 const storedPassword = await AsyncStorage.getItem('api_settings_password');
                 setHasPassword(!!storedPassword);
+                setIsPasswordPending(storedPassword === 'pending');
             } catch (error) {
                 console.error('Error loading API settings:', error);
             }
@@ -496,91 +499,107 @@ const APISettings = () => {
     
     // Add password management functions
     const handleResetPassword = async () => {
-        Alert.alert(
-            'Reset Password',
-            'Are you sure you want to reset your API Settings password?',
-            [
-                {
-                    text: 'Cancel',
-                    style: 'cancel'
-                },
-                {
-                    text: 'Reset',
-                    style: 'destructive',
-                    onPress: async () => {
-                        await AsyncStorage.removeItem('api_settings_password');
-                        Alert.alert('Success', 'Password has been reset successfully');
-                        router.push('/Settings');
-                    }
-                }
-            ]
-        );
+        await AsyncStorage.setItem('is_resetting_password', 'true');
+        setShowPasswordModal(false);
+        router.push('/APISettingsAuth');
     };
 
     const handleEnablePassword = async () => {
         setShowPasswordModal(false);
-        // Instead of navigating, just set the password flag
         await AsyncStorage.setItem('api_settings_password', 'pending');
         setHasPassword(true);
-        Alert.alert('Success', 'Password protection has been enabled. You will need to set your password when accessing API Settings next time.');
+        setIsPasswordPending(true);
     };
 
     const handleDisablePassword = async () => { 
-        Alert.alert( 
-            'Disable Password Protection',
-            'Are you sure you want to disable password protection for API Settings?',
-            [
-                {
-                    text: 'Cancel',
-                    style: 'cancel'
-                },
-                {
-                    text: 'Disable',
-                    style: 'destructive',
-                    onPress: async () => {
-                        await AsyncStorage.removeItem('api_settings_password');
-                        setHasPassword(false);
-                        setShowPasswordModal(false);
-                        Alert.alert('Success', 'Password protection has been disabled');
-                    }
-                }
-            ]
-        );
+        await AsyncStorage.removeItem('api_settings_password');
+        setHasPassword(false);
+        setIsPasswordPending(false);
+        setShowPasswordModal(false);
+        setDisablePasswordStep(0);
     };
+
+    // Reset disable password step when modal is closed
+    useEffect(() => {
+        if (!showPasswordModal) {
+            setDisablePasswordStep(0);
+        }
+    }, [showPasswordModal]);
 
     const PasswordSettingsModal = () => (
         <Modal
             visible={showPasswordModal}
             transparent={true}
             animationType="fade"
-            onRequestClose={() => setShowPasswordModal(false)}
+            onRequestClose={() => {
+                setShowPasswordModal(false);
+                setDisablePasswordStep(0);
+            }}
         >
             <TouchableOpacity 
                 style={themedStyles.modalOverlay}
                 activeOpacity={1}
-                onPress={() => setShowPasswordModal(false)}
+                onPress={() => {
+                    setShowPasswordModal(false);
+                    setDisablePasswordStep(0);
+                }}
             >
                 <View style={[themedStyles.modalContent, { backgroundColor: isDark ? '#252525' : '#fff' }]}>
-                    {hasPassword ? (
-                        <TouchableOpacity 
-                            style={themedStyles.modalOption}
-                            onPress={handleDisablePassword}
-                        >
-                            <Ionicons name="lock-open" size={24} color={isDark ? '#fff' : '#000'} />
-                            <Text style={[themedStyles.modalOptionText, { color: isDark ? '#fff' : '#000' }]}>
-                                Disable Password Protection
-                            </Text>
-                        </TouchableOpacity>
-                    ) : (
-                        <TouchableOpacity 
-                            style={themedStyles.modalOption}
-                            onPress={handleEnablePassword}
-                        >
-                            <Ionicons name="lock-closed" size={24} color={isDark ? '#fff' : '#000'} />
-                            <Text style={[themedStyles.modalOptionText, { color: isDark ? '#fff' : '#000' }]}>
-                                Enable Password Protection
-                            </Text>
-                        </TouchableOpacity>
+                    <View style={themedStyles.modalOption}>
+                        <View style={{ flexDirection: 'column', flex: 1 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Text style={[themedStyles.modalOptionText, { color: isDark ? '#fff' : '#000' }]}>
+                                    Password Protection
+                                </Text>
+                                <Switch
+                                    value={hasPassword}
+                                    onValueChange={(value) => {
+                                        if (value) {
+                                            handleEnablePassword();
+                                        } else {
+                                            if (disablePasswordStep === 0) {
+                                                setDisablePasswordStep(1);
+                                            } else {
+                                                handleDisablePassword();
+                                            }
+                                        }
+                                    }}
+                                    trackColor={{ false: isDark ? '#444' : '#ccc', true: isDark ? '#4a90e2' : '#2196F3' }}
+                                    thumbColor={hasPassword ? (isDark ? '#fff' : '#fff') : (isDark ? '#888' : '#f4f3f4')}
+                                    ios_backgroundColor={isDark ? '#444' : '#ccc'}
+                                />
+                            </View>
+                            {disablePasswordStep === 1 && (
+                                <Text style={[themedStyles.disableWarning]}>
+                                    Click again to disable password protection
+                                </Text>
+                            )}
+                        </View>
+                    </View>
+                    
+                    {hasPassword && !isPasswordPending && (
+                        <>
+                            <View style={themedStyles.modalDivider} />
+                            <TouchableOpacity 
+                                style={themedStyles.modalOption}
+                                onPress={handleResetPassword}
+                            >
+                                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                                    <Text style={[
+                                        themedStyles.modalOptionText,
+                                        { color: isDark ? '#ff4444' : '#ff0000' }
+                                    ]}>
+                                        Reset Password
+                                    </Text>
+                                    <Ionicons 
+                                        name="key-outline" 
+                                        size={24} 
+                                        color={isDark ? '#ff4444' : '#ff0000'} 
+                                        style={{ marginLeft: 60 }}
+                                    />
+                                </View>
+                            </TouchableOpacity>
+                        </>
                     )}
                 </View>
             </TouchableOpacity>
@@ -838,9 +857,9 @@ const APISettings = () => {
         },
         modalContent: {
             width: '80%',
-            maxWidth: 400,
+            maxWidth: 250,
             borderRadius: 12,
-            padding: 16,
+            padding: 12,
             elevation: 5,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },
@@ -850,8 +869,8 @@ const APISettings = () => {
         modalOption: {
             flexDirection: 'row',
             alignItems: 'center',
-            padding: 16,
-            gap: 12,
+            paddingHorizontal: 8,
+            gap: 10,
         },
         modalOptionText: {
             fontSize: 16,
@@ -861,6 +880,11 @@ const APISettings = () => {
             height: 1,
             backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
             marginVertical: 8,
+        },
+        disableWarning: {
+            fontSize: 10,
+            color: isDark ? '#ff4444' : '#ff0000',
+            textAlign: 'center',
         },
     }), [isDark]);
 

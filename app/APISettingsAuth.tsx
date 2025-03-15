@@ -12,6 +12,7 @@ const APISettingsAuth = () => {
     const router = useRouter();
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [oldPassword, setOldPassword] = useState('');
     const [hasPassword, setHasPassword] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [attempts, setAttempts] = useState(0);
@@ -21,14 +22,18 @@ const APISettingsAuth = () => {
     const [isVerified, setIsVerified] = useState(false);
     const [inputError, setInputError] = useState('');
     const [storedPasswordLength, setStoredPasswordLength] = useState(0);
+    const [isResettingPassword, setIsResettingPassword] = useState(false);
+    const [oldPasswordVerified, setOldPasswordVerified] = useState(false);
     const shakeAnimation = new Animated.Value(0);
+    const [passwordError, setPasswordError] = useState('');
+    const [confirmPasswordError, setConfirmPasswordError] = useState('');
 
     useEffect(() => {
         checkPassword();
     }, []);
 
     useEffect(() => {
-        if (hasPassword && password.length === storedPasswordLength) {
+        if (hasPassword && !isResettingPassword && password.length === storedPasswordLength) {
             handleVerifyPassword();
         }
     }, [password]);
@@ -50,11 +55,15 @@ const APISettingsAuth = () => {
     }, [isLocked, lockTimer]);
 
     useEffect(() => {
-        // Check if we came from Settings screen
         const checkNavigation = async () => {
             const storedPassword = await AsyncStorage.getItem('api_settings_password');
+            const isReset = await AsyncStorage.getItem('is_resetting_password');
+            
             if (storedPassword && storedPassword !== 'pending') {
                 setIsFromSettings(true);
+                if (isReset === 'true') {
+                    setIsResettingPassword(true);
+                }
             }
         };
         checkNavigation();
@@ -77,29 +86,60 @@ const APISettingsAuth = () => {
     };
 
     const handleSetPassword = async () => {
-        if (password.length < 6) {
-            Alert.alert('Invalid Password', 'Password must be at least 6 characters long');
+        setPasswordError('');
+        setConfirmPasswordError('');
+        
+        if (password.length < 4) {
+            setPasswordError('Password must be at least 4 characters long');
             return;
         }
 
         if (password !== confirmPassword) {
-            Alert.alert('Password Mismatch', 'Passwords do not match');
+            setConfirmPasswordError('Passwords do not match');
+            return;
+        }
+
+        if (isResettingPassword && password === oldPassword) {
+            setPasswordError('New password cannot be the same as the old password');
             return;
         }
 
         try {
             await AsyncStorage.setItem('api_settings_password', password);
-            Alert.alert('Success', 'Password protection has been enabled');
+            await AsyncStorage.removeItem('is_resetting_password');
             router.push('/APISettings');
         } catch (error) {
             console.error('Error setting password:', error);
-            Alert.alert('Error', 'Failed to set password');
+            setPasswordError('Failed to set password. Please try again.');
         }
     };
 
     const handleVerifyPassword = async () => {
         try {
             const storedPassword = await AsyncStorage.getItem('api_settings_password');
+            
+            if (isResettingPassword) {
+                if (oldPassword === storedPassword) {
+                    setOldPasswordVerified(true);
+                    setAttempts(0);
+                    setInputError('');
+                } else {
+                    const newAttempts = attempts + 1;
+                    setAttempts(newAttempts);
+                    setInputError('Incorrect old password. Try again.');
+                    setOldPasswordVerified(false);
+                    handleShakeAnimation();
+                    
+                    if (newAttempts >= 3) {
+                        setIsLocked(true);
+                        setLockTimer(30);
+                        setAttempts(0);
+                        setOldPassword('');
+                        setInputError('');
+                    }
+                }
+                return;
+            }
             
             if (password === storedPassword) {
                 setAttempts(0);
@@ -110,30 +150,7 @@ const APISettingsAuth = () => {
                 setAttempts(newAttempts);
                 setInputError('Incorrect password. Try again.');
                 setIsVerified(false);
-                
-                // Shake animation
-                Animated.sequence([
-                    Animated.timing(shakeAnimation, {
-                        toValue: 10,
-                        duration: 100,
-                        useNativeDriver: true
-                    }),
-                    Animated.timing(shakeAnimation, {
-                        toValue: -10,
-                        duration: 100,
-                        useNativeDriver: true
-                    }),
-                    Animated.timing(shakeAnimation, {
-                        toValue: 10,
-                        duration: 100,
-                        useNativeDriver: true
-                    }),
-                    Animated.timing(shakeAnimation, {
-                        toValue: 0,
-                        duration: 100,
-                        useNativeDriver: true
-                    })
-                ]).start();
+                handleShakeAnimation();
 
                 if (newAttempts >= 3) {
                     setIsLocked(true);
@@ -149,15 +166,45 @@ const APISettingsAuth = () => {
         }
     };
 
+    const handleShakeAnimation = () => {
+        Animated.sequence([
+            Animated.timing(shakeAnimation, {
+                toValue: 10,
+                duration: 100,
+                useNativeDriver: true
+            }),
+            Animated.timing(shakeAnimation, {
+                toValue: -10,
+                duration: 100,
+                useNativeDriver: true
+            }),
+            Animated.timing(shakeAnimation, {
+                toValue: 10,
+                duration: 100,
+                useNativeDriver: true
+            }),
+            Animated.timing(shakeAnimation, {
+                toValue: 0,
+                duration: 100,
+                useNativeDriver: true
+            })
+        ]).start();
+    };
+
     const handleVerifiedButtonPress = () => {
         if (isVerified) {
             router.push('/APISettings');
+        } else if (isResettingPassword && !oldPasswordVerified) {
+            handleVerifyPassword();
         } else {
             handleVerifyPassword();
         }
     };
 
-    const handleBackPress = () => {
+    const handleBackPress = async () => {
+        if (isResettingPassword) {
+            await AsyncStorage.removeItem('is_resetting_password');
+        }
         if (isFromSettings) {
             router.push('/Settings');
         } else {
@@ -214,7 +261,7 @@ const APISettingsAuth = () => {
         },
         inputContainer: {
             width: '100%',
-            marginBottom: 16,
+            marginBottom: 20,
             position: 'relative',
         },
         input: {
@@ -269,6 +316,12 @@ const APISettingsAuth = () => {
         verifiedButton: {
             backgroundColor: '#4CAF50',
         },
+        errorText: {
+            color: '#ff4444',
+            fontSize: 14,
+            marginTop: 4,
+            marginLeft: 4,
+        },
     });
 
     return (
@@ -298,57 +351,114 @@ const APISettingsAuth = () => {
                 />
                 
                 <Text style={styles.title}>
-                    {!hasPassword ? 'Enable Password Protection' : 'Enter Password'}
+                    {!hasPassword ? 'Enable Password Protection' : 
+                     (isResettingPassword ? (oldPasswordVerified ? 'Set New Password' : 'Verify Current Password') : 
+                     'Enter Password')}
                 </Text>
                 
                 <Text style={styles.subtitle}>
-                    {!hasPassword 
-                        ? 'Create a password to protect your API settings'
-                        : 'Enter your password to access API settings'}
+                    {!hasPassword ? 'Create a password to protect your API settings' :
+                     (isResettingPassword ? (oldPasswordVerified ? 'Enter your new password' : 
+                     'Enter your current password to continue') : 'Enter your password to access API settings')}
                 </Text>
 
-                <Animated.View style={[
-                    styles.inputContainer,
-                    { transform: [{ translateX: shakeAnimation }] }
-                ]}>
-                    <TextInput
-                        style={[
-                            styles.input,
-                            inputError ? styles.inputError : null
-                        ]}
-                        placeholder={!hasPassword ? "Enter new password" : inputError || "Enter password"}
-                        placeholderTextColor={inputError ? '#ff4444' : (isDark ? '#888888' : '#999999')}
-                        value={password}
-                        onChangeText={(text) => {
-                            setPassword(text);
-                            setInputError('');
-                        }}
-                        secureTextEntry={!showPassword}
-                        editable={!isLocked && !isVerified}
-                        autoCapitalize="none"
-                    />
-                    <TouchableOpacity 
-                        style={styles.showPasswordButton}
-                        onPress={() => setShowPassword(!showPassword)}
-                    >
-                        <Ionicons 
-                            name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                            size={24} 
-                            color={isDark ? '#ffffff' : '#000000'} 
+                {isResettingPassword && !oldPasswordVerified ? (
+                    <Animated.View style={[
+                        styles.inputContainer,
+                        { transform: [{ translateX: shakeAnimation }] }
+                    ]}>
+                        <TextInput
+                            style={[
+                                styles.input,
+                                inputError ? styles.inputError : null
+                            ]}
+                            placeholder="Enter current password"
+                            placeholderTextColor={isDark ? '#888888' : '#999999'}
+                            value={oldPassword}
+                            onChangeText={(text) => {
+                                setOldPassword(text);
+                                setInputError('');
+                            }}
+                            secureTextEntry={!showPassword}
+                            editable={!isLocked}
+                            autoCapitalize="none"
                         />
-                    </TouchableOpacity>
-                </Animated.View>
+                        {inputError ? (
+                            <Text style={styles.errorText}>{inputError}</Text>
+                        ) : null}
+                        <TouchableOpacity 
+                            style={styles.showPasswordButton}
+                            onPress={() => setShowPassword(!showPassword)}
+                        >
+                            <Ionicons 
+                                name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                                size={24} 
+                                color={isDark ? '#ffffff' : '#000000'} 
+                            />
+                        </TouchableOpacity>
+                    </Animated.View>
+                ) : (
+                    <>
+                        <Animated.View style={[
+                            styles.inputContainer,
+                            { transform: [{ translateX: shakeAnimation }] }
+                        ]}>
+                            <TextInput
+                                style={[
+                                    styles.input,
+                                    (inputError || passwordError) ? styles.inputError : null
+                                ]}
+                                placeholder={!hasPassword || oldPasswordVerified ? "Enter new password" : 
+                                           (inputError || "Enter password")}
+                                placeholderTextColor={inputError ? '#ff4444' : (isDark ? '#888888' : '#999999')}
+                                value={password}
+                                onChangeText={(text) => {
+                                    setPassword(text);
+                                    setInputError('');
+                                    setPasswordError('');
+                                }}
+                                secureTextEntry={!showPassword}
+                                editable={!isLocked && !isVerified}
+                                autoCapitalize="none"
+                            />
+                            {passwordError ? (
+                                <Text style={styles.errorText}>{passwordError}</Text>
+                            ) : null}
+                            <TouchableOpacity 
+                                style={styles.showPasswordButton}
+                                onPress={() => setShowPassword(!showPassword)}
+                            >
+                                <Ionicons 
+                                    name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                                    size={24} 
+                                    color={isDark ? '#ffffff' : '#000000'} 
+                                />
+                            </TouchableOpacity>
+                        </Animated.View>
 
-                {!hasPassword && (
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Confirm new password"
-                        placeholderTextColor={isDark ? '#888888' : '#999999'}
-                        value={confirmPassword}
-                        onChangeText={setConfirmPassword}
-                        secureTextEntry={!showPassword}
-                        autoCapitalize="none"
-                    />
+                        {(!hasPassword || oldPasswordVerified) && (
+                            <View style={styles.inputContainer}>
+                                <TextInput
+                                    style={[
+                                        styles.input,
+                                        confirmPasswordError ? styles.inputError : null
+                                    ]}
+                                    placeholder="Confirm new password"
+                                    placeholderTextColor={isDark ? '#888888' : '#999999'}
+                                    value={confirmPassword}
+                                    onChangeText={(text) => {
+                                        setConfirmPassword(text);
+                                        setConfirmPasswordError('');
+                                    }}
+                                    secureTextEntry={!showPassword}
+                                    autoCapitalize="none"
+                                />
+                                {confirmPasswordError ? (
+                                    <Text style={styles.errorText}>{confirmPasswordError}</Text>
+                                ) : null}
+                            </View>
+                        )}
+                    </>
                 )}
 
                 {isLocked ? (
@@ -364,11 +474,19 @@ const APISettingsAuth = () => {
                             styles.button,
                             isVerified && styles.verifiedButton
                         ]}
-                        onPress={!hasPassword ? handleSetPassword : handleVerifiedButtonPress}
-                        disabled={!password.trim() || (!hasPassword && !confirmPassword.trim())}
+                        onPress={isResettingPassword ? 
+                            (oldPasswordVerified ? handleSetPassword : handleVerifyPassword) :
+                            (!hasPassword ? handleSetPassword : handleVerifiedButtonPress)}
+                        disabled={(!hasPassword && !password.trim()) || 
+                                (!hasPassword && !confirmPassword.trim()) ||
+                                (isResettingPassword && !oldPasswordVerified && !oldPassword.trim()) ||
+                                (isResettingPassword && oldPasswordVerified && (!password.trim() || !confirmPassword.trim()))}
                     >
                         <Text style={styles.buttonText}>
-                            {!hasPassword ? 'Set Password' : (isVerified ? 'Verified' : 'Verify')}
+                            {!hasPassword ? 'Set Password' : 
+                             (isResettingPassword ? 
+                                (oldPasswordVerified ? 'Set New Password' : 'Verify Current Password') :
+                                (isVerified ? 'Verified' : 'Verify'))}
                         </Text>
                     </TouchableOpacity>
                 )}
