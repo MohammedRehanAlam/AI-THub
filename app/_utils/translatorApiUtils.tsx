@@ -61,7 +61,7 @@ export const getDefaultModel = (provider: ProviderType): string => {
     openai: "gpt-3.5-turbo",
     google: "gemini-1.5-flash",
     anthropic: "claude-3-opus-20240229",
-    openrouter: "openai/gpt-3.5-turbo",
+    openrouter: "deepseek/deepseek-r1:free",
     groq: "llama3-8b-8192"
   };
   

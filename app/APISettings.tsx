@@ -16,9 +16,23 @@ const DEFAULT_MODELS = {
   openai: "gpt-3.5-turbo",
   google: "gemini-1.5-flash",
   anthropic: "claude-3-opus-20240229",
-  openrouter: "openai/gpt-3.5-turbo",
+  openrouter: "deepseek/deepseek-r1:free",
   groq: "llama3-8b-8192"
 };
+
+// Add these interfaces after the DEFAULT_MODELS constant
+interface VerifiedModel {
+    name: string;
+    order: number;
+}
+
+interface ProviderModels {
+    openai: VerifiedModel[];
+    google: VerifiedModel[];
+    anthropic: VerifiedModel[];
+    openrouter: VerifiedModel[];
+    groq: VerifiedModel[];
+}
 
 const APISettings = () => {
     const { currentTheme } = useTheme();
@@ -34,11 +48,20 @@ const APISettings = () => {
     const [groqKey, setGroqKey] = useState('');
     
     // Model name states
-    const [openaiModel, setOpenaiModel] = useState(DEFAULT_MODELS.openai);
-    const [googleModel, setGoogleModel] = useState(DEFAULT_MODELS.google);
-    const [anthropicModel, setAnthropicModel] = useState(DEFAULT_MODELS.anthropic);
-    const [openrouterModel, setOpenrouterModel] = useState(DEFAULT_MODELS.openrouter);
-    const [groqModel, setGroqModel] = useState(DEFAULT_MODELS.groq);
+    const [openaiModel, setOpenaiModel] = useState('');
+    const [googleModel, setGoogleModel] = useState('');
+    const [anthropicModel, setAnthropicModel] = useState('');
+    const [openrouterModel, setOpenrouterModel] = useState('');
+    const [groqModel, setGroqModel] = useState('');
+
+    // Verified models state
+    const [verifiedModels, setVerifiedModels] = useState<ProviderModels>({
+        openai: [],
+        google: [],
+        anthropic: [],
+        openrouter: [],
+        groq: []
+    });
     
     // Loading states for verification
     const [openaiLoading, setOpenaiLoading] = useState(false);
@@ -66,7 +89,7 @@ const APISettings = () => {
     const [isPasswordPending, setIsPasswordPending] = useState(false);
     const [disablePasswordStep, setDisablePasswordStep] = useState(0);
 
-    // Load saved API keys and models on component mount
+    // Load saved API keys, models, and verified models on component mount
     useEffect(() => {
         const loadApiSettings = async () => {
             try {
@@ -77,12 +100,8 @@ const APISettings = () => {
                 const savedOpenrouterKey = await AsyncStorage.getItem('openrouter_api_key');
                 const savedGroqKey = await AsyncStorage.getItem('groq_api_key');
                 
-                // Load model names
-                const savedOpenaiModel = await AsyncStorage.getItem('openai_model');
-                const savedGoogleModel = await AsyncStorage.getItem('google_model');
-                const savedAnthropicModel = await AsyncStorage.getItem('anthropic_model');
-                const savedOpenrouterModel = await AsyncStorage.getItem('openrouter_model');
-                const savedGroqModel = await AsyncStorage.getItem('groq_model');
+                // Load verified models
+                const savedVerifiedModels = await AsyncStorage.getItem('verified_models');
                 
                 // Set API keys if they exist
                 if (savedOpenaiKey) setOpenaiKey(savedOpenaiKey);
@@ -91,16 +110,13 @@ const APISettings = () => {
                 if (savedOpenrouterKey) setOpenrouterKey(savedOpenrouterKey);
                 if (savedGroqKey) setGroqKey(savedGroqKey);
                 
-                // Set model names if they exist
-                if (savedOpenaiModel) setOpenaiModel(savedOpenaiModel);
-                if (savedGoogleModel) setGoogleModel(savedGoogleModel);
-                if (savedAnthropicModel) setAnthropicModel(savedAnthropicModel);
-                if (savedOpenrouterModel) setOpenrouterModel(savedOpenrouterModel);
-                if (savedGroqModel) setGroqModel(savedGroqModel);
+                // Set verified models if they exist
+                if (savedVerifiedModels) {
+                    const parsedModels = JSON.parse(savedVerifiedModels);
+                    setVerifiedModels(parsedModels);
+                }
 
-                // Check if API keys are valid and update provider states
-                // We don't want to actually test the API keys here to avoid rate limiting
-                // Instead, we'll just check if they exist and set the status accordingly
+                // Set status for providers with valid API keys
                 if (savedOpenaiKey) setOpenaiStatus(true);
                 if (savedGoogleKey) setGoogleStatus(true);
                 if (savedAnthropicKey) setAnthropicStatus(true);
@@ -119,11 +135,87 @@ const APISettings = () => {
         loadApiSettings();
     }, []);
 
-    // Save API key and model to AsyncStorage
+    // Save verified models to AsyncStorage
+    const saveVerifiedModels = async (newVerifiedModels: ProviderModels) => {
+        try {
+            await AsyncStorage.setItem('verified_models', JSON.stringify(newVerifiedModels));
+            return true;
+        } catch (error) {
+            console.error('Error saving verified models:', error);
+            return false;
+        }
+    };
+
+    // Add a new verified model
+    const addVerifiedModel = async (provider: keyof ProviderModels, modelName: string) => {
+        const newVerifiedModels = { ...verifiedModels };
+        const newModel: VerifiedModel = {
+            name: modelName,
+            order: newVerifiedModels[provider].length
+        };
+        newVerifiedModels[provider] = [newModel, ...newVerifiedModels[provider]];
+        
+        const saved = await saveVerifiedModels(newVerifiedModels);
+        if (saved) {
+            setVerifiedModels(newVerifiedModels);
+            return true;
+        }
+        return false;
+    };
+
+    // Reorder models
+    const reorderModels = async (provider: keyof ProviderModels, fromIndex: number, toIndex: number) => {
+        if (fromIndex === toIndex) return;
+
+        const newVerifiedModels = { ...verifiedModels };
+        const models = [...newVerifiedModels[provider]];
+        const [movedModel] = models.splice(fromIndex, 1);
+        models.splice(toIndex, 0, movedModel);
+
+        // Update order values
+        models.forEach((model, index) => {
+            model.order = index;
+        });
+
+        newVerifiedModels[provider] = models;
+        const saved = await saveVerifiedModels(newVerifiedModels);
+        if (saved) {
+            setVerifiedModels(newVerifiedModels);
+        }
+    };
+
+    // Add this effect to handle toggle states based on API keys
+    useEffect(() => {
+        const updateProviderStates = async () => {
+            // Disable providers with no API keys
+            if (!openaiKey.trim()) await toggleProvider('openai', false);
+            if (!googleKey.trim()) await toggleProvider('google', false);
+            if (!anthropicKey.trim()) await toggleProvider('anthropic', false);
+            if (!openrouterKey.trim()) await toggleProvider('openrouter', false);
+            if (!groqKey.trim()) await toggleProvider('groq', false);
+        };
+        
+        updateProviderStates();
+    }, [openaiKey, googleKey, anthropicKey, openrouterKey, groqKey]);
+
+    // Modify the saveApiSettings function to handle clearing
     const saveApiSettings = async (keyName: string, keyValue: string, modelName: string, modelValue: string) => {
         try {
-            await AsyncStorage.setItem(keyName, keyValue);
-            await AsyncStorage.setItem(modelName, modelValue);
+            if (!keyValue.trim()) {
+                // If key is empty, remove both key and model from storage
+                await AsyncStorage.removeItem(keyName);
+                await AsyncStorage.removeItem(modelName);
+                // Also clear verified models for this provider
+                const providerType = keyName.split('_')[0] as keyof ProviderModels;
+                const newVerifiedModels = { ...verifiedModels };
+                newVerifiedModels[providerType] = [];
+                await saveVerifiedModels(newVerifiedModels);
+                setVerifiedModels(newVerifiedModels);
+            } else {
+                // Save new values
+                await AsyncStorage.setItem(keyName, keyValue);
+                await AsyncStorage.setItem(modelName, modelValue);
+            }
             return true;
         } catch (error) {
             console.error(`Error saving ${keyName} or ${modelName}:`, error);
@@ -135,11 +227,19 @@ const APISettings = () => {
     const verifyOpenAI = async () => {
         if (!openaiKey.trim()) {
             setOpenaiError('Please enter an OpenAI API key');
+            await saveApiSettings('openai_api_key', '', 'openai_model', '');
+            await toggleProvider('openai', false);
             return;
         }
         
         if (!openaiModel.trim()) {
             setOpenaiError('Please enter a model name');
+            return;
+        }
+        
+        // Check if model already exists
+        if (verifiedModels.openai.some(m => m.name === openaiModel.trim())) {
+            setOpenaiError('This model is already verified');
             return;
         }
         
@@ -149,55 +249,59 @@ const APISettings = () => {
         
         try {
             const result = await testOpenAIKey(openaiKey, openaiModel);
-            setOpenaiStatus(result.success);
             
-            if (result.success) {
+            // Check if this is a usage limit error
+            const isUsageLimitError = result.message && (
+                result.message.toLowerCase().includes('rate limit') ||
+                result.message.toLowerCase().includes('quota') ||
+                result.message.toLowerCase().includes('usage limit') ||
+                result.message.toLowerCase().includes('credit') ||
+                result.message.toLowerCase().includes('billing') ||
+                result.message.toLowerCase().includes('payment') ||
+                result.message.toLowerCase().includes('exceeded') ||
+                result.message.toLowerCase().includes('capacity')
+            );
+            
+            const isCredentialError = result.message && (
+                result.message.toLowerCase().includes('invalid api key') ||
+                result.message.toLowerCase().includes('authentication') ||
+                result.message.toLowerCase().includes('not found') ||
+                result.message.toLowerCase().includes('insufficient permissions')
+            );
+
+            // Set status based on the type of error
+            setOpenaiStatus(result.success || isUsageLimitError);
+            
+            if (result.success || isUsageLimitError) {
                 const saved = await saveApiSettings('openai_api_key', openaiKey, 'openai_model', openaiModel);
                 if (saved) {
-                    // Automatically enable the provider when verified successfully
-                    await toggleProvider('openai', true);
+                    // Add the model to verified models
+                    const modelAdded = await addVerifiedModel('openai', openaiModel);
+                    if (modelAdded) {
+                        // Clear the model input
+                        setOpenaiModel('');
+                        // Set error message if it's a usage limit error
+                        if (isUsageLimitError) {
+                            setOpenaiError(result.message);
+                        }
+                        // Automatically enable the provider
+                        await toggleProvider('openai', true);
+                    } else {
+                        setOpenaiError('Failed to save model. Please try again.');
+                    }
                 } else {
                     setOpenaiError('Failed to save settings. Please try again.');
                 }
             } else {
                 setOpenaiError(result.message || 'Failed to verify API key');
-                
-                // Check if this is a usage limit error rather than an invalid credential error
-                const isUsageLimitError = result.message && (
-                    result.message.toLowerCase().includes('rate limit') ||
-                    result.message.toLowerCase().includes('quota') ||
-                    result.message.toLowerCase().includes('usage limit') ||
-                    result.message.toLowerCase().includes('credit') ||
-                    result.message.toLowerCase().includes('billing') ||
-                    result.message.toLowerCase().includes('payment') ||
-                    result.message.toLowerCase().includes('exceeded') ||
-                    result.message.toLowerCase().includes('capacity')
-                );
-                
-                const isCredentialError = result.message && (
-                    result.message.toLowerCase().includes('invalid api key') ||
-                    result.message.toLowerCase().includes('authentication') ||
-                    result.message.toLowerCase().includes('not found') ||
-                    result.message.toLowerCase().includes('insufficient permissions')
-                );
-                
-                // Only disable the provider if it's a credential error, not a usage limit error
-                if (isCredentialError && !isUsageLimitError) {
+                if (isCredentialError) {
                     await toggleProvider('openai', false);
-                } else if (isUsageLimitError) {
-                    // Save the API key even if there's a usage limit error
-                    const saved = await saveApiSettings('openai_api_key', openaiKey, 'openai_model', openaiModel);
-                    if (!saved) {
-                        setOpenaiError('Failed to save settings. Please try again.');
-                    }
-                    // Don't automatically change the toggle state for usage limit errors
                 }
             }
         } catch (error: any) {
             console.error('Error verifying OpenAI API key:', error);
             setOpenaiStatus(false);
             setOpenaiError('Network error. Please check your internet connection.');
-            // Disable the provider if verification fails due to network error
             await toggleProvider('openai', false);
         } finally {
             setOpenaiLoading(false);
@@ -208,11 +312,19 @@ const APISettings = () => {
     const verifyGoogle = async () => {
         if (!googleKey.trim()) {
             setGoogleError('Please enter a Google AI API key');
+            await saveApiSettings('google_api_key', '', 'google_model', '');
+            await toggleProvider('google', false);
             return;
         }
         
         if (!googleModel.trim()) {
             setGoogleError('Please enter a model name');
+            return;
+        }
+        
+        // Check if model already exists
+        if (verifiedModels.google.some(m => m.name === googleModel.trim())) {
+            setGoogleError('This model is already verified');
             return;
         }
         
@@ -222,55 +334,59 @@ const APISettings = () => {
         
         try {
             const result = await testGoogleAIKey(googleKey, googleModel);
-            setGoogleStatus(result.success);
             
-            if (result.success) {
+            // Check if this is a usage limit error
+            const isUsageLimitError = result.message && (
+                result.message.toLowerCase().includes('rate limit') ||
+                result.message.toLowerCase().includes('quota') ||
+                result.message.toLowerCase().includes('usage limit') ||
+                result.message.toLowerCase().includes('credit') ||
+                result.message.toLowerCase().includes('billing') ||
+                result.message.toLowerCase().includes('payment') ||
+                result.message.toLowerCase().includes('exceeded') ||
+                result.message.toLowerCase().includes('capacity')
+            );
+            
+            const isCredentialError = result.message && (
+                result.message.toLowerCase().includes('invalid api key') ||
+                result.message.toLowerCase().includes('authentication') ||
+                result.message.toLowerCase().includes('not found') ||
+                result.message.toLowerCase().includes('insufficient permissions')
+            );
+
+            // Set status based on the type of error
+            setGoogleStatus(result.success || isUsageLimitError);
+            
+            if (result.success || isUsageLimitError) {
                 const saved = await saveApiSettings('google_api_key', googleKey, 'google_model', googleModel);
                 if (saved) {
-                    // Automatically enable the provider when verified successfully
-                    await toggleProvider('google', true);
+                    // Add the model to verified models
+                    const modelAdded = await addVerifiedModel('google', googleModel);
+                    if (modelAdded) {
+                        // Clear the model input
+                        setGoogleModel('');
+                        // Set error message if it's a usage limit error
+                        if (isUsageLimitError) {
+                            setGoogleError(result.message);
+                        }
+                        // Automatically enable the provider
+                        await toggleProvider('google', true);
+                    } else {
+                        setGoogleError('Failed to save model. Please try again.');
+                    }
                 } else {
                     setGoogleError('Failed to save settings. Please try again.');
                 }
             } else {
                 setGoogleError(result.message || 'Failed to verify API key');
-                
-                // Check if this is a usage limit error rather than an invalid credential error
-                const isUsageLimitError = result.message && (
-                    result.message.toLowerCase().includes('rate limit') ||
-                    result.message.toLowerCase().includes('quota') ||
-                    result.message.toLowerCase().includes('usage limit') ||
-                    result.message.toLowerCase().includes('credit') ||
-                    result.message.toLowerCase().includes('billing') ||
-                    result.message.toLowerCase().includes('payment') ||
-                    result.message.toLowerCase().includes('exceeded') ||
-                    result.message.toLowerCase().includes('capacity')
-                );
-                
-                const isCredentialError = result.message && (
-                    result.message.toLowerCase().includes('invalid api key') ||
-                    result.message.toLowerCase().includes('authentication') ||
-                    result.message.toLowerCase().includes('not found') ||
-                    result.message.toLowerCase().includes('insufficient permissions')
-                );
-                
-                // Only disable the provider if it's a credential error, not a usage limit error
-                if (isCredentialError && !isUsageLimitError) {
+                if (isCredentialError) {
                     await toggleProvider('google', false);
-                } else if (isUsageLimitError) {
-                    // Save the API key even if there's a usage limit error
-                    const saved = await saveApiSettings('google_api_key', googleKey, 'google_model', googleModel);
-                    if (!saved) {
-                        setGoogleError('Failed to save settings. Please try again.');
-                    }
-                    // Don't automatically change the toggle state for usage limit errors
                 }
             }
         } catch (error: any) {
             console.error('Error verifying Google AI API key:', error);
             setGoogleStatus(false);
             setGoogleError('Network error. Please check your internet connection.');
-            // Disable the provider if verification fails due to network error
             await toggleProvider('google', false);
         } finally {
             setGoogleLoading(false);
@@ -281,11 +397,19 @@ const APISettings = () => {
     const verifyAnthropic = async () => {
         if (!anthropicKey.trim()) {
             setAnthropicError('Please enter an Anthropic API key');
+            await saveApiSettings('anthropic_api_key', '', 'anthropic_model', '');
+            await toggleProvider('anthropic', false);
             return;
         }
         
         if (!anthropicModel.trim()) {
             setAnthropicError('Please enter a model name');
+            return;
+        }
+        
+        // Check if model already exists
+        if (verifiedModels.anthropic.some(m => m.name === anthropicModel.trim())) {
+            setAnthropicError('This model is already verified');
             return;
         }
         
@@ -295,55 +419,59 @@ const APISettings = () => {
         
         try {
             const result = await testAnthropicKey(anthropicKey, anthropicModel);
-            setAnthropicStatus(result.success);
             
-            if (result.success) {
+            // Check if this is a usage limit error
+            const isUsageLimitError = result.message && (
+                result.message.toLowerCase().includes('rate limit') ||
+                result.message.toLowerCase().includes('quota') ||
+                result.message.toLowerCase().includes('usage limit') ||
+                result.message.toLowerCase().includes('credit') ||
+                result.message.toLowerCase().includes('billing') ||
+                result.message.toLowerCase().includes('payment') ||
+                result.message.toLowerCase().includes('exceeded') ||
+                result.message.toLowerCase().includes('capacity')
+            );
+            
+            const isCredentialError = result.message && (
+                result.message.toLowerCase().includes('invalid api key') ||
+                result.message.toLowerCase().includes('authentication') ||
+                result.message.toLowerCase().includes('not found') ||
+                result.message.toLowerCase().includes('insufficient permissions')
+            );
+
+            // Set status based on the type of error
+            setAnthropicStatus(result.success || isUsageLimitError);
+            
+            if (result.success || isUsageLimitError) {
                 const saved = await saveApiSettings('anthropic_api_key', anthropicKey, 'anthropic_model', anthropicModel);
                 if (saved) {
-                    // Automatically enable the provider when verified successfully
-                    await toggleProvider('anthropic', true);
+                    // Add the model to verified models
+                    const modelAdded = await addVerifiedModel('anthropic', anthropicModel);
+                    if (modelAdded) {
+                        // Clear the model input
+                        setAnthropicModel('');
+                        // Set error message if it's a usage limit error
+                        if (isUsageLimitError) {
+                            setAnthropicError(result.message);
+                        }
+                        // Automatically enable the provider
+                        await toggleProvider('anthropic', true);
+                    } else {
+                        setAnthropicError('Failed to save model. Please try again.');
+                    }
                 } else {
                     setAnthropicError('Failed to save settings. Please try again.');
                 }
             } else {
                 setAnthropicError(result.message || 'Failed to verify API key');
-                
-                // Check if this is a usage limit error rather than an invalid credential error
-                const isUsageLimitError = result.message && (
-                    result.message.toLowerCase().includes('rate limit') ||
-                    result.message.toLowerCase().includes('quota') ||
-                    result.message.toLowerCase().includes('usage limit') ||
-                    result.message.toLowerCase().includes('credit') ||
-                    result.message.toLowerCase().includes('billing') ||
-                    result.message.toLowerCase().includes('payment') ||
-                    result.message.toLowerCase().includes('exceeded') ||
-                    result.message.toLowerCase().includes('capacity')
-                );
-                
-                const isCredentialError = result.message && (
-                    result.message.toLowerCase().includes('invalid api key') ||
-                    result.message.toLowerCase().includes('authentication') ||
-                    result.message.toLowerCase().includes('not found') ||
-                    result.message.toLowerCase().includes('insufficient permissions')
-                );
-                
-                // Only disable the provider if it's a credential error, not a usage limit error
-                if (isCredentialError && !isUsageLimitError) {
+                if (isCredentialError) {
                     await toggleProvider('anthropic', false);
-                } else if (isUsageLimitError) {
-                    // Save the API key even if there's a usage limit error
-                    const saved = await saveApiSettings('anthropic_api_key', anthropicKey, 'anthropic_model', anthropicModel);
-                    if (!saved) {
-                        setAnthropicError('Failed to save settings. Please try again.');
-                    }
-                    // Don't automatically change the toggle state for usage limit errors
                 }
             }
         } catch (error: any) {
             console.error('Error verifying Anthropic API key:', error);
             setAnthropicStatus(false);
             setAnthropicError('Network error. Please check your internet connection.');
-            // Disable the provider if verification fails due to network error
             await toggleProvider('anthropic', false);
         } finally {
             setAnthropicLoading(false);
@@ -354,11 +482,19 @@ const APISettings = () => {
     const verifyOpenRouter = async () => {
         if (!openrouterKey.trim()) {
             setOpenrouterError('Please enter an OpenRouter API key');
+            await saveApiSettings('openrouter_api_key', '', 'openrouter_model', '');
+            await toggleProvider('openrouter', false);
             return;
         }
         
         if (!openrouterModel.trim()) {
             setOpenrouterError('Please enter a model name');
+            return;
+        }
+        
+        // Check if model already exists
+        if (verifiedModels.openrouter.some(m => m.name === openrouterModel.trim())) {
+            setOpenrouterError('This model is already verified');
             return;
         }
         
@@ -368,55 +504,59 @@ const APISettings = () => {
         
         try {
             const result = await testOpenRouterKey(openrouterKey, openrouterModel);
-            setOpenrouterStatus(result.success);
             
-            if (result.success) {
+            // Check if this is a usage limit error
+            const isUsageLimitError = result.message && (
+                result.message.toLowerCase().includes('rate limit') ||
+                result.message.toLowerCase().includes('quota') ||
+                result.message.toLowerCase().includes('usage limit') ||
+                result.message.toLowerCase().includes('credit') ||
+                result.message.toLowerCase().includes('billing') ||
+                result.message.toLowerCase().includes('payment') ||
+                result.message.toLowerCase().includes('exceeded') ||
+                result.message.toLowerCase().includes('capacity')
+            );
+            
+            const isCredentialError = result.message && (
+                result.message.toLowerCase().includes('invalid api key') ||
+                result.message.toLowerCase().includes('authentication') ||
+                result.message.toLowerCase().includes('not found') ||
+                result.message.toLowerCase().includes('insufficient permissions')
+            );
+
+            // Set status based on the type of error
+            setOpenrouterStatus(result.success || isUsageLimitError);
+            
+            if (result.success || isUsageLimitError) {
                 const saved = await saveApiSettings('openrouter_api_key', openrouterKey, 'openrouter_model', openrouterModel);
                 if (saved) {
-                    // Automatically enable the provider when verified successfully
-                    await toggleProvider('openrouter', true);
+                    // Add the model to verified models
+                    const modelAdded = await addVerifiedModel('openrouter', openrouterModel);
+                    if (modelAdded) {
+                        // Clear the model input
+                        setOpenrouterModel('');
+                        // Set error message if it's a usage limit error
+                        if (isUsageLimitError) {
+                            setOpenrouterError(result.message);
+                        }
+                        // Automatically enable the provider
+                        await toggleProvider('openrouter', true);
+                    } else {
+                        setOpenrouterError('Failed to save model. Please try again.');
+                    }
                 } else {
                     setOpenrouterError('Failed to save settings. Please try again.');
                 }
             } else {
                 setOpenrouterError(result.message || 'Failed to verify API key');
-                
-                // Check if this is a usage limit error rather than an invalid credential error
-                const isUsageLimitError = result.message && (
-                    result.message.toLowerCase().includes('rate limit') ||
-                    result.message.toLowerCase().includes('quota') ||
-                    result.message.toLowerCase().includes('usage limit') ||
-                    result.message.toLowerCase().includes('credit') ||
-                    result.message.toLowerCase().includes('billing') ||
-                    result.message.toLowerCase().includes('payment') ||
-                    result.message.toLowerCase().includes('exceeded') ||
-                    result.message.toLowerCase().includes('capacity')
-                );
-                
-                const isCredentialError = result.message && (
-                    result.message.toLowerCase().includes('invalid api key') ||
-                    result.message.toLowerCase().includes('authentication') ||
-                    result.message.toLowerCase().includes('not found') ||
-                    result.message.toLowerCase().includes('insufficient permissions')
-                );
-                
-                // Only disable the provider if it's a credential error, not a usage limit error
-                if (isCredentialError && !isUsageLimitError) {
+                if (isCredentialError) {
                     await toggleProvider('openrouter', false);
-                } else if (isUsageLimitError) {
-                    // Save the API key even if there's a usage limit error
-                    const saved = await saveApiSettings('openrouter_api_key', openrouterKey, 'openrouter_model', openrouterModel);
-                    if (!saved) {
-                        setOpenrouterError('Failed to save settings. Please try again.');
-                    }
-                    // Don't automatically change the toggle state for usage limit errors
                 }
             }
         } catch (error: any) {
             console.error('Error verifying OpenRouter API key:', error);
             setOpenrouterStatus(false);
             setOpenrouterError('Network error. Please check your internet connection.');
-            // Disable the provider if verification fails due to network error
             await toggleProvider('openrouter', false);
         } finally {
             setOpenrouterLoading(false);
@@ -427,11 +567,19 @@ const APISettings = () => {
     const verifyGroq = async () => {
         if (!groqKey.trim()) {
             setGroqError('Please enter a Groq API key');
+            await saveApiSettings('groq_api_key', '', 'groq_model', '');
+            await toggleProvider('groq', false);
             return;
         }
         
         if (!groqModel.trim()) {
             setGroqError('Please enter a model name');
+            return;
+        }
+        
+        // Check if model already exists
+        if (verifiedModels.groq.some(m => m.name === groqModel.trim())) {
+            setGroqError('This model is already verified');
             return;
         }
         
@@ -441,55 +589,59 @@ const APISettings = () => {
         
         try {
             const result = await testGroqKey(groqKey, groqModel);
-            setGroqStatus(result.success);
             
-            if (result.success) {
+            // Check if this is a usage limit error
+            const isUsageLimitError = result.message && (
+                result.message.toLowerCase().includes('rate limit') ||
+                result.message.toLowerCase().includes('quota') ||
+                result.message.toLowerCase().includes('usage limit') ||
+                result.message.toLowerCase().includes('credit') ||
+                result.message.toLowerCase().includes('billing') ||
+                result.message.toLowerCase().includes('payment') ||
+                result.message.toLowerCase().includes('exceeded') ||
+                result.message.toLowerCase().includes('capacity')
+            );
+            
+            const isCredentialError = result.message && (
+                result.message.toLowerCase().includes('invalid api key') ||
+                result.message.toLowerCase().includes('authentication') ||
+                result.message.toLowerCase().includes('not found') ||
+                result.message.toLowerCase().includes('insufficient permissions')
+            );
+
+            // Set status based on the type of error
+            setGroqStatus(result.success || isUsageLimitError);
+            
+            if (result.success || isUsageLimitError) {
                 const saved = await saveApiSettings('groq_api_key', groqKey, 'groq_model', groqModel);
                 if (saved) {
-                    // Automatically enable the provider when verified successfully
-                    await toggleProvider('groq', true);
+                    // Add the model to verified models
+                    const modelAdded = await addVerifiedModel('groq', groqModel);
+                    if (modelAdded) {
+                        // Clear the model input
+                        setGroqModel('');
+                        // Set error message if it's a usage limit error
+                        if (isUsageLimitError) {
+                            setGroqError(result.message);
+                        }
+                        // Automatically enable the provider
+                        await toggleProvider('groq', true);
+                    } else {
+                        setGroqError('Failed to save model. Please try again.');
+                    }
                 } else {
                     setGroqError('Failed to save settings. Please try again.');
                 }
             } else {
                 setGroqError(result.message || 'Failed to verify API key');
-                
-                // Check if this is a usage limit error rather than an invalid credential error
-                const isUsageLimitError = result.message && (
-                    result.message.toLowerCase().includes('rate limit') ||
-                    result.message.toLowerCase().includes('quota') ||
-                    result.message.toLowerCase().includes('usage limit') ||
-                    result.message.toLowerCase().includes('credit') ||
-                    result.message.toLowerCase().includes('billing') ||
-                    result.message.toLowerCase().includes('payment') ||
-                    result.message.toLowerCase().includes('exceeded') ||
-                    result.message.toLowerCase().includes('capacity')
-                );
-                
-                const isCredentialError = result.message && (
-                    result.message.toLowerCase().includes('invalid api key') ||
-                    result.message.toLowerCase().includes('authentication') ||
-                    result.message.toLowerCase().includes('not found') ||
-                    result.message.toLowerCase().includes('insufficient permissions')
-                );
-                
-                // Only disable the provider if it's a credential error, not a usage limit error
-                if (isCredentialError && !isUsageLimitError) {
+                if (isCredentialError) {
                     await toggleProvider('groq', false);
-                } else if (isUsageLimitError) {
-                    // Save the API key even if there's a usage limit error
-                    const saved = await saveApiSettings('groq_api_key', groqKey, 'groq_model', groqModel);
-                    if (!saved) {
-                        setGroqError('Failed to save settings. Please try again.');
-                    }
-                    // Don't automatically change the toggle state for usage limit errors
                 }
             }
         } catch (error: any) {
             console.error('Error verifying Groq API key:', error);
             setGroqStatus(false);
             setGroqError('Network error. Please check your internet connection.');
-            // Disable the provider if verification fails due to network error
             await toggleProvider('groq', false);
         } finally {
             setGroqLoading(false);
@@ -732,6 +884,11 @@ const APISettings = () => {
             marginBottom: 12,
             width: '100%',
         },
+        inputLabelContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        },
         inputLabel: {
             fontSize: 14,
             color: isDark ? '#bbb' : '#555',
@@ -754,11 +911,6 @@ const APISettings = () => {
             color: isDark ? '#888' : '#777',
             fontStyle: 'italic',
             marginTop: 2,
-        },
-        inputLabelContainer: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
         },
         linkText: {
             color: isDark ? '#4a90e2' : '#2196F3',
@@ -886,9 +1038,42 @@ const APISettings = () => {
             color: isDark ? '#ff4444' : '#ff0000',
             textAlign: 'center',
         },
+        verifiedModelsContainer: {
+            marginTop: 12,
+            flexDirection: 'column',
+            gap: 8,
+        },
+        modelCapsule: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: isDark ? '#444' : '#e0e0e0',
+            borderRadius: 16,
+            paddingVertical: 6,
+            paddingHorizontal: 12,
+            marginRight: 8,
+            marginBottom: 8,
+        },
+        modelCapsuleText: {
+            color: isDark ? '#fff' : '#000',
+            fontSize: 12,
+            fontWeight: '500',
+            flex: 1,
+        },
+        modelCapsuleActions: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginLeft: 8,
+            gap: 4,
+        },
+        reorderButton: {
+            padding: 4,
+        },
+        addModelButton: {
+            padding: 4,
+        },
     }), [isDark]);
 
-    // Helper function to render API key input section with model name input
+    // Modify the renderApiSection function to handle API key changes
     const renderApiSection = (
         title: string,
         logoComponent: React.ReactNode,
@@ -931,10 +1116,47 @@ const APISettings = () => {
         
         // Enable toggle if API key is valid and either verification succeeded or it's just a usage limit error
         const isToggleEnabled = keyValue.trim() !== '' && (status === true || (status === false && isUsageLimitError && !isCredentialError));
+
+        // Show add button if:
+        // 1. API key is present AND
+        // 2. Either verification was successful OR there's a non-credential error (like usage limits)
+        const showAddButton = keyValue.trim() !== '' && (status === true || (status === false && !isCredentialError));
         
         const handleToggleChange = async (value: boolean) => {
             if (isToggleEnabled) {
                 await toggleProvider(providerType, value);
+            }
+        };
+        
+        const handleKeyChange = async (text: string) => {
+            onChangeKey(text);
+            // If API key is cleared, disable the provider and clear settings
+            if (!text.trim()) {
+                await toggleProvider(providerType, false);
+                await saveApiSettings(`${providerType}_api_key`, '', `${providerType}_model`, '');
+                // Reset status and error states
+                switch (providerType) {
+                    case 'openai':
+                        setOpenaiStatus(null);
+                        setOpenaiError(null);
+                        break;
+                    case 'google':
+                        setGoogleStatus(null);
+                        setGoogleError(null);
+                        break;
+                    case 'anthropic':
+                        setAnthropicStatus(null);
+                        setAnthropicError(null);
+                        break;
+                    case 'openrouter':
+                        setOpenrouterStatus(null);
+                        setOpenrouterError(null);
+                        break;
+                    case 'groq':
+                        setGroqStatus(null);
+                        setGroqError(null);
+                        break;
+                }
             }
         };
         
@@ -1003,13 +1225,7 @@ const APISettings = () => {
                     placeholder="Enter your API key"
                     placeholderTextColor={isDark ? '#888' : '#aaa'}
                     value={keyValue}
-                    onChangeText={(text) => {
-                        onChangeKey(text);
-                        // If API key is cleared, disable the provider
-                        if (text.trim() === '') {
-                            toggleProvider(providerType, false);
-                        }
-                    }}
+                    onChangeText={handleKeyChange}
                     secureTextEntry
                     multiline={false}
                     numberOfLines={1}
@@ -1019,9 +1235,27 @@ const APISettings = () => {
             <View style={themedStyles.inputGroup}>
                 <View style={themedStyles.inputLabelContainer}>
                     <Text style={themedStyles.inputLabel}>Model Name</Text>
-                    <TouchableOpacity onPress={() => Linking.openURL(modelLink)}>
-                        <Text style={themedStyles.linkText}>View Models</Text>
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <TouchableOpacity onPress={() => Linking.openURL(modelLink)}>
+                            <Text style={themedStyles.linkText}>View Models</Text>
+                        </TouchableOpacity>
+                        {showAddButton && (
+                            <TouchableOpacity 
+                                onPress={() => {
+                                    if (modelValue.trim()) {
+                                        onVerify();
+                                    }
+                                }}
+                                style={themedStyles.addModelButton}
+                            >
+                                <Ionicons 
+                                    name="add-circle-outline" 
+                                    size={24} 
+                                    color={isDark ? '#4a90e2' : '#2196F3'} 
+                                />
+                            </TouchableOpacity>
+                        )}
+                    </View>
                 </View>
                 <TextInput
                     style={themedStyles.input}
@@ -1034,6 +1268,35 @@ const APISettings = () => {
                 />
                 <Text style={themedStyles.modelInfoText}>{modelInfo}</Text>
             </View>
+            
+            {/* Verified Models List */}
+            {verifiedModels[providerType].length > 0 && (
+                <View style={themedStyles.verifiedModelsContainer}>
+                    {verifiedModels[providerType].map((model, index) => (
+                        <View key={`${model.name}-${index}`} style={themedStyles.modelCapsule}>
+                            <Text style={themedStyles.modelCapsuleText}>{model.name}</Text>
+                            <View style={themedStyles.modelCapsuleActions}>
+                                {index > 0 && (
+                                    <TouchableOpacity 
+                                        onPress={() => reorderModels(providerType, index, index - 1)}
+                                        style={themedStyles.reorderButton}
+                                    >
+                                        <Ionicons name="chevron-up" size={16} color={isDark ? '#fff' : '#000'} />
+                                    </TouchableOpacity>
+                                )}
+                                {index < verifiedModels[providerType].length - 1 && (
+                                    <TouchableOpacity 
+                                        onPress={() => reorderModels(providerType, index, index + 1)}
+                                        style={themedStyles.reorderButton}
+                                    >
+                                        <Ionicons name="chevron-down" size={16} color={isDark ? '#fff' : '#000'} />
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                        </View>
+                    ))}
+                </View>
+            )}
             
             {error && (
                 <View style={themedStyles.errorContainer}>
@@ -1109,11 +1372,10 @@ const APISettings = () => {
             <PasswordSettingsModal />
             
             <KeyboardAvoidingView 
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={{ flex: 1 }}
             >
                 <ScrollView 
-                    style={themedStyles.content}
+                    style={[themedStyles.content, { flex: 1 }]}
                     showsVerticalScrollIndicator={true}
                     indicatorStyle={isDark ? "white" : "black"}
                 > 
@@ -1212,7 +1474,7 @@ const APISettings = () => {
                         "Examples: claude-3-opus-20240229, claude-3-sonnet-20240229",
                         DEFAULT_MODELS.anthropic,
                         "https://console.anthropic.com/settings/keys",
-                        "https://console.anthropic.com/settings/keys",
+                        "https://console.anthropic.com/workbench",
                         "anthropic"
                     )}
                     
@@ -1228,10 +1490,10 @@ const APISettings = () => {
                         openrouterStatus,
                         openrouterError,
                         "OpenRouter provides access to multiple AI models through a single API.",
-                        "Examples: openai/gpt-3.5-turbo, anthropic/claude-3-opus",
+                        "Examples: deepseek/deepseek-r1:free, qwen/qwq-32b:free",
                         DEFAULT_MODELS.openrouter,
                         "https://openrouter.ai/keys",
-                        "https://openrouter.ai/docs",
+                        "https://openrouter.ai/models",
                         "openrouter"
                     )}
                     
@@ -1250,7 +1512,7 @@ const APISettings = () => {
                         "Examples: llama3-8b-8192, llama3-70b-8192, mixtral-8x7b-32768",
                         DEFAULT_MODELS.groq,
                         "https://console.groq.com/keys",
-                        "https://console.groq.com/docs/models",
+                        "https://console.groq.com/docs/rate-limits",
                         "groq"
                     )}
                     

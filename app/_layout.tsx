@@ -12,6 +12,7 @@ import * as NavigationBar from 'expo-navigation-bar';
 import { initializeUpdates, checkAndInstallUpdates } from '../utils/updateUtils';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { DrawerScreenProps } from '@react-navigation/drawer';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 export { ErrorBoundary } from 'expo-router';
 
 export const unstable_settings = {
@@ -52,9 +53,11 @@ export default function RootLayout() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <RootLayoutNav />
-    </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
+        <RootLayoutNav />
+      </View>
+    </GestureHandlerRootView>
   );
 }
 

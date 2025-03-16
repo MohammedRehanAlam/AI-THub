@@ -198,7 +198,7 @@ export const testAnthropicKey = async (apiKey: string, modelName = "claude-3-opu
 };
 
 // OpenRouter API Key Testing
-export const testOpenRouterKey = async (apiKey: string, modelName = "openai/gpt-3.5-turbo") => {
+export const testOpenRouterKey = async (apiKey: string, modelName = "deepseek/deepseek-r1:free") => {
     try {
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
