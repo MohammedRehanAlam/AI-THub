@@ -12,7 +12,7 @@ import { testOpenAIKey, testGoogleAIKey, testAnthropicKey, testOpenRouterKey, te
 import { OpenAILogo, GeminiLogo, AnthropicLogo, OpenRouterLogo, GroqLogo } from './components/LogoIcons';
 
 // Default model names for each provider
-const DEFAULT_MODELS = {
+export const DEFAULT_MODELS = {
   openai: "gpt-3.5-turbo",
   google: "gemini-1.5-flash",
   anthropic: "claude-3-opus-20240229",
@@ -39,6 +39,15 @@ const APISettings = () => {
     const { activeProviders, toggleProvider } = useProviders();
     const isDark = currentTheme === 'dark';
     const router = useRouter();
+    
+    // Add expanded sections state
+    const [expandedSections, setExpandedSections] = useState<{[key in ProviderType]: boolean}>({
+        openai: false,
+        google: false,
+        anthropic: false,
+        openrouter: false,
+        groq: false
+    });
     
     // API key states
     const [openaiKey, setOpenaiKey] = useState('');
@@ -139,9 +148,21 @@ const APISettings = () => {
     const saveVerifiedModels = async (newVerifiedModels: ProviderModels) => {
         try {
             await AsyncStorage.setItem('verified_models', JSON.stringify(newVerifiedModels));
+            
+            // Update current models in AsyncStorage
+            // Get the first model from each provider's list, or use default
+            const currentModels = {
+                openai: newVerifiedModels.openai[0]?.name || DEFAULT_MODELS.openai,
+                google: newVerifiedModels.google[0]?.name || DEFAULT_MODELS.google,
+                anthropic: newVerifiedModels.anthropic[0]?.name || DEFAULT_MODELS.anthropic,
+                openrouter: newVerifiedModels.openrouter[0]?.name || DEFAULT_MODELS.openrouter,
+                groq: newVerifiedModels.groq[0]?.name || DEFAULT_MODELS.groq
+            };
+            await AsyncStorage.setItem('current_models', JSON.stringify(currentModels));
+            
             return true;
         } catch (error) {
-            console.error('Error saving verified models:', error);
+            console.error('Error saving models:', error);
             return false;
         }
     };
@@ -151,8 +172,16 @@ const APISettings = () => {
         const newVerifiedModels = { ...verifiedModels };
         const newModel: VerifiedModel = {
             name: modelName,
-            order: newVerifiedModels[provider].length
+            order: 0 // New models are added at the top
         };
+        
+        // Update order of existing models
+        newVerifiedModels[provider] = newVerifiedModels[provider].map(model => ({
+            ...model,
+            order: model.order + 1
+        }));
+        
+        // Add new model at the top
         newVerifiedModels[provider] = [newModel, ...newVerifiedModels[provider]];
         
         const saved = await saveVerifiedModels(newVerifiedModels);
@@ -184,20 +213,6 @@ const APISettings = () => {
         }
     };
 
-    // Add this effect to handle toggle states based on API keys
-    useEffect(() => {
-        const updateProviderStates = async () => {
-            // Disable providers with no API keys
-            if (!openaiKey.trim()) await toggleProvider('openai', false);
-            if (!googleKey.trim()) await toggleProvider('google', false);
-            if (!anthropicKey.trim()) await toggleProvider('anthropic', false);
-            if (!openrouterKey.trim()) await toggleProvider('openrouter', false);
-            if (!groqKey.trim()) await toggleProvider('groq', false);
-        };
-        
-        updateProviderStates();
-    }, [openaiKey, googleKey, anthropicKey, openrouterKey, groqKey]);
-
     // Modify the saveApiSettings function to handle clearing
     const saveApiSettings = async (keyName: string, keyValue: string, modelName: string, modelValue: string) => {
         try {
@@ -211,6 +226,8 @@ const APISettings = () => {
                 newVerifiedModels[providerType] = [];
                 await saveVerifiedModels(newVerifiedModels);
                 setVerifiedModels(newVerifiedModels);
+                // Disable the provider only when explicitly clearing the key
+                await toggleProvider(providerType, false);
             } else {
                 // Save new values
                 await AsyncStorage.setItem(keyName, keyValue);
@@ -758,6 +775,30 @@ const APISettings = () => {
         </Modal>
     );
 
+    // Modify removeVerifiedModel to update current models
+    const removeVerifiedModel = async (provider: keyof ProviderModels, modelIndex: number) => {
+        const newVerifiedModels = { ...verifiedModels };
+        newVerifiedModels[provider] = newVerifiedModels[provider].filter((_, index) => index !== modelIndex);
+        
+        // Update order values after removal
+        newVerifiedModels[provider].forEach((model, index) => {
+            model.order = index;
+        });
+        
+        const saved = await saveVerifiedModels(newVerifiedModels);
+        if (saved) {
+            setVerifiedModels(newVerifiedModels);
+        }
+    };
+
+    // Add function to toggle section expansion
+    const toggleSectionExpansion = (provider: keyof ProviderModels) => {
+        setExpandedSections(prev => ({
+            ...prev,
+            [provider]: !prev[provider]
+        }));
+    };
+
     const themedStyles = useMemo(() => StyleSheet.create({
         container: {
             flex: 1,
@@ -923,8 +964,8 @@ const APISettings = () => {
             marginLeft: 'auto',
         },
         toggleLabel: {
-            fontSize: 14,
-            marginRight: 8,
+            fontSize: 12,
+            marginRight: 4,
             color: isDark ? '#bbb' : '#555',
         },
         disabledText: {
@@ -1071,6 +1112,17 @@ const APISettings = () => {
         addModelButton: {
             padding: 4,
         },
+        expandCollapseHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingVertical: 8,
+            paddingHorizontal: 4,
+        },
+        removeButton: {
+            padding: 4,
+            marginLeft: 4,
+        },
     }), [isDark]);
 
     // Modify the renderApiSection function to handle API key changes
@@ -1130,9 +1182,8 @@ const APISettings = () => {
         
         const handleKeyChange = async (text: string) => {
             onChangeKey(text);
-            // If API key is cleared, disable the provider and clear settings
+            // Only clear settings and disable provider when explicitly clearing the key
             if (!text.trim()) {
-                await toggleProvider(providerType, false);
                 await saveApiSettings(`${providerType}_api_key`, '', `${providerType}_model`, '');
                 // Reset status and error states
                 switch (providerType) {
@@ -1239,7 +1290,7 @@ const APISettings = () => {
                         <TouchableOpacity onPress={() => Linking.openURL(modelLink)}>
                             <Text style={themedStyles.linkText}>View Models</Text>
                         </TouchableOpacity>
-                        {showAddButton && (
+                        {/* {showAddButton && (
                             <TouchableOpacity 
                                 onPress={() => {
                                     if (modelValue.trim()) {
@@ -1254,46 +1305,99 @@ const APISettings = () => {
                                     color={isDark ? '#4a90e2' : '#2196F3'} 
                                 />
                             </TouchableOpacity>
-                        )}
+                        )} */}
                     </View>
                 </View>
-                <TextInput
-                    style={themedStyles.input}
-                    placeholder={`Default: ${defaultModel}`}
-                    placeholderTextColor={isDark ? '#888' : '#aaa'}
-                    value={modelValue}
-                    onChangeText={onChangeModel}
-                    multiline={false}
-                    numberOfLines={1}
-                />
+                <View style={{ position: 'relative' }}>
+                    <TextInput
+                        style={themedStyles.input}
+                        placeholder={`Default: ${defaultModel}`}
+                        placeholderTextColor={isDark ? '#888' : '#aaa'}
+                        value={modelValue}
+                        onChangeText={onChangeModel}
+                        multiline={false}
+                        numberOfLines={1}
+                    />
+                    {showAddButton && (
+                        <TouchableOpacity 
+                            onPress={() => {
+                                if (modelValue.trim()) {
+                                    onVerify();
+                                }
+                            }}
+                            style={[themedStyles.addModelButton, { 
+                                position: 'absolute', 
+                                right: 5, 
+                                top: '40%', 
+                                transform: [{ translateY: -12 }] 
+                            }]}
+                        >
+                            <Ionicons 
+                                name="add-circle-outline" 
+                                size={24} 
+                                color={isDark ? '#4a90e2' : '#2196F3'} 
+                            />
+                        </TouchableOpacity>
+                    )}
+                </View>
                 <Text style={themedStyles.modelInfoText}>{modelInfo}</Text>
             </View>
+            
             
             {/* Verified Models List */}
             {verifiedModels[providerType].length > 0 && (
                 <View style={themedStyles.verifiedModelsContainer}>
-                    {verifiedModels[providerType].map((model, index) => (
-                        <View key={`${model.name}-${index}`} style={themedStyles.modelCapsule}>
-                            <Text style={themedStyles.modelCapsuleText}>{model.name}</Text>
-                            <View style={themedStyles.modelCapsuleActions}>
-                                {index > 0 && (
-                                    <TouchableOpacity 
-                                        onPress={() => reorderModels(providerType, index, index - 1)}
-                                        style={themedStyles.reorderButton}
-                                    >
-                                        <Ionicons name="chevron-up" size={16} color={isDark ? '#fff' : '#000'} />
-                                    </TouchableOpacity>
-                                )}
-                                {index < verifiedModels[providerType].length - 1 && (
-                                    <TouchableOpacity 
-                                        onPress={() => reorderModels(providerType, index, index + 1)}
-                                        style={themedStyles.reorderButton}
-                                    >
-                                        <Ionicons name="chevron-down" size={16} color={isDark ? '#fff' : '#000'} />
-                                    </TouchableOpacity>
-                                )}
-                            </View>
+                    <TouchableOpacity 
+                        onPress={() => toggleSectionExpansion(providerType)}
+                        style={themedStyles.expandCollapseHeader}
+                    >
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Ionicons 
+                                name={expandedSections[providerType] ? "chevron-down" : "chevron-forward"} 
+                                size={20} 
+                                color={isDark ? '#fff' : '#000'} 
+                            />
+                            <Text style={[themedStyles.modelCapsuleText, { marginLeft: 4 }]}>
+                                {verifiedModels[providerType].length} {verifiedModels[providerType].length === 1 ? 'Model' : 'Models'}
+                            </Text>
                         </View>
+                    </TouchableOpacity>
+
+                    {/* Show only first model when collapsed, all models when expanded */}
+                    {verifiedModels[providerType]
+                        .filter((_, index) => expandedSections[providerType] || index === 0)
+                        .map((model, index) => (
+                            <View key={`${model.name}-${index}`} style={themedStyles.modelCapsule}>
+                                <Text style={themedStyles.modelCapsuleText}>{model.name}</Text>
+                                <View style={themedStyles.modelCapsuleActions}>
+                                    {expandedSections[providerType] && (
+                                        <>
+                                            {index > 0 && (
+                                                <TouchableOpacity 
+                                                    onPress={() => reorderModels(providerType, index, index - 1)}
+                                                    style={themedStyles.reorderButton}
+                                                >
+                                                    <Ionicons name="chevron-up" size={16} color={isDark ? '#fff' : '#000'} />
+                                                </TouchableOpacity>
+                                            )}
+                                            {index < verifiedModels[providerType].length - 1 && (
+                                                <TouchableOpacity 
+                                                    onPress={() => reorderModels(providerType, index, index + 1)}
+                                                    style={themedStyles.reorderButton}
+                                                >
+                                                    <Ionicons name="chevron-down" size={16} color={isDark ? '#fff' : '#000'} />
+                                                </TouchableOpacity>
+                                            )}
+                                        </>
+                                    )}
+                                    <TouchableOpacity 
+                                        onPress={() => removeVerifiedModel(providerType, index)}
+                                        style={themedStyles.removeButton}
+                                    >
+                                        <Ionicons name="close-circle" size={16} color={isDark ? '#ff4444' : '#ff0000'} />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
                     ))}
                 </View>
             )}

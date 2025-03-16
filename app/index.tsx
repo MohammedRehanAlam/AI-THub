@@ -11,6 +11,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Import SVG logos as React components
 import { OpenAILogo, GeminiLogo, AnthropicLogo, OpenRouterLogo, GroqLogo } from './components/LogoIcons';
 
+// Import DEFAULT_MODELS from APISettings
+import { DEFAULT_MODELS } from './APISettings';
+import { getBackgroundColorAsync } from 'expo-system-ui';
+
 // Provider display names and icons mapping
 const PROVIDER_INFO = {
   openai: { 
@@ -49,6 +53,32 @@ export default function HomePage() {
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [activeProvidersList, setActiveProvidersList] = useState<ProviderType[]>([]);
   const router = useRouter();
+  
+  // Add state for current models
+  const [currentModels, setCurrentModels] = useState<{[key in ProviderType]: string}>({
+    openai: DEFAULT_MODELS.openai,
+    google: DEFAULT_MODELS.google,
+    anthropic: DEFAULT_MODELS.anthropic,
+    openrouter: DEFAULT_MODELS.openrouter,
+    groq: DEFAULT_MODELS.groq
+  });
+  
+  // Add state for expanded items and verified models
+  const [expandedItems, setExpandedItems] = useState<{[key in ProviderType]: boolean}>({
+    openai: false,
+    google: false,
+    anthropic: false,
+    openrouter: false,
+    groq: false
+  });
+
+  const [verifiedModels, setVerifiedModels] = useState<{[key in ProviderType]: string[]}>({
+    openai: [],
+    google: [],
+    anthropic: [],
+    openrouter: [],
+    groq: []
+  });
   
   // Load saved provider from AsyncStorage when the app starts
   useEffect(() => {
@@ -127,6 +157,50 @@ export default function HomePage() {
     saveSelectedProvider();
   }, [selectedProvider]);
   
+  // Load current models from AsyncStorage
+  useEffect(() => {
+    const loadCurrentModels = async () => {
+      try {
+        const savedModels = await AsyncStorage.getItem('current_models');
+        if (savedModels) {
+          setCurrentModels(JSON.parse(savedModels));
+        }
+      } catch (error) {
+        console.error('Error loading current models:', error);
+      }
+    };
+    
+    loadCurrentModels();
+  }, []);
+  
+  // Load verified models from AsyncStorage
+  useEffect(() => {
+    const loadVerifiedModels = async () => {
+      try {
+        const savedVerifiedModels = await AsyncStorage.getItem('verified_models');
+        if (savedVerifiedModels) {
+          const parsed = JSON.parse(savedVerifiedModels);
+          // Convert from ProviderModels format to simple string arrays
+          const simplified = Object.keys(parsed).reduce((acc, key) => ({
+            ...acc,
+            [key]: parsed[key].map((model: { name: string }) => model.name)
+          }), {
+            openai: [],
+            google: [],
+            anthropic: [],
+            openrouter: [],
+            groq: []
+          } as {[key in ProviderType]: string[]});
+          setVerifiedModels(simplified);
+        }
+      } catch (error) {
+        console.error('Error loading verified models:', error);
+      }
+    };
+    
+    loadVerifiedModels();
+  }, []);
+  
   // Individual boxes for better control over position and properties
   type BoxRoute = '/tools/Box1' | '/tools/Box2' | '/tools/Box3' | '/tools/ComingSoon';
 
@@ -156,7 +230,6 @@ export default function HomePage() {
     },
     header: {
       padding: 34,
-      // paddingBottom: 10,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
@@ -173,7 +246,6 @@ export default function HomePage() {
       right: 16,
       flexDirection: 'row',
       alignItems: 'center',
-      // gap: 1,
     },
     toggleButton: {
       padding: 4,
@@ -190,7 +262,7 @@ export default function HomePage() {
       paddingHorizontal: 7,
       paddingVertical: 8,
       borderRadius: 10,
-      gap: 8,
+      gap: 4,
       minWidth: 100,
       borderWidth: 1,
       borderColor: isDark ? '#555' : '#ddd',
@@ -209,7 +281,7 @@ export default function HomePage() {
     dropdownContent: {
       marginTop: 70,
       marginRight: 16,
-      width: 205,
+      width: 230,
       backgroundColor: isDark ? '#333' : '#fff',
       borderRadius: 8,
       padding: 8,
@@ -233,6 +305,17 @@ export default function HomePage() {
       color: isDark ? '#fff' : '#000',
       fontSize: 16,
       fontWeight: '500',
+    },
+    dropdownItemContent: {
+      flex: 1,
+      flexDirection: 'column',
+      gap: 2,
+      width: 80, // Fixed width for content container
+    },
+    dropdownItemModel: {
+      color: isDark ? '#aaa' : '#666',
+      fontSize: 12,
+      width: '100%', // Take full width of parent
     },
     noProvidersText: {
       color: isDark ? '#999' : '#666',
@@ -270,7 +353,37 @@ export default function HomePage() {
       height: 1,
       backgroundColor: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
       marginVertical: 10,
-  },
+    },
+    modelsList: {
+      marginLeft: 34,
+      borderLeftWidth: 1,
+      borderLeftColor: isDark ? '#444' : '#ddd',
+    },
+    modelOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 6,
+      justifyContent: 'space-between',
+    },
+    modelOptionText: {
+      color: isDark ? '#ddd' : '#666',
+      fontSize: 14,
+      flex: 1,
+      marginRight: 8,
+    },
+    selectedModel: {
+      backgroundColor: isDark ? '#2a2a2a' : '#f0f0f0',
+    },
+    selectedModelText: {
+      color: isDark ? '#fff' : '#000',
+      fontWeight: '500',
+    },
+    expandButton: {
+      padding: 4,
+      marginLeft: 'auto',
+    },
   }), [isDark]);
 
   // Handle provider selection from dropdown
@@ -283,6 +396,63 @@ export default function HomePage() {
       await AsyncStorage.setItem(GLOBAL_PROVIDER_KEY, provider);
     } catch (error) {
       console.error('Error saving selected provider:', error);
+    }
+  };
+
+  // Function to handle model selection
+  const handleModelSelect = async (provider: ProviderType, modelName: string) => {
+    try {
+      const newCurrentModels = { ...currentModels, [provider]: modelName };
+      setCurrentModels(newCurrentModels);
+      await AsyncStorage.setItem('current_models', JSON.stringify(newCurrentModels));
+      // Reset all expanded items to false
+      setExpandedItems({
+        openai: false,
+        google: false,
+        anthropic: false,
+        openrouter: false,
+        groq: false
+      });
+    } catch (error) {
+      console.error('Error saving model selection:', error);
+    }
+  };
+
+  // Add function to handle expansion toggle
+  const handleExpand = (provider: ProviderType) => {
+    setExpandedItems(prev => {
+      // Create a new state with all providers collapsed
+      const newState = {
+        openai: false,
+        google: false,
+        anthropic: false,
+        openrouter: false,
+        groq: false
+      };
+      // Only expand the clicked provider if it wasn't already expanded
+      if (!prev[provider]) {
+        newState[provider] = true;
+      }
+      return newState;
+    });
+  };
+
+  // Add function to collapse all items
+  const collapseAllItems = () => {
+    setExpandedItems({
+      openai: false,
+      google: false,
+      anthropic: false,
+      openrouter: false,
+      groq: false
+    });
+  };
+
+  // Modify the dropdown visibility handler
+  const handleDropdownVisibility = (visible: boolean) => {
+    setDropdownVisible(visible);
+    if (!visible || visible) {
+      collapseAllItems();
     }
   };
 
@@ -304,7 +474,7 @@ export default function HomePage() {
           <View style={themedStyles.headerRight}>
             <TouchableOpacity 
               style={themedStyles.providerSelector}
-              onPress={() => setDropdownVisible(true)}
+              onPress={() => handleDropdownVisibility(true)}
             >
               {selectedProvider ? (
                 <>
@@ -313,9 +483,15 @@ export default function HomePage() {
                   {selectedProvider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
                   {selectedProvider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
                   {selectedProvider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
-                  <Text style={themedStyles.providerText} numberOfLines={1} ellipsizeMode="tail">
-                    {PROVIDER_INFO[selectedProvider].name}
-                  </Text>
+                  <View style={themedStyles.dropdownItemContent}>
+                    <Text style={themedStyles.providerText} numberOfLines={1} ellipsizeMode="tail">
+                      {PROVIDER_INFO[selectedProvider].name}
+                    </Text>
+                    <Text style={themedStyles.dropdownItemModel} numberOfLines={1} ellipsizeMode="tail">
+                      {currentModels[selectedProvider]}
+                    </Text>
+                  </View>
+                  <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={isDark ? '#fff' : '#000'} />
                 </>
               ) : (
                 <>
@@ -323,9 +499,9 @@ export default function HomePage() {
                   <Text style={themedStyles.providerText} numberOfLines={1} ellipsizeMode="tail">
                     {activeProvidersList.length > 0 ? 'Select Provider' : 'No Providers'}
                   </Text>
+                  <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={isDark ? '#fff' : '#000'} />
                 </>
               )}
-              <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={isDark ? '#fff' : '#000'} />
             </TouchableOpacity>
           </View>
         </View>
@@ -335,12 +511,12 @@ export default function HomePage() {
           visible={dropdownVisible}
           transparent={true}
           animationType="fade"
-          onRequestClose={() => setDropdownVisible(false)}
+          onRequestClose={() => handleDropdownVisibility(false)}
         >
           <TouchableOpacity 
             style={themedStyles.dropdownModal}
             activeOpacity={1}
-            onPress={() => setDropdownVisible(false)}
+            onPress={() => handleDropdownVisibility(false)}
           >
             <View style={themedStyles.dropdownContent}>
               {activeProvidersList.length > 0 ? (
@@ -348,24 +524,75 @@ export default function HomePage() {
                   data={activeProvidersList}
                   keyExtractor={(item) => item}
                   renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={[
-                        themedStyles.dropdownItem,
-                        selectedProvider === item && themedStyles.selectedItem
-                      ]}
-                      onPress={async () => {
-                        await handleProviderSelect(item);
-                      }}
-                    >
-                      {item === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
-                      {item === 'google' && <GeminiLogo width={24} height={24} />}
-                      {item === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
-                      {item === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
-                      {item === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
-                      <Text style={themedStyles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
-                        {PROVIDER_INFO[item].name}
-                      </Text>
-                    </TouchableOpacity>
+                    <View>
+                      <TouchableOpacity
+                        style={[
+                          themedStyles.dropdownItem,
+                          selectedProvider === item && themedStyles.selectedItem
+                        ]}
+                        onPress={async () => {
+                          await handleProviderSelect(item);
+                        }}
+                      >
+                        {item === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
+                        {item === 'google' && <GeminiLogo width={24} height={24} />}
+                        {item === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
+                        {item === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
+                        {item === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
+                        <View style={themedStyles.dropdownItemContent}>
+                          <Text style={themedStyles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
+                            {PROVIDER_INFO[item].name}
+                          </Text>
+                          <Text style={themedStyles.dropdownItemModel} numberOfLines={1} ellipsizeMode="tail">
+                            {currentModels[item]}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          style={themedStyles.expandButton}
+                          onPress={() => handleExpand(item)}
+                        >
+                          <Ionicons
+                            name={expandedItems[item] ? "chevron-up" : "chevron-down"}
+                            size={20}
+                            color={isDark ? '#fff' : '#000'}
+                          />
+                        </TouchableOpacity>
+                      </TouchableOpacity>
+                      
+                      {expandedItems[item] && verifiedModels[item].length > 0 && (
+                        <View style={themedStyles.modelsList}>
+                          {verifiedModels[item].map((modelName, index) => (
+                            <TouchableOpacity
+                              key={index}
+                              style={[
+                                themedStyles.modelOption,
+                                currentModels[item] === modelName && themedStyles.selectedModel
+                              ]}
+                              onPress={() => handleModelSelect(item, modelName)}
+                            >
+                              <Text 
+                                style={[
+                                  themedStyles.modelOptionText,
+                                  currentModels[item] === modelName && themedStyles.selectedModelText
+                                ]}
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                              >
+                                {modelName}
+                              </Text>
+                              {currentModels[item] === modelName && (
+                                <Ionicons
+                                  name="checkmark"
+                                  size={16}
+                                  color={isDark ? '#4a90e2' : '#2196F3'}
+                                  style={{ marginLeft: 8 }}
+                                />
+                              )}
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      )}
+                    </View>
                   )}
                 />
               ) : (
@@ -373,8 +600,8 @@ export default function HomePage() {
                   No active providers. Please verify and enable providers in Settings.
                 </Text>
               )}
-              
-              <TouchableOpacity
+            <View style={[themedStyles.separator, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]} />
+            <TouchableOpacity
                 style={[themedStyles.dropdownItem]}
                 onPress={() => {
                   router.push('/APISettings');

@@ -19,6 +19,7 @@ import { formatApiError } from '../_utils/apiErrorUtils';
 import { OpenAILogo, GeminiLogo, AnthropicLogo, OpenRouterLogo, GroqLogo } from '../components/LogoIcons';
 import * as ImagePicker from 'expo-image-picker';
 import Markdown from '@ronradtke/react-native-markdown-display';
+import { DEFAULT_MODELS } from '../APISettings';
 
 // Theme colors
 const COLORS = {
@@ -165,7 +166,14 @@ type StylesType = {
   dropdownItem: ViewStyle;
   selectedItem: ViewStyle;
   dropdownItemText: TextStyle;
-  dropdownDivider: ViewStyle;
+  dropdownItemContent: ViewStyle;
+  dropdownItemModel: TextStyle;
+  modelsList: ViewStyle;
+  modelOption: ViewStyle;
+  modelOptionText: TextStyle;
+  selectedModel: ViewStyle;
+  selectedModelText: TextStyle;
+  expandButton: ViewStyle;
   errorContainer: ViewStyle;
   errorText: TextStyle;
   noProvidersText: TextStyle;
@@ -177,7 +185,8 @@ type StylesType = {
   mediaOptionDivider: ViewStyle;
   mediaButton: ViewStyle;
   markdownContainer: ViewStyle;
-}
+  dropdownDivider: ViewStyle;
+};
 
 const CustomAlert = ({ visible, title, message, onCancel, onConfirm, isDark }: { visible: boolean; title: string; message: string; onCancel: () => void; onConfirm: () => void; isDark: boolean; }) => {
   const styles = createStyles(isDark);
@@ -424,7 +433,7 @@ const createStyles = (isDark: boolean): StylesType => {
     headerLeft: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 12,
       flex: 0.3,
       minWidth: 100,
     },
@@ -706,14 +715,17 @@ const createStyles = (isDark: boolean): StylesType => {
     providerSelector: {
       flex: 1,
       alignItems: 'flex-end',
+      maxWidth: 150,
+      // paddingVertical: 0,
     },
     providerButton: {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: isDark ? '#333' : '#f0f0f0',
-      paddingHorizontal: 5,
-      paddingVertical: 8,
+      paddingHorizontal: 7,
+      paddingVertical: 5,
       borderRadius: 10,
+      gap: 4,
       minWidth: 100,
       alignSelf: 'flex-end',
       borderWidth: 1,
@@ -730,9 +742,9 @@ const createStyles = (isDark: boolean): StylesType => {
       fontWeight: '500',
     },
     dropdownContent: {
-      marginTop: 10,
-      marginRight: 0,
-      width: 220,
+      marginTop: 70,
+      marginRight: 16,
+      width: 230,
       backgroundColor: isDark ? '#333' : '#fff',
       borderRadius: 8,
       padding: 8,
@@ -741,8 +753,6 @@ const createStyles = (isDark: boolean): StylesType => {
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
       elevation: 5,
-      right: 20,
-      top: 60,
     },
     dropdownModal: {
       flex: 1,
@@ -764,12 +774,47 @@ const createStyles = (isDark: boolean): StylesType => {
       color: isDark ? '#fff' : '#000',
       fontSize: 16,
       fontWeight: '500',
-      flex: 1,
     },
-    dropdownDivider: {
-      height: 1,
-      backgroundColor: isDark ? '#555' : '#ddd',
-      marginVertical: 3,
+    dropdownItemContent: {
+      flex: 1,
+      flexDirection: 'column',
+      gap: 2,
+      minWidth: 80,
+    },
+    dropdownItemModel: {
+      color: isDark ? '#aaa' : '#666',
+      fontSize: 12,
+      width: '100%', // Take full width of parent
+    },
+    modelsList: {
+      marginLeft: 34,
+      borderLeftWidth: 1,
+      borderLeftColor: isDark ? '#444' : '#ddd',
+    },
+    modelOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 6,
+      justifyContent: 'space-between',
+    },
+    modelOptionText: {
+      color: isDark ? '#ddd' : '#666',
+      fontSize: 14,
+      flex: 1,
+      marginRight: 8,
+    },
+    selectedModel: {
+      backgroundColor: isDark ? '#2a2a2a' : '#f0f0f0',
+    },
+    selectedModelText: {
+      color: isDark ? '#fff' : '#000',
+      fontWeight: '500',
+    },
+    expandButton: {
+      padding: 4,
+      marginLeft: 'auto',
     },
     errorContainer: {
       backgroundColor: 'rgba(255, 0, 0, 0.1)',
@@ -844,6 +889,11 @@ const createStyles = (isDark: boolean): StylesType => {
       width: '100%',
       alignSelf: 'flex-start',
     },
+    dropdownDivider: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginVertical: 8,
+    },
   });
 };
 
@@ -901,6 +951,32 @@ export default function Box1() {
   const [providerError, setProviderError] = useState<string | null>(null);
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [activeProvidersList, setActiveProvidersList] = useState<ProviderType[]>([]);
+
+  // Add state for current models
+  const [currentModels, setCurrentModels] = useState<{[key in ProviderType]: string}>({
+    openai: DEFAULT_MODELS.openai,
+    google: DEFAULT_MODELS.google,
+    anthropic: DEFAULT_MODELS.anthropic,
+    openrouter: DEFAULT_MODELS.openrouter,
+    groq: DEFAULT_MODELS.groq
+  });
+  
+  // Add state for expanded items and verified models
+  const [expandedItems, setExpandedItems] = useState<{[key in ProviderType]: boolean}>({
+    openai: false,
+    google: false,
+    anthropic: false,
+    openrouter: false,
+    groq: false
+  });
+
+  const [verifiedModels, setVerifiedModels] = useState<{[key in ProviderType]: string[]}>({
+    openai: [],
+    google: [],
+    anthropic: [],
+    openrouter: [],
+    groq: []
+  });
 
   // Constants for storage keys
   const TOOL_PROVIDER_KEY = 'box1_selected_provider';
@@ -1120,11 +1196,49 @@ export default function Box1() {
     }
   };
 
+  // Function to handle model selection
+  const handleModelSelect = async (provider: ProviderType, modelName: string) => {
+    try {
+      const newCurrentModels = { ...currentModels, [provider]: modelName };
+      setCurrentModels(newCurrentModels);
+      await AsyncStorage.setItem('current_models', JSON.stringify(newCurrentModels));
+      // Reset all expanded items to false
+      setExpandedItems({
+        openai: false,
+        google: false,
+        anthropic: false,
+        openrouter: false,
+        groq: false
+      });
+    } catch (error) {
+      console.error('Error saving model selection:', error);
+    }
+  };
+
+  // Add function to handle expansion toggle
+  const handleExpand = (provider: ProviderType) => {
+    setExpandedItems(prev => {
+      // Create a new state with all providers collapsed
+      const newState = {
+        openai: false,
+        google: false,
+        anthropic: false,
+        openrouter: false,
+        groq: false
+      };
+      // Only expand the clicked provider if it wasn't already expanded
+      if (!prev[provider]) {
+        newState[provider] = true;
+      }
+      return newState;
+    });
+  };
+
   // Get provider display name
   const getProviderDisplayName = (provider: ProviderType): string => {
     const displayNames: Record<ProviderType, string> = {
       openai: 'OpenAI',
-      google: 'Google',
+      google: 'Google AI',
       anthropic: 'Anthropic',
       openrouter: 'OpenRouter',
       groq: 'Groq'
@@ -1566,6 +1680,69 @@ export default function Box1() {
     </Modal>
   );
 
+  // Load verified models from AsyncStorage
+  useEffect(() => {
+    const loadVerifiedModels = async () => {
+      try {
+        const savedVerifiedModels = await AsyncStorage.getItem('verified_models');
+        if (savedVerifiedModels) {
+          const parsed = JSON.parse(savedVerifiedModels);
+          // Convert from ProviderModels format to simple string arrays
+          const simplified = Object.keys(parsed).reduce((acc, key) => ({
+            ...acc,
+            [key]: parsed[key].map((model: { name: string }) => model.name)
+          }), {
+            openai: [],
+            google: [],
+            anthropic: [],
+            openrouter: [],
+            groq: []
+          } as {[key in ProviderType]: string[]});
+          setVerifiedModels(simplified);
+        }
+      } catch (error) {
+        console.error('Error loading verified models:', error);
+      }
+    };
+    
+    loadVerifiedModels();
+  }, []);
+
+  // Load current models from AsyncStorage
+  useEffect(() => {
+    const loadCurrentModels = async () => {
+      try {
+        const savedModels = await AsyncStorage.getItem('current_models');
+        if (savedModels) {
+          setCurrentModels(JSON.parse(savedModels));
+        }
+      } catch (error) {
+        console.error('Error loading current models:', error);
+      }
+    };
+    
+    loadCurrentModels();
+  }, []);
+
+  // Add function to collapse all items
+  const collapseAllItems = () => {
+    setExpandedItems({
+      openai: false,
+      google: false,
+      anthropic: false,
+      openrouter: false,
+      groq: false
+    });
+  };
+
+  // Modify the dropdown visibility handler
+  const handleDropdownVisibility = (visible: boolean) => {
+    setDropdownVisible(visible);
+    if (!visible || visible) {
+      collapseAllItems();
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Fixed Header */}
@@ -1579,31 +1756,37 @@ export default function Box1() {
         
         <View style={styles.providerSelector}>
           <TouchableOpacity 
-            onPress={() => setDropdownVisible(!dropdownVisible)}
+            onPress={() => handleDropdownVisibility(!dropdownVisible)}
             style={styles.providerButton}
           >
-            <View style={styles.providerButtonContent}>
-              {selectedProvider ? (
-                <>
-                  {selectedProvider === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
-                  {selectedProvider === 'google' && <GeminiLogo width={24} height={24} />}
-                  {selectedProvider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
-                  {selectedProvider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
-                  {selectedProvider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
+            {selectedProvider ? (
+              <>
+                {selectedProvider === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
+                {selectedProvider === 'google' && <GeminiLogo width={24} height={24} />}
+                {selectedProvider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
+                {selectedProvider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
+                {selectedProvider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
+                <View style={styles.dropdownItemContent}>
                   <Text style={styles.providerText} numberOfLines={1} ellipsizeMode="tail">
                     {getProviderDisplayName(selectedProvider)}
                   </Text>
-                </>
-              ) : (
-                <>
-                  <Ionicons name="cloud-outline" size={24} color={isDark ? '#fff' : '#000'} />
+                  <Text style={styles.dropdownItemModel} numberOfLines={1} ellipsizeMode="tail">
+                    {currentModels[selectedProvider]}
+                  </Text>
+                </View>
+                <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={isDark ? '#fff' : '#000'} />
+              </>
+            ) : (
+              <>
+                <Ionicons name="cloud-outline" size={24} color={isDark ? '#fff' : '#000'} />
+                <View style={styles.dropdownItemContent}>
                   <Text style={styles.providerText} numberOfLines={1} ellipsizeMode="tail">
                     {activeProvidersList.length > 0 ? 'Select Provider' : 'No Providers'}
                   </Text>
-                </>
-              )}
-              <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={isDark ? '#fff' : '#000'} />
-            </View>
+                </View>
+                <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={isDark ? '#fff' : '#000'} />
+              </>
+            )}
           </TouchableOpacity>
           
           {/* Provider Selection Dropdown */}
@@ -1611,34 +1794,84 @@ export default function Box1() {
             visible={dropdownVisible}
             transparent={true}
             animationType="fade"
-            onRequestClose={() => setDropdownVisible(false)}
+            onRequestClose={() => handleDropdownVisibility(false)}
           >
             <TouchableOpacity 
               style={styles.dropdownModal}
               activeOpacity={1}
-              onPress={() => setDropdownVisible(false)}
+              onPress={() => handleDropdownVisibility(false)}
             >
               <View style={[styles.dropdownContent]}>
                 {activeProvidersList.length > 0 ? (
                   <>
                     {activeProvidersList.map((provider) => (
-                      <TouchableOpacity
-                        key={provider}
-                        style={[
-                          styles.dropdownItem,
-                          selectedProvider === provider && styles.selectedItem
-                        ]}
-                        onPress={() => handleProviderSelect(provider)}
-                      >
-                        {provider === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
-                        {provider === 'google' && <GeminiLogo width={24} height={24} />}
-                        {provider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
-                        {provider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
-                        {provider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
-                        <Text style={styles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
-                          {getProviderDisplayName(provider)}
-                        </Text>
-                      </TouchableOpacity>
+                      <View key={provider}>
+                        <TouchableOpacity
+                          style={[
+                            styles.dropdownItem,
+                            selectedProvider === provider && styles.selectedItem
+                          ]}
+                          onPress={() => handleProviderSelect(provider)}
+                        >
+                          {provider === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
+                          {provider === 'google' && <GeminiLogo width={24} height={24} />}
+                          {provider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
+                          {provider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
+                          {provider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
+                          <View style={styles.dropdownItemContent}>
+                            <Text style={styles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
+                              {getProviderDisplayName(provider)}
+                            </Text>
+                            <Text style={styles.dropdownItemModel} numberOfLines={1} ellipsizeMode="tail">
+                              {currentModels[provider]}
+                            </Text>
+                          </View>
+                          <TouchableOpacity
+                            style={styles.expandButton}
+                            onPress={() => handleExpand(provider)}
+                          >
+                            <Ionicons
+                              name={expandedItems[provider] ? "chevron-up" : "chevron-down"}
+                              size={20}
+                              color={isDark ? '#fff' : '#000'}
+                            />
+                          </TouchableOpacity>
+                        </TouchableOpacity>
+                        
+                        {expandedItems[provider] && verifiedModels[provider].length > 0 && (
+                          <View style={styles.modelsList}>
+                            {verifiedModels[provider].map((modelName, index) => (
+                              <TouchableOpacity
+                                key={index}
+                                style={[
+                                  styles.modelOption,
+                                  currentModels[provider] === modelName && styles.selectedModel
+                                ]}
+                                onPress={() => handleModelSelect(provider, modelName)}
+                              >
+                                <Text 
+                                  style={[
+                                    styles.modelOptionText,
+                                    currentModels[provider] === modelName && styles.selectedModelText
+                                  ]}
+                                  numberOfLines={1}
+                                  ellipsizeMode="tail"
+                                >
+                                  {modelName}
+                                </Text>
+                                {currentModels[provider] === modelName && (
+                                  <Ionicons
+                                    name="checkmark"
+                                    size={16}
+                                    color={isDark ? '#4a90e2' : '#2196F3'}
+                                    style={{ marginLeft: 8 }}
+                                  />
+                                )}
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        )}
+                      </View>
                     ))}
                     <View style={styles.dropdownDivider} />
                     <TouchableOpacity
@@ -1715,7 +1948,7 @@ export default function Box1() {
         </View>
       </View>
 
-      {/* Main content area with messages - Modified container style */}
+      {/* Main content area with messages */}
       <View style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
         <ScrollView
           ref={scrollViewRef}
@@ -1786,15 +2019,15 @@ export default function Box1() {
                       {message.expanded && (
                         <>
                           {message.originalText && message.originalText !== "Image only" && (
-                              <View style={styles.markdownContainer}>
-                                <Markdown 
-                                  style={originalMarkdownStyles}
-                                  mergeStyle={false}
-                                >
-                                  {message.originalText}
-                                </Markdown>
-                              </View>
-                            )}
+                            <View style={styles.markdownContainer}>
+                              <Markdown 
+                                style={originalMarkdownStyles}
+                                mergeStyle={false}
+                              >
+                                {message.originalText}
+                              </Markdown>
+                            </View>
+                          )}
                           {message.originalImageUri && (
                             <Image 
                               source={{ uri: message.originalImageUri }} 
@@ -1813,7 +2046,7 @@ export default function Box1() {
         </ScrollView>
       </View>
 
-      {/* Modified KeyboardAvoidingView configuration */}
+      {/* Bottom input area */}
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? keyboardVisible ? 'padding' : 'height' : keyboardVisible ? 'padding' : 'height'}
         keyboardVerticalOffset={UI_CONFIG.KEYBOARD_OFFSET}
@@ -1930,18 +2163,17 @@ export default function Box1() {
                   }
                 }}
               />
-            
-            <TouchableOpacity
-              style={[styles.sendButton, { opacity: (inputText.trim() || previewImage) ? 1 : 0.5 }]}
-              onPress={handleSend}
-              disabled={!inputText.trim() && !previewImage || isTranslating}
-            >
-              {isTranslating ? (
-                <ActivityIndicator color={colors.text} />
-              ) : (
-                <Ionicons name="send" size={24} color={colors.text} />
-              )}
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.sendButton, { opacity: (inputText.trim() || previewImage) ? 1 : 0.5 }]}
+                onPress={handleSend}
+                disabled={!inputText.trim() && !previewImage || isTranslating}
+              >
+                {isTranslating ? (
+                  <ActivityIndicator color={colors.text} />
+                ) : (
+                  <Ionicons name="send" size={24} color={colors.text} />
+                )}
+              </TouchableOpacity>
             </View>
           </View>
           <MediaOptionsModal />
