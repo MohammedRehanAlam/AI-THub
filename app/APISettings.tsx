@@ -1290,6 +1290,7 @@ const APISettings = () => {
                         <TouchableOpacity onPress={() => Linking.openURL(modelLink)}>
                             <Text style={themedStyles.linkText}>View Models</Text>
                         </TouchableOpacity>
+                        {/* the add button beside the view models */}
                         {/* {showAddButton && (
                             <TouchableOpacity 
                                 onPress={() => {
@@ -1310,7 +1311,7 @@ const APISettings = () => {
                 </View>
                 <View style={{ position: 'relative' }}>
                     <TextInput
-                        style={themedStyles.input}
+                        style={[themedStyles.input, { paddingRight: 40 }]} // Add padding to make space for the add button
                         placeholder={`Default: ${defaultModel}`}
                         placeholderTextColor={isDark ? '#888' : '#aaa'}
                         value={modelValue}
@@ -1329,7 +1330,8 @@ const APISettings = () => {
                                 position: 'absolute', 
                                 right: 5, 
                                 top: '40%', 
-                                transform: [{ translateY: -12 }] 
+                                transform: [{ translateY: -12 }],     // position the button vertically
+                                zIndex: 1 
                             }]}
                         >
                             <Ionicons 

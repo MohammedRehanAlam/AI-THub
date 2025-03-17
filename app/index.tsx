@@ -520,81 +520,84 @@ export default function HomePage() {
           >
             <View style={themedStyles.dropdownContent}>
               {activeProvidersList.length > 0 ? (
-                <FlatList
-                  data={activeProvidersList}
-                  keyExtractor={(item) => item}
-                  renderItem={({ item }) => (
-                    <View>
-                      <TouchableOpacity
-                        style={[
-                          themedStyles.dropdownItem,
-                          selectedProvider === item && themedStyles.selectedItem
-                        ]}
-                        onPress={async () => {
-                          await handleProviderSelect(item);
-                        }}
-                      >
-                        {item === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
-                        {item === 'google' && <GeminiLogo width={24} height={24} />}
-                        {item === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
-                        {item === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
-                        {item === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
-                        <View style={themedStyles.dropdownItemContent}>
-                          <Text style={themedStyles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
-                            {PROVIDER_INFO[item].name}
-                          </Text>
-                          <Text style={themedStyles.dropdownItemModel} numberOfLines={1} ellipsizeMode="tail">
-                            {currentModels[item]}
-                          </Text>
-                        </View>
+                // max height of the dropdown container
+                <View style={{ maxHeight: 340 }}> 
+                  <FlatList
+                    data={activeProvidersList}
+                    keyExtractor={(item) => item}
+                    renderItem={({ item }) => (
+                      <View>
                         <TouchableOpacity
-                          style={themedStyles.expandButton}
-                          onPress={() => handleExpand(item)}
+                          style={[
+                            themedStyles.dropdownItem,
+                            selectedProvider === item && themedStyles.selectedItem
+                          ]}
+                          onPress={async () => {
+                            await handleProviderSelect(item);
+                          }}
                         >
-                          <Ionicons
-                            name={expandedItems[item] ? "chevron-up" : "chevron-down"}
-                            size={20}
-                            color={isDark ? '#fff' : '#000'}
-                          />
+                          {item === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
+                          {item === 'google' && <GeminiLogo width={24} height={24} />}
+                          {item === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
+                          {item === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
+                          {item === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
+                          <View style={themedStyles.dropdownItemContent}>
+                            <Text style={themedStyles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
+                              {PROVIDER_INFO[item].name}
+                            </Text>
+                            <Text style={themedStyles.dropdownItemModel} numberOfLines={1} ellipsizeMode="tail">
+                              {currentModels[item]}
+                            </Text>
+                          </View>
+                          <TouchableOpacity
+                            style={themedStyles.expandButton}
+                            onPress={() => handleExpand(item)}
+                          >
+                            <Ionicons
+                              name={expandedItems[item] ? "chevron-up" : "chevron-down"}
+                              size={20}
+                              color={isDark ? '#fff' : '#000'}
+                            />
+                          </TouchableOpacity>
                         </TouchableOpacity>
-                      </TouchableOpacity>
-                      
-                      {expandedItems[item] && verifiedModels[item].length > 0 && (
-                        <View style={themedStyles.modelsList}>
-                          {verifiedModels[item].map((modelName, index) => (
-                            <TouchableOpacity
-                              key={index}
-                              style={[
-                                themedStyles.modelOption,
-                                currentModels[item] === modelName && themedStyles.selectedModel
-                              ]}
-                              onPress={() => handleModelSelect(item, modelName)}
-                            >
-                              <Text 
+                        
+                        {expandedItems[item] && verifiedModels[item].length > 0 && (
+                          <View style={themedStyles.modelsList}>
+                            {verifiedModels[item].map((modelName, index) => (
+                              <TouchableOpacity
+                                key={index}
                                 style={[
-                                  themedStyles.modelOptionText,
-                                  currentModels[item] === modelName && themedStyles.selectedModelText
+                                  themedStyles.modelOption,
+                                  currentModels[item] === modelName && themedStyles.selectedModel
                                 ]}
-                                numberOfLines={1}
-                                ellipsizeMode="tail"
+                                onPress={() => handleModelSelect(item, modelName)}
                               >
-                                {modelName}
-                              </Text>
-                              {currentModels[item] === modelName && (
-                                <Ionicons
-                                  name="checkmark"
-                                  size={16}
-                                  color={isDark ? '#4a90e2' : '#2196F3'}
-                                  style={{ marginLeft: 8 }}
-                                />
-                              )}
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      )}
-                    </View>
-                  )}
-                />
+                                <Text 
+                                  style={[
+                                    themedStyles.modelOptionText,
+                                    currentModels[item] === modelName && themedStyles.selectedModelText
+                                  ]}
+                                  numberOfLines={1}
+                                  ellipsizeMode="tail"
+                                >
+                                  {modelName}
+                                </Text>
+                                {currentModels[item] === modelName && (
+                                  <Ionicons
+                                    name="checkmark"
+                                    size={16}
+                                    color={isDark ? '#4a90e2' : '#2196F3'}
+                                    style={{ marginLeft: 8 }}
+                                  />
+                                )}
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        )}
+                      </View>
+                    )}
+                  />
+                </View>
               ) : (
                 <Text style={themedStyles.noProvidersText}  ellipsizeMode="tail">
                   No active providers. Please verify and enable providers in Settings.

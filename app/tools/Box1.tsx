@@ -745,6 +745,7 @@ const createStyles = (isDark: boolean): StylesType => {
       marginTop: 70,
       marginRight: 16,
       width: 230,
+      height : 430, 
       backgroundColor: isDark ? '#333' : '#fff',
       borderRadius: 8,
       padding: 8,
@@ -1803,7 +1804,8 @@ export default function Box1() {
             >
               <View style={[styles.dropdownContent]}>
                 {activeProvidersList.length > 0 ? (
-                  <>
+                  // max height of the dropdown container
+                  <ScrollView style={{ maxHeight: 430 }}> 
                     {activeProvidersList.map((provider) => (
                       <View key={provider}>
                         <TouchableOpacity
@@ -1883,7 +1885,7 @@ export default function Box1() {
                         Use Global Provider
                       </Text>
                     </TouchableOpacity>
-                  </>
+                  </ScrollView>
                 ) : (
                   <Text style={styles.noProvidersText}>
                     No active providers
