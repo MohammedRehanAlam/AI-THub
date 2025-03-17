@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Platform, Keyboard, Modal, AppState, KeyboardAvoidingView, Image, ViewStyle, TextStyle, ImageStyle } from 'react-native';
+import { Collapsible } from '../components/Collapsible';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -94,6 +95,10 @@ type MarkdownStylesType = {
   list_item: TextStyle;
   bullet_list: ViewStyle;
   ordered_list: ViewStyle;
+  bullet_list_icon: TextStyle;
+  bullet_list_content: ViewStyle;
+  ordered_list_icon: TextStyle;
+  ordered_list_content: ViewStyle;
   code_inline: TextStyle;
   code_block: TextStyle;
   blockquote: ViewStyle;
@@ -213,7 +218,7 @@ const createMarkdownStyles = (isDark: boolean): MarkdownStylesType => {
   
   return {
     body: {
-      color: colors.text,
+      color: 'inherit',
       fontSize: 16,
       lineHeight: 22,
     },
@@ -248,12 +253,30 @@ const createMarkdownStyles = (isDark: boolean): MarkdownStylesType => {
     list_item: {
       marginVertical: 2,
       color: colors.text,
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
     },
     bullet_list: {
       marginVertical: 4,
     },
     ordered_list: {
       marginVertical: 4,
+    },
+    bullet_list_icon: {
+      marginLeft: 10,
+      marginRight: 10,
+      color: colors.text,
+    },
+    bullet_list_content: {
+      flex: 1,
+    },
+    ordered_list_icon: {
+      marginLeft: 10,
+      marginRight: 10,
+      color: colors.text,
+    },
+    ordered_list_content: {
+      flex: 1,
     },
     code_inline: {
       fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
@@ -348,12 +371,30 @@ const createOriginalMarkdownStyles = (isDark: boolean): MarkdownStylesType => {
       fontSize: 16,
       lineHeight: 22,
       color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
     },
     bullet_list: {
       marginVertical: 4,
     },
     ordered_list: {
       marginVertical: 4,
+    },
+    bullet_list_icon: {
+      marginLeft: 10,
+      marginRight: 10,
+      color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+    },
+    bullet_list_content: {
+      flex: 1,
+    },
+    ordered_list_icon: {
+      marginLeft: 10,
+      marginRight: 10,
+      color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+    },
+    ordered_list_content: {
+      flex: 1,
     },
     code_inline: {
       fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
@@ -547,16 +588,28 @@ const createStyles = (isDark: boolean): StylesType => {
       // width: '100%',   // this is to make the bubble full width
     },
     user1Bubble: {
-      borderBottomLeftRadius: 4,
+      borderTopRightRadius: 16,
+      borderBottomRightRadius: 16,
+      borderTopLeftRadius: 16,
+      borderBottomLeftRadius: 0,
     },
     user2Bubble: {
-      borderBottomRightRadius: 4,
+      borderTopRightRadius: 16,
+      borderBottomRightRadius: 0,
+      borderTopLeftRadius: 16,
+      borderBottomLeftRadius: 16,
     },
     messageText: {
       fontSize: 16,
       lineHeight: 22,
-      color: colors.text,
       marginTop: 8,
+    },
+    user1MessageText: {
+      color: colors.text,
+    },
+    user2MessageText: {
+      // color: isDark ? '#4CAF50' : '#2E7D32',
+      color: colors.text,
     },
     messageTextWithImage: {
       fontSize: 16,
@@ -745,7 +798,7 @@ const createStyles = (isDark: boolean): StylesType => {
       marginTop: 70,
       marginRight: 16,
       width: 230,
-      height : 430, 
+      // height : 430, 
       backgroundColor: isDark ? '#333' : '#fff',
       borderRadius: 8,
       padding: 8,
@@ -2002,12 +2055,25 @@ export default function Box1() {
                   )}
                   {message.text && (
                     <View style={styles.markdownContainer}>
-                      <Markdown 
-                        style={markdownStyles}
-                        mergeStyle={false}
-                      >
-                        {message.text}
-                      </Markdown>
+                      {message.text.match(/<(reasoning|thinking)[^>]*>([\s\S]*?)<\/\1>/g) ? (
+                        message.text.split(/(<(?:reasoning|thinking)[^>]*>[\s\S]*?<\/(?:reasoning|thinking)>)/).map((segment, index) => {
+                          const tagMatch = segment.match(/<(reasoning|thinking)[^>]*>([\s\S]*?)<\/\1>/);
+                          if (tagMatch) {
+                            const [_, tagName, content] = tagMatch;
+                            return (
+                              <Collapsible key={index} title={tagName.charAt(0).toUpperCase() + tagName.slice(1)}>
+                                <Markdown style={markdownStyles} mergeStyle={false}>{content}</Markdown>
+                              </Collapsible>
+                            );
+                          } else {
+                            return segment ? (
+                              <Markdown key={index} style={markdownStyles} mergeStyle={true}>{segment}</Markdown>
+                            ) : null;
+                          }
+                        })
+                      ) : (
+                        <Markdown style={markdownStyles} mergeStyle={false}>{message.text}</Markdown>
+                      )}
                     </View>
                   )}
                   {(message.originalText || message.originalImageUri) && (

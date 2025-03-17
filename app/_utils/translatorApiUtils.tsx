@@ -28,11 +28,12 @@ export const TRANSLATION_PROMPT = `Translate the following content from \${fromL
 **Instructions:**
 
 * **Content Type:** Determine if the input is text or an image.
-* **Text Input:** If text, perform a direct and accurate translation.
+* **Text Input:** If text, perform a direct and accurate translation from the requested language to the targetted language and also make sure to translate the jokes and vibe and important words according to the target language culture, so that if feels natural to read by the target user.
 * **Image Input:** If an image, analyze the image to identify and extract all text present within it. Then, translate the extracted text.
-* **Markdown Formatting:** Apply proper markdown formatting to the translated text to enhance readability.
+* **Additional Hint if both Image and Additional Text is given:** If an image is given as input and additionally in the text field if the user types under the double quotes with a + sign before it i.e. +"..." this means generate the output by considering this instruction and its not an input to translate instead it is a format to follow (for example if the user has added an restaurant menu image as an input and in the input field in additional if the user adds +"tabular" then this means that the user wants the output to be generated and represented in tabular format, and so on), but other than this if the text is written normally withoug any upper quotes with the + symbol before it then it should be translated like the normol text only from the requested language to the targetted langauge. 
+* **Markdown Formatting:** Apply proper markdown formatting to the translated text to enhance readability. Ensure the translated text is clear with no unnecessary formatting or line gaps etc.
 
-**Output:** Provide only the translated text, formatted with markdown. No additional text or explanations are needed.
+**Output:** Provide only the translated text, formatted with markdown. No additional text or explanations are needed. Don't generate the output inside a seperate box instead give directly by applying proper markdown formatting.
 
 **Content to Translate:** \${text}`;
 
@@ -117,7 +118,7 @@ export const translateWithOpenAI = async (
           }
         ],
         temperature: 0.3,
-        max_tokens: 8192
+        max_tokens: 7999
       };
     } else {
       // For text-only input
@@ -133,7 +134,7 @@ export const translateWithOpenAI = async (
           }
         ],
         temperature: 0.3,
-        max_tokens: 8192
+        max_tokens: 7999
       };
     }
 
@@ -235,7 +236,7 @@ export const translateWithGoogle = async (
         }],
         generationConfig: {
           temperature: 0.2,
-          maxOutputTokens: 8192
+          maxOutputTokens: 7999
         }
       };
     } else {
@@ -251,7 +252,7 @@ export const translateWithGoogle = async (
         }],
         generationConfig: {
           temperature: 0.2,
-          maxOutputTokens: 8192
+          maxOutputTokens: 7999
         }
       };
     }
@@ -356,8 +357,8 @@ export const translateWithAnthropic = async (
       }
 
       requestBody = {
-        model: "claude-3-opus-20240229",
-        max_tokens: 8192,
+        model: model,
+        max_tokens: 7999,
         temperature: 0.2,
         messages: [
           {
@@ -370,7 +371,7 @@ export const translateWithAnthropic = async (
       // For text-only input
       requestBody = {
         model: model,
-        max_tokens: 8192,
+        max_tokens: 7999,
         temperature: 0.2,
         messages: [
           {
@@ -475,7 +476,7 @@ export const translateWithOpenRouter = async (
           }
         ],
         temperature: 0.2,
-        max_tokens: 8192
+        max_tokens: 7999
       };
     } else {
       // For text-only input
@@ -491,7 +492,7 @@ export const translateWithOpenRouter = async (
           }
         ],
         temperature: 0.2,
-        max_tokens: 8192
+        max_tokens: 7999
       };
     }
 
@@ -583,7 +584,7 @@ export const translateWithGroq = async (
         }
       ],
       temperature: 0.2,
-      max_tokens: 8192
+      max_tokens: 7999
     };
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {

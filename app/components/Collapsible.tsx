@@ -1,0 +1,48 @@
+import { PropsWithChildren, useState } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import ThemedText from './ThemedText';
+import { useTheme } from '../context/ThemeContext';
+
+export function Collapsible({ children, title }: PropsWithChildren & { title: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const { currentTheme } = useTheme();
+  const isDark = currentTheme === 'dark';
+
+  return (
+    <View style={{ backgroundColor: 'transparent' }}>
+      <TouchableOpacity
+        style={styles.heading}
+        onPress={() => setIsOpen((value) => !value)}
+        activeOpacity={0.8}>
+        <View
+          style={[{
+            transform: [{ rotate: isOpen ? '90deg' : '0deg' }],
+            marginRight: 6
+          }]}
+        >
+          {/* Use a simple character instead of IconSymbol for compatibility
+          <ThemedText>▶</ThemedText> */}
+          {/* Using Ionicons for better visual appearance */}
+          <Ionicons name="chevron-forward" size={16} color={isDark ? '#fff' : '#000'} />
+        </View>
+
+        <ThemedText type="title">{title}</ThemedText>
+      </TouchableOpacity>
+      {isOpen && <View style={styles.content}>{children}</View>}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  heading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 4,
+  },
+  content: {
+    marginTop: 6,
+    marginLeft: 20,
+    backgroundColor: 'transparent'
+  },
+});
