@@ -1,7 +1,7 @@
 // API Testing Utilities
 
 // OpenAI API Key Testing
-export const testOpenAIKey = async (apiKey: string, modelName = "gpt-3.5-turbo") => {
+export const testOpenAIKey = async (apiKey: string, modelName: string) => {
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -59,7 +59,7 @@ export const testOpenAIKey = async (apiKey: string, modelName = "gpt-3.5-turbo")
 };
 
 // Google AI (Gemini) API Key Testing
-export const testGoogleAIKey = async (apiKey: string, modelName = "gemini-1.5-flash") => {
+export const testGoogleAIKey = async (apiKey: string, modelName: string) => {
     try {
         // Add timeout to prevent long-hanging requests
         const controller = new AbortController();
@@ -141,7 +141,7 @@ export const testGoogleAIKey = async (apiKey: string, modelName = "gemini-1.5-fl
 };
 
 // Anthropic API Key Testing
-export const testAnthropicKey = async (apiKey: string, modelName = "claude-3-opus-20240229") => {
+export const testAnthropicKey = async (apiKey: string, modelName: string) => {
     try {
         const response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
@@ -198,7 +198,7 @@ export const testAnthropicKey = async (apiKey: string, modelName = "claude-3-opu
 };
 
 // OpenRouter API Key Testing
-export const testOpenRouterKey = async (apiKey: string, modelName = "deepseek/deepseek-r1:free") => {
+export const testOpenRouterKey = async (apiKey: string, modelName: string) => {
     try {
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
@@ -255,7 +255,7 @@ export const testOpenRouterKey = async (apiKey: string, modelName = "deepseek/de
 };
 
 // Groq API Key Testing
-export const testGroqKey = async (apiKey: string, modelName = "llama3-8b-8192") => {
+export const testGroqKey = async (apiKey: string, modelName: string) => {
     try {
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
@@ -313,4 +313,4 @@ export const testGroqKey = async (apiKey: string, modelName = "llama3-8b-8192") 
 // Add a default export to satisfy Expo Router's requirements
 export default function ApiTests() {
   return null;
-} 
+}
