@@ -29,7 +29,12 @@ export function Collapsible({ children, title }: PropsWithChildren & { title: st
 
         <ThemedText type="title">{title}</ThemedText>
       </TouchableOpacity>
-      {isOpen && <View style={styles.content}>{children}</View>}
+      {isOpen && (
+        <View style={styles.contentWrapper}>
+          <View style={[styles.verticalLine, { backgroundColor: isDark ? 'rgba(150,150,150,0.3)' : 'rgba(150,150,150,0.5)' }]} />
+          <View style={styles.content}>{children}</View>
+        </View>
+      )}
     </View>
   );
 }
@@ -40,9 +45,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 4,
   },
-  content: {
+  contentWrapper: {
+    flexDirection: 'row',
     marginTop: 6,
-    marginLeft: 20,
-    backgroundColor: 'transparent'
+    width: 270,
+    // marginLeft: 20,
+    // backgroundColor: 'transparent'
+  },
+  verticalLine: {
+    width: 2,
+    marginLeft: 8,
+    marginRight: 10,
+  },
+  content: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
 });

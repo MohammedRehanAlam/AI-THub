@@ -2166,9 +2166,9 @@ export default function Box1() {
                   )}
                   {message.text && (
                     <View style={styles.markdownContainer}>
-                      {message.text.match(/<(reasoning|thinking)[^>]*>([\s\S]*?)<\/\1>/g) ? (
-                        message.text.split(/(<(?:reasoning|thinking)[^>]*>[\s\S]*?<\/(?:reasoning|thinking)>)/).map((segment, index) => {
-                          const tagMatch = segment.match(/<(reasoning|thinking)[^>]*>([\s\S]*?)<\/\1>/);
+                      {message.text.match(/<(reasoning|thinking|think)[^>]*>([\s\S]*?)<\/\1>/g) ? (
+                        message.text.split(/(<(?:reasoning|thinking|think)[^>]*>[\s\S]*?<\/(?:reasoning|thinking|think)>)/).map((segment, index) => {
+                          const tagMatch = segment.match(/<(reasoning|thinking|think)[^>]*>([\s\S]*?)<\/\1>/);
                           if (tagMatch) {
                             const [_, tagName, content] = tagMatch;
                             return (
