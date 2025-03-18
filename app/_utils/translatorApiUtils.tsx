@@ -8,6 +8,7 @@ export interface TranslationRequest {
   fromLanguage: string;
   toLanguage: string;
   additionalText?: string;  // Optional field for additional text when sending image + text
+  model?: string;           // Optional field to specify which model to use
 }
 
 // Interface for translation response
@@ -642,61 +643,55 @@ export const translateText = async (
   provider: ProviderType
 ): Promise<TranslationResponse> => {
   try {
+    // Get the API key and model for the provider
     const { apiKey, model } = await getProviderConfig(provider);
     
+    // Use the model from the request if provided, otherwise use the one from the config
+    const modelToUse = request.model || model;
+
     if (!apiKey) {
-      return {
-        translatedText: '',
-        success: false,
-        error: `No API key found for ${provider}. Please add your API key in the settings.`,
-        providerInfo: {
-          provider,
-          model
-        }
-      };
+      throw new Error(`No API key found for ${provider}`);
     }
-    
-    let result: TranslationResponse;
-    
+
+    let response: TranslationResponse;
+
     switch (provider) {
       case 'openai':
-        result = await translateWithOpenAI(request, apiKey, model);
+        response = await translateWithOpenAI(request, apiKey, modelToUse);
         break;
       case 'google':
-        result = await translateWithGoogle(request, apiKey, model);
+        response = await translateWithGoogle(request, apiKey, modelToUse);
         break;
       case 'anthropic':
-        result = await translateWithAnthropic(request, apiKey, model);
+        response = await translateWithAnthropic(request, apiKey, modelToUse);
         break;
       case 'openrouter':
-        result = await translateWithOpenRouter(request, apiKey, model);
+        response = await translateWithOpenRouter(request, apiKey, modelToUse);
         break;
       case 'groq':
-        result = await translateWithGroq(request, apiKey, model);
+        response = await translateWithGroq(request, apiKey, modelToUse);
         break;
       default:
-        return {
-          translatedText: '',
-          success: false,
-          error: `Unsupported provider: ${provider}`,
-          providerInfo: {
-            provider,
-            model
-          }
-        };
+        throw new Error(`Unsupported provider: ${provider}`);
     }
-    
-    // Provider info is already added in each provider function
-    return result;
+
+    // Add provider info to the response
+    response.providerInfo = {
+      provider,
+      model: modelToUse
+    };
+
+    return response;
   } catch (error: any) {
+    console.error(`Translation error from ${provider}:`, error);
     return {
       translatedText: '',
       success: false,
-      error: `Unexpected error: ${error.message}`,
-      response: error.response || null,
+      error: error.message || `Translation failed with ${provider}`,
+      response: error.response, // Pass through any response data
       providerInfo: {
         provider,
-        model: getDefaultModel(provider)
+        model: request.model || await getDefaultModel(provider)
       }
     };
   }

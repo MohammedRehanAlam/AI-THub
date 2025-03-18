@@ -1,5 +1,10 @@
 // API Testing Utilities
 
+// Import necessary constants and types
+import { DEFAULT_MODELS, GLOBAL_MODEL_KEY } from '../APISettings';
+import { ProviderType } from '../context/ProviderContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 // OpenAI API Key Testing
 export const testOpenAIKey = async (apiKey: string, modelName: string) => {
     try {
@@ -308,6 +313,36 @@ export const testGroqKey = async (apiKey: string, modelName: string) => {
             error: error.message
         };
     }
+};
+
+// Function to save current model for a provider
+export const saveCurrentModel = async (provider: ProviderType, model: string) => {
+  try {
+    // Get current models
+    const savedModels = await AsyncStorage.getItem(GLOBAL_MODEL_KEY);
+    let currentModels = {
+      openai: DEFAULT_MODELS.openai,
+      google: DEFAULT_MODELS.google,
+      anthropic: DEFAULT_MODELS.anthropic,
+      openrouter: DEFAULT_MODELS.openrouter,
+      groq: DEFAULT_MODELS.groq
+    };
+    
+    if (savedModels) {
+      currentModels = JSON.parse(savedModels);
+    }
+    
+    // Update model for the provider
+    currentModels[provider] = model;
+    
+    // Save updated models
+    await AsyncStorage.setItem(GLOBAL_MODEL_KEY, JSON.stringify(currentModels));
+    
+    return true;
+  } catch (error) {
+    console.error('Error saving current model:', error);
+    return false;
+  }
 };
 
 // Add a default export to satisfy Expo Router's requirements

@@ -1034,10 +1034,15 @@ export default function Box1() {
 
   // Constants for storage keys
   const TOOL_PROVIDER_KEY = 'box1_selected_provider';
+  const TOOL_MODEL_KEY = 'box1_selected_model';
   const GLOBAL_PROVIDER_KEY = 'selected_provider';
+  const GLOBAL_MODEL_KEY = 'current_models';
 
   const markdownStyles = createMarkdownStyles(isDark);
   const originalMarkdownStyles = createOriginalMarkdownStyles(isDark);
+
+  // Add state to track if we're using global models
+  const [isUsingGlobalModels, setIsUsingGlobalModels] = useState(true);
 
   useEffect(() => {
     const loadSavedData = async () => {
@@ -1184,6 +1189,9 @@ export default function Box1() {
           // If there's a saved tool-specific provider and it's active, use it
           setSelectedProvider(toolProvider as ProviderType);
           setIsUsingGlobalProvider(false);
+          
+          // Also check for tool-specific models
+          await loadToolSpecificModels(toolProvider as ProviderType);
         } else {
           // If no tool-specific provider, try to load the global provider
           const globalProvider = await AsyncStorage.getItem(GLOBAL_PROVIDER_KEY);
@@ -1192,6 +1200,7 @@ export default function Box1() {
             // If there's a saved global provider and it's active, use it
             setSelectedProvider(globalProvider as ProviderType);
             setIsUsingGlobalProvider(true);
+            setIsUsingGlobalModels(true);
           } else {
             // If no provider is selected or the saved providers are not active,
             // find the first active one
@@ -1204,6 +1213,7 @@ export default function Box1() {
               // Save the selected provider to tool-specific AsyncStorage
               await AsyncStorage.setItem(TOOL_PROVIDER_KEY, activeProvs[0]);
               setIsUsingGlobalProvider(false);
+              setIsUsingGlobalModels(true);
             } else {
               setSelectedProvider(null);
               setProviderError('No active AI provider found. Please enable a provider in the API settings.');
@@ -1218,6 +1228,33 @@ export default function Box1() {
     
     loadSelectedProvider();
   }, [activeProviders, isProviderActive]);
+
+  // Function to load tool-specific models
+  const loadToolSpecificModels = async (providerType: ProviderType) => {
+    try {
+      const savedToolModels = await AsyncStorage.getItem(TOOL_MODEL_KEY);
+      if (savedToolModels) {
+        const toolModels = JSON.parse(savedToolModels);
+        
+        // If the saved model exists for the provider, use it
+        if (toolModels && toolModels[providerType]) {
+          // Update only this provider's model in our state
+          setCurrentModels(prev => ({
+            ...prev,
+            [providerType]: toolModels[providerType]
+          }));
+          setIsUsingGlobalModels(false);
+        } else {
+          setIsUsingGlobalModels(true);
+        }
+      } else {
+        setIsUsingGlobalModels(true);
+      }
+    } catch (error) {
+      console.error('Error loading tool-specific models:', error);
+      setIsUsingGlobalModels(true);
+    }
+  };
 
   // Load active providers list
   useEffect(() => {
@@ -1244,6 +1281,34 @@ export default function Box1() {
       // Save to tool-specific storage key
       await AsyncStorage.setItem(TOOL_PROVIDER_KEY, provider);
       setIsUsingGlobalProvider(false);
+      
+      // Check if we have tool-specific models for this provider
+      const savedToolModels = await AsyncStorage.getItem(TOOL_MODEL_KEY);
+      if (savedToolModels) {
+        const toolModels = JSON.parse(savedToolModels);
+        if (toolModels && toolModels[provider]) {
+          // We have a tool-specific model for this provider
+          setCurrentModels(prev => ({
+            ...prev,
+            [provider]: toolModels[provider]
+          }));
+          setIsUsingGlobalModels(false);
+        } else {
+          // No tool-specific model, use global model
+          const globalModels = await AsyncStorage.getItem(GLOBAL_MODEL_KEY);
+          if (globalModels) {
+            const parsedGlobalModels = JSON.parse(globalModels);
+            setCurrentModels(prev => ({
+              ...prev,
+              [provider]: parsedGlobalModels[provider]
+            }));
+          }
+          setIsUsingGlobalModels(true);
+        }
+      } else {
+        setIsUsingGlobalModels(true);
+      }
+      
       setDropdownVisible(false);
     } catch (error) {
       console.error('Error saving selected provider:', error);
@@ -1253,9 +1318,26 @@ export default function Box1() {
   // Function to handle model selection
   const handleModelSelect = async (provider: ProviderType, modelName: string) => {
     try {
+      // Update the model in state
       const newCurrentModels = { ...currentModels, [provider]: modelName };
       setCurrentModels(newCurrentModels);
-      await AsyncStorage.setItem('current_models', JSON.stringify(newCurrentModels));
+      
+      // Save to tool-specific model storage
+      let toolModels = {};
+      const savedToolModels = await AsyncStorage.getItem(TOOL_MODEL_KEY);
+      if (savedToolModels) {
+        toolModels = JSON.parse(savedToolModels);
+      }
+      
+      // Update this provider's model in our tool-specific storage
+      toolModels = {
+        ...toolModels,
+        [provider]: modelName
+      };
+      
+      await AsyncStorage.setItem(TOOL_MODEL_KEY, JSON.stringify(toolModels));
+      setIsUsingGlobalModels(false);
+      
       // Reset all expanded items to false
       setExpandedItems({
         openai: false,
@@ -1335,11 +1417,12 @@ export default function Box1() {
       const fromLanguage = activeUser === 1 ? sourceLanguage : targetLanguage;
       const toLanguage = activeUser === 1 ? targetLanguage : sourceLanguage;
 
-      // Create translation request
+      // Create translation request with the selected model
       const request: TranslationRequest = {
         text,
         fromLanguage,
-        toLanguage
+        toLanguage,
+        model: currentModels[selectedProvider] // Include the selected model
       };
 
       // Call the API utility function to translate
@@ -1562,9 +1645,18 @@ export default function Box1() {
         // Set the selected provider to the global provider
         setSelectedProvider(globalProvider as ProviderType);
         
-        // Remove the tool-specific provider
+        // Remove the tool-specific provider and model
         await AsyncStorage.removeItem(TOOL_PROVIDER_KEY);
+        await AsyncStorage.removeItem(TOOL_MODEL_KEY);
+        
         setIsUsingGlobalProvider(true);
+        setIsUsingGlobalModels(true);
+        
+        // Load global models
+        const savedModels = await AsyncStorage.getItem(GLOBAL_MODEL_KEY);
+        if (savedModels) {
+          setCurrentModels(JSON.parse(savedModels));
+        }
       } else {
         // If no global provider or it's not active, find the first active one
         const activeProvs = Object.entries(activeProviders)
@@ -1574,6 +1666,7 @@ export default function Box1() {
         if (activeProvs.length > 0) {
           setSelectedProvider(activeProvs[0]);
           setIsUsingGlobalProvider(true);
+          setIsUsingGlobalModels(true);
         } else {
           setSelectedProvider(null);
           setProviderError('No active AI provider found. Please enable a provider in the API settings.');
@@ -1598,6 +1691,21 @@ export default function Box1() {
             setSelectedProvider(globalProvider as ProviderType);
           }
         }
+        
+        // Check global models if we're using them
+        if (isUsingGlobalModels) {
+          const savedGlobalModels = await AsyncStorage.getItem(GLOBAL_MODEL_KEY);
+          if (savedGlobalModels) {
+            const parsedGlobalModels = JSON.parse(savedGlobalModels);
+            // Only update if we have a selected provider and there's a difference in the model
+            if (selectedProvider && parsedGlobalModels[selectedProvider] !== currentModels[selectedProvider]) {
+              setCurrentModels(prev => ({
+                ...prev,
+                [selectedProvider]: parsedGlobalModels[selectedProvider]
+              }));
+            }
+          }
+        }
       } catch (error) {
         console.error('Error checking global provider:', error);
       }
@@ -1608,7 +1716,7 @@ export default function Box1() {
     
     // Clean up the interval when the component unmounts
     return () => clearInterval(intervalId);
-  }, [isUsingGlobalProvider, selectedProvider, isProviderActive]);
+  }, [isUsingGlobalProvider, isUsingGlobalModels, selectedProvider, isProviderActive, currentModels]);
 
   // Function to reset UI positioning
   const resetUIPositioning = () => {
@@ -1766,9 +1874,12 @@ export default function Box1() {
   useEffect(() => {
     const loadCurrentModels = async () => {
       try {
-        const savedModels = await AsyncStorage.getItem('current_models');
-        if (savedModels) {
-          setCurrentModels(JSON.parse(savedModels));
+        // Only load global models if we're using them
+        if (isUsingGlobalModels) {
+          const savedModels = await AsyncStorage.getItem(GLOBAL_MODEL_KEY);
+          if (savedModels) {
+            setCurrentModels(JSON.parse(savedModels));
+          }
         }
       } catch (error) {
         console.error('Error loading current models:', error);
@@ -1776,7 +1887,7 @@ export default function Box1() {
     };
     
     loadCurrentModels();
-  }, []);
+  }, [isUsingGlobalModels]);
 
   // Add function to collapse all items
   const collapseAllItems = () => {

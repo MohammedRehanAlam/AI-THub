@@ -20,6 +20,9 @@ export const DEFAULT_MODELS = {
   groq: "llama3-8b-8192"
 };
 
+// Constants for storage keys
+export const GLOBAL_MODEL_KEY = 'current_models';
+
 // Add these interfaces after the DEFAULT_MODELS constant
 interface VerifiedModel {
     name: string;
@@ -158,7 +161,7 @@ const APISettings = () => {
                 openrouter: newVerifiedModels.openrouter[0]?.name || DEFAULT_MODELS.openrouter,
                 groq: newVerifiedModels.groq[0]?.name || DEFAULT_MODELS.groq
             };
-            await AsyncStorage.setItem('current_models', JSON.stringify(currentModels));
+            await AsyncStorage.setItem(GLOBAL_MODEL_KEY, JSON.stringify(currentModels));
             
             return true;
         } catch (error) {

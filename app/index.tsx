@@ -44,6 +44,7 @@ const GLOBAL_PROVIDER_KEY = 'selected_provider';
 const TOOL1_PROVIDER_KEY = 'box1_selected_provider';
 const TOOL2_PROVIDER_KEY = 'box2_selected_provider';
 const TOOL3_PROVIDER_KEY = 'box3_selected_provider';
+const GLOBAL_MODEL_KEY = 'current_models';
 
 export default function HomePage() {
   const { currentTheme } = useTheme();
@@ -161,7 +162,7 @@ export default function HomePage() {
   useEffect(() => {
     const loadCurrentModels = async () => {
       try {
-        const savedModels = await AsyncStorage.getItem('current_models');
+        const savedModels = await AsyncStorage.getItem(GLOBAL_MODEL_KEY);
         if (savedModels) {
           setCurrentModels(JSON.parse(savedModels));
         }
@@ -404,7 +405,7 @@ export default function HomePage() {
     try {
       const newCurrentModels = { ...currentModels, [provider]: modelName };
       setCurrentModels(newCurrentModels);
-      await AsyncStorage.setItem('current_models', JSON.stringify(newCurrentModels));
+      await AsyncStorage.setItem(GLOBAL_MODEL_KEY, JSON.stringify(newCurrentModels));
       // Reset all expanded items to false
       setExpandedItems({
         openai: false,
