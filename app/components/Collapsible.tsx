@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     width: 270,
     // marginLeft: 20,
-    // backgroundColor: 'transparent'
+    //  backgroundColor: 'transparent'
   },
   verticalLine: {
     width: 2,
