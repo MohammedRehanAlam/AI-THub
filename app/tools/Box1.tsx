@@ -2166,6 +2166,7 @@ export default function Box1() {
                   )}
                   {message.text && (
                     <View style={styles.markdownContainer}>
+                      {/* Comment this section if you want to completely hide thinking/reasoning sections */}
                       {message.text.match(/<(reasoning|thinking|think)[^>]*>([\s\S]*?)<\/\1>/g) ? (
                         message.text.split(/(<(?:reasoning|thinking|think)[^>]*>[\s\S]*?<\/(?:reasoning|thinking|think)>)/).map((segment, index) => {
                           const tagMatch = segment.match(/<(reasoning|thinking|think)[^>]*>([\s\S]*?)<\/\1>/);
@@ -2185,6 +2186,15 @@ export default function Box1() {
                       ) : (
                         <Markdown style={markdownStyles} mergeStyle={false}>{message.text}</Markdown>
                       )}
+                      
+                      {/* To completely hide thinking/reasoning sections, uncomment the following code and comment out the above section
+                      <Markdown 
+                        style={markdownStyles} 
+                        mergeStyle={false}
+                      >
+                        {message.text.replace(/<(reasoning|thinking|think)[^>]*>[\s\S]*?<\/\1>/g, '')}
+                      </Markdown>
+                      */}
                     </View>
                   )}
                   {(message.originalText || message.originalImageUri) && (
