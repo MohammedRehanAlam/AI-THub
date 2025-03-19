@@ -72,7 +72,7 @@ const UI_CONFIG = {
   // Controls how far above the keyboard the input field should appear
   // Increase this value to move the input field higher above the keyboard
   // Decrease this value to keep the input field closer to the keyboard
-  KEYBOARD_OFFSET: 10,   // Distance in pixels between keyboard and input field
+  KEYBOARD_OFFSET: 5,   // Distance in pixels between keyboard and input field when keyboard is open
 };
 
 interface Message {
@@ -644,7 +644,7 @@ const createStyles = (isDark: boolean): StylesType => {
       borderTopColor: colors.border,
       backgroundColor: colors.background,
       width: '100%',
-      paddingBottom: 10,
+      paddingBottom: 5,
     },
     userToggle: {
       flexDirection: 'row',
@@ -2121,7 +2121,7 @@ export default function Box1() {
           style={styles.messagesContainer}
           contentContainerStyle={[
             styles.messagesContent,
-            { paddingBottom: keyboardVisible ? 10 : 130 }
+            { paddingBottom: keyboardVisible ? 10 : 120 }
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
