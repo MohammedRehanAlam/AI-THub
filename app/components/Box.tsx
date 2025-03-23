@@ -45,8 +45,8 @@ export function Box({ isDark, onPress, title }: BoxProps) {
       justifyContent: 'space-between',
       alignItems: 'center',
       marginVertical: 8,
-      borderWidth: 2,
-      borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+      borderWidth: 5,
+      borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
       marginHorizontal: GAP / 2,
       padding: 20,
       backgroundColor: isDark ? '#2d2d2d' : '#f8f9fa',
@@ -115,8 +115,6 @@ export function Box({ isDark, onPress, title }: BoxProps) {
         return 'cube-outline';
       case 'box 3 three':
         return 'grid-outline';
-      case 'translator old':
-        return 'language-outline';
       case 'coming soon':
         return 'time-outline';
       default:
@@ -133,8 +131,6 @@ export function Box({ isDark, onPress, title }: BoxProps) {
         return 'Coming Soon';
       case 'box 3 three':
         return 'Coming Soon';
-      case 'translator old':
-        return 'Coming Soon in new version';
       case 'coming soon':
         return 'Stay Tuned!';
       default:

@@ -151,10 +151,17 @@ function RootLayoutNav() {
             <Stack.Screen name="APISettings" options={{ gestureEnabled: false }} />
             <Stack.Screen name="About" options={{ gestureEnabled: false }} />
             
-            <Stack.Screen name="tools/Box1" options={{ gestureEnabled: false }} />
+            {/* Tool Screens */}
+            <Stack.Screen name="tools/Translator" options={{ gestureEnabled: false }} />
             <Stack.Screen name="tools/Box2" options={{ gestureEnabled: false }} />
             <Stack.Screen name="tools/Box3" options={{ gestureEnabled: false }} />
             <Stack.Screen name="tools/ComingSoon" options={{ gestureEnabled: false }} />
+            
+            {/* Launch Screens */}
+            <Stack.Screen name="launch_screens/TranslatorLaunch" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="launch_screens/Box2Launch" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="launch_screens/Box3Launch" options={{ gestureEnabled: false }} />
+            <Stack.Screen name="launch_screens/ComingSoonLaunch" options={{ gestureEnabled: false }} />
           </Stack>
         </ThemeProvider>
       </ProviderProvider>

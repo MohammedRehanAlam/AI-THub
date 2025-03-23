@@ -9,7 +9,7 @@ import APISettings from './APISettings';
 import About from './About';
 import APISettingsAuth from './APISettingsAuth';
 
-import Box1 from './tools/Box1';
+import Translator from './tools/Translator';
 import Box2 from './tools/Box2';
 import Box3 from './tools/Box3';
 import ComingSoon from './tools/ComingSoon';
@@ -31,7 +31,7 @@ const AppNavigator = () => {
         <Drawer.Screen name="About" component={About} options={{ title: 'About' }} />
         <Drawer.Screen name="APISettingsAuth" component={APISettingsAuth} options={{ title: 'API Settings Auth' }} />
         
-        <Drawer.Screen name="Box1" component={Box1} options={{ title: 'Translator' }} />
+        <Drawer.Screen name="Translator" component={Translator} options={{ title: 'Translator' }} />
         <Drawer.Screen name="Box2" component={Box2} options={{ title: 'Box 2' }} />
         <Drawer.Screen name="Box3" component={Box3} options={{ title: 'Box 3' }} />
         <Drawer.Screen name="ComingSoon" component={ComingSoon} options={{ title: 'Coming Soon' }} />

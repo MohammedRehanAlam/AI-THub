@@ -5,7 +5,9 @@ declare module './Settings';
 declare module './APISettings';
 declare module './About';
 declare module './APISettingsAuth';
-declare module './tools/Box1';
+
+
+declare module './tools/Translator';
 declare module './tools/Box2';
 declare module './tools/Box3';
 declare module './tools/ComingSoon';
@@ -24,7 +26,8 @@ type RootDrawerParamList = {
   APISettings: undefined;
   About: undefined;
   APISettingsAuth: undefined;
-  Box1: undefined;
+  
+  Translator: undefined;
   Box2: undefined;
   Box3: undefined;
   ComingSoon: undefined;

@@ -114,6 +114,7 @@ type StylesType = {
   container: ViewStyle;
   header: ViewStyle;
   headerLeft: ViewStyle;
+  headerRight: ViewStyle;
   toggleButton: ViewStyle;
   clearButton: ViewStyle;
   clearButtonDisabled: ViewStyle;
@@ -477,6 +478,11 @@ const createStyles = (isDark: boolean): StylesType => {
       gap: 12,
       flex: 0.3,
       minWidth: 100,
+    },
+    headerRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
     toggleButton: {
       padding: 4,
@@ -1910,154 +1916,12 @@ export default function Box1() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      {/* Fixed Header */}
+      {/* Fixed Header
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity style={styles.toggleButton} onPress={() => router.push('/')}>
             <Ionicons name="chevron-back-outline" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.logo}>Translator</Text>
-        </View>
-        
-        <View style={styles.providerSelector}>
-          <TouchableOpacity 
-            onPress={() => handleDropdownVisibility(!dropdownVisible)}
-            style={styles.providerButton}
-          >
-            {selectedProvider ? (
-              <>
-                {selectedProvider === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
-                {selectedProvider === 'google' && <GeminiLogo width={24} height={24} />}
-                {selectedProvider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
-                {selectedProvider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
-                {selectedProvider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
-                <View style={styles.dropdownItemContent}>
-                  <Text style={styles.providerText} numberOfLines={1} ellipsizeMode="tail">
-                    {getProviderDisplayName(selectedProvider)}
-                  </Text>
-                  <Text style={styles.dropdownItemModel} numberOfLines={1} ellipsizeMode="tail">
-                    {currentModels[selectedProvider]}
-                  </Text>
-                </View>
-                <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={isDark ? '#fff' : '#000'} />
-              </>
-            ) : (
-              <>
-                <Ionicons name="cloud-outline" size={24} color={isDark ? '#fff' : '#000'} />
-                <View style={styles.dropdownItemContent}>
-                  <Text style={styles.providerText} numberOfLines={1} ellipsizeMode="tail">
-                    {activeProvidersList.length > 0 ? 'Select Provider' : 'No Providers'}
-                  </Text>
-                </View>
-                <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={isDark ? '#fff' : '#000'} />
-              </>
-            )}
-          </TouchableOpacity>
-          
-          {/* Provider Selection Dropdown */}
-          <Modal
-            visible={dropdownVisible}
-            transparent={true}
-            animationType="fade"
-            onRequestClose={() => handleDropdownVisibility(false)}
-          >
-            <TouchableOpacity 
-              style={styles.dropdownModal}
-              activeOpacity={1}
-              onPress={() => handleDropdownVisibility(false)}
-            >
-              <View style={[styles.dropdownContent]}>
-                {activeProvidersList.length > 0 ? (
-                  // max height of the dropdown container
-                  <ScrollView style={{ maxHeight: 430 }}> 
-                    {activeProvidersList.map((provider) => (
-                      <View key={provider}>
-                        <TouchableOpacity
-                          style={[
-                            styles.dropdownItem,
-                            selectedProvider === provider && styles.selectedItem
-                          ]}
-                          onPress={() => handleProviderSelect(provider)}
-                        >
-                          {provider === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
-                          {provider === 'google' && <GeminiLogo width={24} height={24} />}
-                          {provider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
-                          {provider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
-                          {provider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
-                          <View style={styles.dropdownItemContent}>
-                            <Text style={styles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
-                              {getProviderDisplayName(provider)}
-                            </Text>
-                            <Text style={styles.dropdownItemModel} numberOfLines={1} ellipsizeMode="tail">
-                              {currentModels[provider]}
-                            </Text>
-                          </View>
-                          <TouchableOpacity
-                            style={styles.expandButton}
-                            onPress={() => handleExpand(provider)}
-                          >
-                            <Ionicons
-                              name={expandedItems[provider] ? "chevron-up" : "chevron-down"}
-                              size={20}
-                              color={isDark ? '#fff' : '#000'}
-                            />
-                          </TouchableOpacity>
-                        </TouchableOpacity>
-                        
-                        {expandedItems[provider] && verifiedModels[provider].length > 0 && (
-                          <View style={styles.modelsList}>
-                            {verifiedModels[provider].map((modelName, index) => (
-                              <TouchableOpacity
-                                key={index}
-                                style={[
-                                  styles.modelOption,
-                                  currentModels[provider] === modelName && styles.selectedModel
-                                ]}
-                                onPress={() => handleModelSelect(provider, modelName)}
-                              >
-                                <Text 
-                                  style={[
-                                    styles.modelOptionText,
-                                    currentModels[provider] === modelName && styles.selectedModelText
-                                  ]}
-                                  numberOfLines={1}
-                                  ellipsizeMode="tail"
-                                >
-                                  {modelName}
-                                </Text>
-                                {currentModels[provider] === modelName && (
-                                  <Ionicons
-                                    name="checkmark"
-                                    size={16}
-                                    color={isDark ? '#4a90e2' : '#2196F3'}
-                                    style={{ marginLeft: 8 }}
-                                  />
-                                )}
-                              </TouchableOpacity>
-                            ))}
-                          </View>
-                        )}
-                      </View>
-                    ))}
-                    <View style={styles.dropdownDivider} />
-                    <TouchableOpacity
-                      style={styles.dropdownItem}
-                      onPress={resetToGlobalProvider}
-                    >
-                      <Ionicons name="globe-outline" size={24} color={isDark ? '#fff' : '#000'} />
-                      <Text style={styles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
-                        Use Global Provider
-                      </Text>
-                    </TouchableOpacity>
-                  </ScrollView>
-                ) : (
-                  <Text style={styles.noProvidersText}>
-                    No active providers
-                  </Text>
-                )}
-              </View>
-            </TouchableOpacity>
-          </Modal>
         </View>
         
         <TouchableOpacity 
@@ -2070,6 +1934,64 @@ export default function Box1() {
         >
           <Ionicons name="trash-outline" size={24} color={colors.text} />
         </TouchableOpacity>
+      </View> */}
+
+      {/* Fixed Header */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity style={styles.toggleButton} onPress={() => router.push('/')}>
+            <Ionicons name="chevron-back-outline" size={24} color={colors.text} />
+          </TouchableOpacity>
+        </View>
+        
+        <View style={styles.headerRight}>
+          <View style={styles.providerSelector}>
+            <TouchableOpacity 
+              onPress={() => handleDropdownVisibility(!dropdownVisible)}
+              style={styles.providerButton}
+            >
+              {selectedProvider ? (
+                <>
+                  {selectedProvider === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
+                  {selectedProvider === 'google' && <GeminiLogo width={24} height={24} />}
+                  {selectedProvider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
+                  {selectedProvider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
+                  {selectedProvider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
+                  <View style={styles.dropdownItemContent}>
+                    <Text style={styles.providerText} numberOfLines={1} ellipsizeMode="tail">
+                      {getProviderDisplayName(selectedProvider)}
+                    </Text>
+                    <Text style={styles.dropdownItemModel} numberOfLines={1} ellipsizeMode="tail">
+                      {currentModels[selectedProvider]}
+                    </Text>
+                  </View>
+                  <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={colors.text} />
+                </>
+              ) : (
+                <>
+                  <Ionicons name="cloud-outline" size={24} color={colors.text} />
+                  <View style={styles.dropdownItemContent}>
+                    <Text style={styles.providerText} numberOfLines={1} ellipsizeMode="tail">
+                      {activeProvidersList.length > 0 ? 'Select Provider' : 'No Providers'}
+                    </Text>
+                  </View>
+                  <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={colors.text} />
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+          
+          <TouchableOpacity 
+            onPress={handleClearButtonPress} 
+            style={[
+              styles.clearButton, 
+              messages.length === 0 && styles.clearButtonDisabled
+            ]}
+            disabled={messages.length === 0}
+          >
+            <Ionicons name="trash-outline" size={24} color={colors.text} />
+          </TouchableOpacity>
+        </View>
       </View>
       
       {/* Add provider error message */}
@@ -2384,6 +2306,119 @@ export default function Box1() {
         message={errorMessage}
         learnMoreUrl={learnMoreUrl}
         onDismiss={() => setErrorAlertVisible(false)}
+        isDark={isDark}
+      />
+
+      {/* Provider Selection Dropdown */}
+      <Modal
+        visible={dropdownVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => handleDropdownVisibility(false)}
+      >
+        <TouchableOpacity 
+          style={styles.dropdownModal}
+          activeOpacity={1}
+          onPress={() => handleDropdownVisibility(false)}
+        >
+          <View style={styles.dropdownContent}>
+            {activeProvidersList.length > 0 ? (
+              <ScrollView style={{ maxHeight: 430 }}> 
+                {activeProvidersList.map((provider) => (
+                  <View key={provider}>
+                    <TouchableOpacity
+                      style={[
+                        styles.dropdownItem,
+                        selectedProvider === provider && styles.selectedItem
+                      ]}
+                      onPress={() => handleProviderSelect(provider)}
+                    >
+                      {provider === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
+                      {provider === 'google' && <GeminiLogo width={24} height={24} />}
+                      {provider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
+                      {provider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
+                      {provider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
+                      <View style={styles.dropdownItemContent}>
+                        <Text style={styles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
+                          {getProviderDisplayName(provider)}
+                        </Text>
+                        <Text style={styles.dropdownItemModel} numberOfLines={1} ellipsizeMode="tail">
+                          {currentModels[provider]}
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.expandButton}
+                        onPress={() => handleExpand(provider)}
+                      >
+                        <Ionicons
+                          name={expandedItems[provider] ? "chevron-up" : "chevron-down"}
+                          size={20}
+                          color={colors.text}
+                        />
+                      </TouchableOpacity>
+                    </TouchableOpacity>
+                    
+                    {expandedItems[provider] && verifiedModels[provider].length > 0 && (
+                      <View style={styles.modelsList}>
+                        {verifiedModels[provider].map((modelName, index) => (
+                          <TouchableOpacity
+                            key={index}
+                            style={[
+                              styles.modelOption,
+                              currentModels[provider] === modelName && styles.selectedModel
+                            ]}
+                            onPress={() => handleModelSelect(provider, modelName)}
+                          >
+                            <Text 
+                              style={[
+                                styles.modelOptionText,
+                                currentModels[provider] === modelName && styles.selectedModelText
+                              ]}
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                            >
+                              {modelName}
+                            </Text>
+                            {currentModels[provider] === modelName && (
+                              <Ionicons
+                                name="checkmark"
+                                size={16}
+                                color={isDark ? '#4a90e2' : '#2196F3'}
+                                style={{ marginLeft: 8 }}
+                              />
+                            )}
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                ))}
+                <View style={styles.dropdownDivider} />
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={resetToGlobalProvider}
+                >
+                  <Ionicons name="globe-outline" size={24} color={colors.text} />
+                  <Text style={styles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
+                    Use Global Provider
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+            ) : (
+              <Text style={styles.noProvidersText}>
+                No active providers
+              </Text>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <CustomAlert 
+        visible={isAlertVisible}
+        title="Clear Chat"
+        message="Are you sure you want to clear all messages?"
+        onCancel={() => setAlertVisible(false)}
+        onConfirm={clearChat}
         isDark={isDark}
       />
     </SafeAreaView>

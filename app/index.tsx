@@ -203,7 +203,7 @@ export default function HomePage() {
   }, []);
   
   // Individual boxes for better control over position and properties
-  type BoxRoute = '/tools/Box1' | '/tools/Box2' | '/tools/Box3' | '/tools/ComingSoon';
+  type BoxRoute = '/launch_screens/TranslatorLaunch' | '/launch_screens/Box2Launch' | '/launch_screens/Box3Launch' | '/launch_screens/ComingSoonLaunch';
 
   interface BoxItem {
     id: number;
@@ -212,10 +212,10 @@ export default function HomePage() {
   }
 
   const boxes: BoxItem[] = [
-    { id: 1, route: '/tools/Box1', title: 'Translator' },
-    { id: 2, route: '/tools/Box2', title: 'Box 2 two' },
-    { id: 3, route: '/tools/Box3', title: 'Box 3 three' },
-    { id: 4, route: '/tools/ComingSoon', title: 'Coming Soon' },
+    { id: 1, route: '/launch_screens/TranslatorLaunch', title: 'Translator' },
+    { id: 2, route: '/launch_screens/Box2Launch', title: 'Box 2 two' },
+    { id: 3, route: '/launch_screens/Box3Launch', title: 'Box 3 three' },
+    { id: 4, route: '/launch_screens/ComingSoonLaunch', title: 'Coming Soon' },
   ];
 
   const isDark = currentTheme === 'dark';
@@ -257,14 +257,17 @@ export default function HomePage() {
       color: isDark ? '#fff' : '#000',
     },
     providerSelector: {
+      flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: isDark ? '#333' : '#f0f0f0',
+      maxWidth: 150,
       paddingHorizontal: 7,
-      paddingVertical: 8,
+      paddingVertical: 5,
       borderRadius: 10,
       gap: 4,
       minWidth: 100,
+      alignSelf: 'flex-end',
+      backgroundColor: isDark ? '#333' : '#f0f0f0',
       borderWidth: 1,
       borderColor: isDark ? '#555' : '#ddd',
     },
@@ -311,7 +314,7 @@ export default function HomePage() {
       flex: 1,
       flexDirection: 'column',
       gap: 2,
-      width: 80, // Fixed width for content container
+      minWidth: 80,
     },
     dropdownItemModel: {
       color: isDark ? '#aaa' : '#666',
@@ -352,8 +355,9 @@ export default function HomePage() {
     },
     separator: {
       height: 1,
-      backgroundColor: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
-      marginVertical: 10,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+      marginTop: 5,
+      marginBottom: 10,
     },
     modelsList: {
       marginLeft: 34,
@@ -622,6 +626,7 @@ export default function HomePage() {
         </Modal>
         
         <View style={themedStyles.separator} />
+
         <ScrollView 
           contentContainerStyle={themedStyles.scrollContent}
           showsVerticalScrollIndicator={true}
@@ -634,9 +639,9 @@ export default function HomePage() {
                 isDark={isDark}
                 title={box.title}
                 onPress={() => {
-                  if (box.route === '/tools/ComingSoon') {
+                  if (box.route === '/launch_screens/ComingSoonLaunch') {
                     router.push({
-                      pathname: '/tools/ComingSoon',
+                      pathname: '/launch_screens/ComingSoonLaunch',
                       params: { title: box.title }
                     });
                   } else {
