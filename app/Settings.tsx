@@ -188,7 +188,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                 showsVerticalScrollIndicator={false}
                 contentInsetAdjustmentBehavior="automatic"
             >
-                <Text style={themedStyles.sectionTitle}>API Settings</Text>
+                <Text style={themedStyles.sectionTitle}>API Key Management</Text>
                 <View style={themedStyles.menuItems}>
                     <TouchableOpacity 
                         style={themedStyles.menuItem}
