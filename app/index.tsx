@@ -258,16 +258,19 @@ export default function HomePage() {
     },
     providerSelector: {
       flex: 1,
+      alignItems: 'flex-end',
+      maxWidth: 150,
+    },
+    providerButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      maxWidth: 150,
+      backgroundColor: isDark ? '#333' : '#f0f0f0',
       paddingHorizontal: 7,
       paddingVertical: 5,
       borderRadius: 10,
       gap: 4,
       minWidth: 100,
       alignSelf: 'flex-end',
-      backgroundColor: isDark ? '#333' : '#f0f0f0',
       borderWidth: 1,
       borderColor: isDark ? '#555' : '#ddd',
     },
@@ -477,37 +480,41 @@ export default function HomePage() {
           </View>
           
           <View style={themedStyles.headerRight}>
-            <TouchableOpacity 
-              style={themedStyles.providerSelector}
-              onPress={() => handleDropdownVisibility(true)}
-            >
-              {selectedProvider ? (
-                <>
-                  {selectedProvider === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
-                  {selectedProvider === 'google' && <GeminiLogo width={24} height={24} />}
-                  {selectedProvider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
-                  {selectedProvider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
-                  {selectedProvider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
-                  <View style={themedStyles.dropdownItemContent}>
-                    <Text style={themedStyles.providerText} numberOfLines={1} ellipsizeMode="tail">
-                      {PROVIDER_INFO[selectedProvider].name}
-                    </Text>
-                    <Text style={themedStyles.dropdownItemModel} numberOfLines={1} ellipsizeMode="tail">
-                      {currentModels[selectedProvider]}
-                    </Text>
-                  </View>
-                  <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={isDark ? '#fff' : '#000'} />
-                </>
-              ) : (
-                <>
-                  <Ionicons name="cloud-outline" size={24} color={isDark ? '#fff' : '#000'} />
-                  <Text style={themedStyles.providerText} numberOfLines={1} ellipsizeMode="tail">
-                    {activeProvidersList.length > 0 ? 'Select Provider' : 'No Providers'}
-                  </Text>
-                  <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={isDark ? '#fff' : '#000'} />
-                </>
-              )}
-            </TouchableOpacity>
+            <View style={themedStyles.providerSelector}>
+              <TouchableOpacity 
+                style={themedStyles.providerButton}
+                onPress={() => handleDropdownVisibility(true)}
+              >
+                {selectedProvider ? (
+                  <>
+                    {selectedProvider === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
+                    {selectedProvider === 'google' && <GeminiLogo width={24} height={24} />}
+                    {selectedProvider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
+                    {selectedProvider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
+                    {selectedProvider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
+                    <View style={themedStyles.dropdownItemContent}>
+                      <Text style={themedStyles.providerText} numberOfLines={1} ellipsizeMode="tail">
+                        {PROVIDER_INFO[selectedProvider].name}
+                      </Text>
+                      <Text style={themedStyles.dropdownItemModel} numberOfLines={1} ellipsizeMode="tail">
+                        {currentModels[selectedProvider]}
+                      </Text>
+                    </View>
+                    <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={isDark ? '#fff' : '#000'} />
+                  </>
+                ) : (
+                  <>
+                    <Ionicons name="cloud-outline" size={24} color={isDark ? '#fff' : '#000'} />
+                    <View style={themedStyles.dropdownItemContent}>
+                      <Text style={themedStyles.providerText} numberOfLines={1} ellipsizeMode="tail">
+                        {activeProvidersList.length > 0 ? 'Select Provider' : 'No Providers'}
+                      </Text>
+                    </View>
+                    <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={isDark ? '#fff' : '#000'} />
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
         
