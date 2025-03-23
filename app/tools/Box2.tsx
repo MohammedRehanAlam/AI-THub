@@ -404,7 +404,7 @@ export default function Box2() {
     separator: {
       height: 1,
       backgroundColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
-      marginVertical: 10,
+      marginVertical: 0,
     },
     // Provider selector styles
     providerSelector: {
@@ -449,9 +449,10 @@ export default function Box2() {
       backgroundColor: 'rgba(0,0,0,0.3)',
     },
     dropdownContent: {
-      marginTop: 60,
+      marginTop: 70,
       marginRight: 16,
       width: 230,
+      // height : 430, 
       backgroundColor: isDark ? '#333' : '#fff',
       borderRadius: 8,
       padding: 8,
@@ -644,7 +645,7 @@ export default function Box2() {
         >
           <View style={styles.dropdownContent}>
             {activeProvidersList.length > 0 ? (
-              <ScrollView style={{ maxHeight: 430 }}> 
+              <ScrollView style={{ maxHeight: 400 }}> 
                 {activeProvidersList.map((provider) => (
                   <View key={provider}>
                     <TouchableOpacity

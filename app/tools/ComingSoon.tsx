@@ -306,6 +306,50 @@ export default function ComingSoon() {
     }
   };
 
+  // Reset to global provider
+  const resetToGlobalProvider = async () => {
+    try {
+      // Get the global provider
+      const globalProvider = await AsyncStorage.getItem(GLOBAL_PROVIDER_KEY);
+      
+      if (globalProvider && isProviderActive(globalProvider as ProviderType)) {
+        // Set the selected provider to the global provider
+        setSelectedProvider(globalProvider as ProviderType);
+        
+        // Remove the tool-specific provider and model
+        await AsyncStorage.removeItem(TOOL_PROVIDER_KEY);
+        await AsyncStorage.removeItem(TOOL_MODEL_KEY);
+        
+        setIsUsingGlobalProvider(true);
+        setIsUsingGlobalModels(true);
+        
+        // Load global models
+        const savedModels = await AsyncStorage.getItem(GLOBAL_MODEL_KEY);
+        if (savedModels) {
+          setCurrentModels(JSON.parse(savedModels));
+        }
+      } else {
+        // If no global provider or it's not active, find the first active one
+        const activeProvs = Object.entries(activeProviders)
+          .filter(([_, isActive]) => isActive)
+          .map(([provider]) => provider as ProviderType);
+        
+        if (activeProvs.length > 0) {
+          setSelectedProvider(activeProvs[0]);
+          setIsUsingGlobalProvider(true);
+          setIsUsingGlobalModels(true);
+        } else {
+          setSelectedProvider(null);
+        }
+      }
+      
+      // Close the dropdown
+      setDropdownVisible(false);
+    } catch (error) {
+      console.error('Error resetting to global provider:', error);
+    }
+  };
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -407,9 +451,10 @@ export default function ComingSoon() {
       backgroundColor: 'rgba(0,0,0,0.3)',
     },
     dropdownContent: {
-      marginTop: 60,
+      marginTop: 70,
       marginRight: 16,
       width: 230,
+      // height : 430, 
       backgroundColor: isDark ? '#333' : '#fff',
       borderRadius: 8,
       padding: 8,
@@ -602,7 +647,7 @@ export default function ComingSoon() {
         >
           <View style={styles.dropdownContent}>
             {activeProvidersList.length > 0 ? (
-              <ScrollView style={{ maxHeight: 430 }}> 
+              <ScrollView style={{ maxHeight: 400 }}> 
                 {activeProvidersList.map((provider) => (
                   <View key={provider}>
                     <TouchableOpacity
@@ -671,6 +716,16 @@ export default function ComingSoon() {
                     )}
                   </View>
                 ))}
+                <View style={[styles.separator, { marginVertical: 8 }]} />
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={resetToGlobalProvider}
+                >
+                  <Ionicons name="globe-outline" size={24} color={isDark ? '#fff' : '#000'} />
+                  <Text style={styles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
+                    Use Global Provider
+                  </Text>
+                </TouchableOpacity>
               </ScrollView>
             ) : (
               <Text style={styles.noProvidersText}>

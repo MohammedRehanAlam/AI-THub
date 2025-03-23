@@ -2323,7 +2323,7 @@ export default function Box1() {
         >
           <View style={styles.dropdownContent}>
             {activeProvidersList.length > 0 ? (
-              <ScrollView style={{ maxHeight: 430 }}> 
+              <ScrollView style={{ maxHeight: 420 }}> 
                 {activeProvidersList.map((provider) => (
                   <View key={provider}>
                     <TouchableOpacity
