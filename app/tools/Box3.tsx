@@ -355,11 +355,10 @@ export default function Box3() {
     },
     header: {
       padding: 16,
+      paddingBottom: 0,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      // borderBottomWidth: 1,
-      // borderBottomColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
     },
     headerLeft: {
       flexDirection: 'row',

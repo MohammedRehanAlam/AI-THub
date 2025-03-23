@@ -355,11 +355,10 @@ export default function Box2() {
     },
     header: {
       padding: 16,
+      paddingBottom: 0,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      // borderBottomWidth: 1,
-      // borderBottomColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
     },
     headerLeft: {
       flexDirection: 'row',
@@ -404,7 +403,7 @@ export default function Box2() {
     separator: {
       height: 1,
       backgroundColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
-      marginVertical: 0,
+      marginVertical: 10,
     },
     // Provider selector styles
     providerSelector: {

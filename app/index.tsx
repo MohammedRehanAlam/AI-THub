@@ -231,6 +231,7 @@ export default function HomePage() {
     },
     header: {
       padding: 34,
+      // paddingBottom: 0,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
