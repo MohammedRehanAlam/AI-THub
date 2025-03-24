@@ -770,7 +770,7 @@ const createStyles = (isDark: boolean): StylesType => {
     },
     sendButton: {
       alignSelf: 'flex-end',
-      padding: 8,
+      padding: 2,
       paddingBottom: 14,
     },
     providerSelector: {
