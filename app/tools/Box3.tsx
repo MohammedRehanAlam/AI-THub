@@ -644,7 +644,7 @@ export default function Box3() {
         >
           <View style={styles.dropdownContent}>
             {activeProvidersList.length > 0 ? (
-              <ScrollView style={{ maxHeight: 400 }}> 
+              <ScrollView style={{ maxHeight: 380 }}> 
                 {activeProvidersList.map((provider) => (
                   <View key={provider}>
                     <TouchableOpacity
