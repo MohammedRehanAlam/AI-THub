@@ -954,6 +954,9 @@ const createStyles = (isDark: boolean): StylesType => {
       backgroundColor: colors.border,
       marginVertical: 8,
     },
+    languageSelectorExpanderIcon: {
+      padding: 4,
+  },
   });
 };
 
@@ -999,6 +1002,7 @@ export default function Box1() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isTogglingMessage, setIsTogglingMessage] = useState(false);
   const [preventScroll, setPreventScroll] = useState(false);
+  const [isLanguageSelectorVisible, setIsLanguageSelectorVisible] = useState(false);
   const scrollPositionRef = useRef(0);
 
   const RATE_LIMIT_DELAY = 1000;
@@ -1183,6 +1187,11 @@ export default function Box1() {
       };
     }, [messages.length])
   );
+
+  // Ensure language selector starts collapsed when component mounts
+  useEffect(() => {
+    setIsLanguageSelectorVisible(false);
+  }, []);
 
   // Load the selected provider from AsyncStorage
   useEffect(() => {
@@ -1916,26 +1925,7 @@ export default function Box1() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      {/* Fixed Header
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity style={styles.toggleButton} onPress={() => router.push('/')}>
-            <Ionicons name="chevron-back-outline" size={24} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-        
-        <TouchableOpacity 
-          onPress={handleClearButtonPress} 
-          style={[
-            styles.clearButton, 
-            messages.length === 0 && styles.clearButtonDisabled
-          ]}
-          disabled={messages.length === 0}
-        >
-          <Ionicons name="trash-outline" size={24} color={colors.text} />
-        </TouchableOpacity>
-      </View> */}
-
+      
       {/* Fixed Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
@@ -2000,41 +1990,67 @@ export default function Box1() {
           <Text style={styles.errorText}>{providerError}</Text>
         </View>
       )}
-      
-      {/* Fixed Language Selector */}
-      <View style={styles.languageSelector}>
-        <View style={styles.languageSelectorContainer}>
-          <View style={styles.languageBox}>
-            <LanguageSelector
-              selectedLanguage={sourceLanguage}
-              onSelect={(lang: Language) => setSourceLanguage(lang)}
-              languages={LANGUAGES}
-              isDark={isDark}
-              isOpen={isSourceLanguageSelectorOpen}
-              onClose={() => setIsSourceLanguageSelectorOpen(false)}
-            />
-          </View>
-          <TouchableOpacity
-            onPress={() => {
-              setSourceLanguage(targetLanguage);
-              setTargetLanguage(sourceLanguage);
-            }}
-            style={styles.swapButton}
-          >
-            <Ionicons name="swap-horizontal" size={24} color={colors.text} />
-          </TouchableOpacity>
-          <View style={styles.languageBox}>
-            <LanguageSelector
-              selectedLanguage={targetLanguage}
-              onSelect={(lang: Language) => setTargetLanguage(lang)}
-              languages={LANGUAGES}
-              isDark={isDark}
-              isOpen={isTargetLanguageSelectorOpen}
-              onClose={() => setIsTargetLanguageSelectorOpen(false)}
-            />
+    
+      {/* Chevron Toggle Icon */}
+      <TouchableOpacity 
+        onPress={() => setIsLanguageSelectorVisible(!isLanguageSelectorVisible)}
+        style={{ 
+          alignItems: 'center', 
+          paddingVertical: 4, 
+          borderBottomWidth: 1, 
+          borderBottomColor: colors.border,
+          zIndex: 10,
+          flexDirection: 'row',
+          justifyContent: 'center',
+          gap: 6,
+        }}
+      >
+        <Text style={{ color: colors.text, fontSize: 14 }}>
+          {isLanguageSelectorVisible ? "Hide Language Selector" : "Show Language Selector"}
+        </Text>
+        <Ionicons 
+          name={isLanguageSelectorVisible ? "chevron-down" : "chevron-up"} 
+          size={24} 
+          color={colors.text} 
+        />
+      </TouchableOpacity>
+
+      {/* Fixed Language Selector - Only visible when expanded */}
+      {isLanguageSelectorVisible && (
+        <View style={styles.languageSelector}>
+          <View style={styles.languageSelectorContainer}>
+            <View style={styles.languageBox}>
+              <LanguageSelector
+                selectedLanguage={sourceLanguage}
+                onSelect={(lang: Language) => setSourceLanguage(lang)}
+                languages={LANGUAGES}
+                isDark={isDark}
+                isOpen={isSourceLanguageSelectorOpen}
+                onClose={() => setIsSourceLanguageSelectorOpen(false)}
+              />
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                setSourceLanguage(targetLanguage);
+                setTargetLanguage(sourceLanguage);
+              }}
+              style={styles.swapButton}
+            >
+              <Ionicons name="swap-horizontal" size={24} color={colors.text} />
+            </TouchableOpacity>
+            <View style={styles.languageBox}>
+              <LanguageSelector
+                selectedLanguage={targetLanguage}
+                onSelect={(lang: Language) => setTargetLanguage(lang)}
+                languages={LANGUAGES}
+                isDark={isDark}
+                isOpen={isTargetLanguageSelectorOpen}
+                onClose={() => setIsTargetLanguageSelectorOpen(false)}
+              />
+            </View>
           </View>
         </View>
-      </View>
+      )}
 
       {/* Main content area with messages */}
       <View style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
