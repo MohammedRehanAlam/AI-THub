@@ -666,11 +666,13 @@ const createStyles = (isDark: boolean): StylesType => {
       padding: 10,
       paddingVertical: 10,
       borderRadius: 20,
-      alignItems: 'center',
       borderWidth: 2,
       borderColor: 'transparent',
       position: 'relative',
       backgroundColor: colors.surface,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     activeUserButton: {
       borderColor: isDark ? '#fff' : '#000',
@@ -954,9 +956,6 @@ const createStyles = (isDark: boolean): StylesType => {
       backgroundColor: colors.border,
       marginVertical: 8,
     },
-    languageSelectorExpanderIcon: {
-      padding: 4,
-  },
   });
 };
 
@@ -987,8 +986,6 @@ export default function Box1() {
   const [requestQueue, setRequestQueue] = useState<number>(0);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [isAlertVisible, setAlertVisible] = useState(false);
-  const [lastUser1ClickTime, setLastUser1ClickTime] = useState<number>(0);
-  const [lastUser2ClickTime, setLastUser2ClickTime] = useState<number>(0);
   const [isSourceLanguageSelectorOpen, setIsSourceLanguageSelectorOpen] = useState<boolean>(false);
   const [isTargetLanguageSelectorOpen, setIsTargetLanguageSelectorOpen] = useState<boolean>(false);
   const [errorAlertVisible, setErrorAlertVisible] = useState(false);
@@ -1008,7 +1005,6 @@ export default function Box1() {
   const RATE_LIMIT_DELAY = 1000;
   const MAX_RETRIES = 3;
   const RETRY_DELAY = 1000;
-  const DOUBLE_CLICK_DELAY = 300;
 
   const { activeProviders, isProviderActive } = useProviders();
   const [selectedProvider, setSelectedProvider] = useState<ProviderType | null>(null);
@@ -2192,13 +2188,7 @@ export default function Box1() {
                 activeUser === 1 && styles.activeUserButton,
               ]}
               onPress={() => {
-                const now = new Date().getTime();
-                if (now - lastUser1ClickTime < DOUBLE_CLICK_DELAY) {
-                  setIsSourceLanguageSelectorOpen(true);
-                } else {
-                  setActiveUser(1);
-                }
-                setLastUser1ClickTime(now);
+                setActiveUser(1);
               }}
             >
               <View style={[
@@ -2218,13 +2208,7 @@ export default function Box1() {
                 activeUser === 2 && styles.activeUserButton,
               ]}
               onPress={() => {
-                const now = new Date().getTime();
-                if (now - lastUser2ClickTime < DOUBLE_CLICK_DELAY) {
-                  setIsTargetLanguageSelectorOpen(true);
-                } else {
-                  setActiveUser(2);
-                }
-                setLastUser2ClickTime(now);
+                setActiveUser(2);
               }}
             >
               <View style={[
