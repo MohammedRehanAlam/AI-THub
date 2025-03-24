@@ -45,7 +45,7 @@ export function Box({ isDark, onPress, title }: BoxProps) {
       justifyContent: 'space-between',
       alignItems: 'center',
       marginVertical: 8,
-      borderWidth: 5,
+      borderWidth: 3,
       borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
       marginHorizontal: GAP / 2,
       padding: 20,
