@@ -78,7 +78,8 @@ const About = () => {
     }), [isDark]);
 
     return (
-        <SafeAreaView style={themedStyles.container}>   
+        // to make all the contents in full screen
+        <SafeAreaView style={themedStyles.container} edges={['top', 'left', 'right']}>
             <View style={themedStyles.header}>
                 <View style={themedStyles.headerLeft}>
                     <TouchableOpacity style={themedStyles.toggleButton} onPress={() => router.push('/Settings') }>

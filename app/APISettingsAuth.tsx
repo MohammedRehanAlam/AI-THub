@@ -326,7 +326,9 @@ const APISettingsAuth = () => {
     });
 
     return (
-        <SafeAreaView style={styles.container}>
+         // to make all the contents in full screen
+        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+
             <View style={styles.header}>
                 <View style={styles.backButton}>
                     <TouchableOpacity 

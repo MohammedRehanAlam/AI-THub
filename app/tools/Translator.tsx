@@ -1920,6 +1920,7 @@ export default function Box1() {
   };
 
   return (
+    // to make all the contents in full screen
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       
       {/* Fixed Header */}

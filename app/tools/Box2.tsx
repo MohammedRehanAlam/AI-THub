@@ -565,6 +565,7 @@ export default function Box2() {
   });
 
   return (
+    // to make all the contents in full screen
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>

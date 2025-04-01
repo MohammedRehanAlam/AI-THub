@@ -466,7 +466,8 @@ export default function HomePage() {
   };
 
   return (
-    <SafeAreaView style={themedStyles.container}>
+    // to make all the contents in full screen
+    <SafeAreaView style={themedStyles.container} edges={['top', 'left', 'right']}>
       <View style={themedStyles.mainContent}>
         <View style={themedStyles.header}>
           <View style={themedStyles.headerLeft}>
