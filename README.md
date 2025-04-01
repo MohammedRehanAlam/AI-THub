@@ -133,8 +133,6 @@ The app integrates with multiple AI providers:
 - Anthropic (Claude models)
 - OpenRouter (multi-provider access)
 - Groq (fast inference for open-source models)
-- Mistral AI
-- Cohere
 
 Each provider has a custom SVG logo that adapts to the app's theme.
 
