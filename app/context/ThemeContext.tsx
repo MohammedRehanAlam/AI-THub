@@ -61,47 +61,55 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const initialFontScale = PixelRatio.getFontScale();
     setFontScale(initialFontScale);
 
-    // Check if bold text is enabled in accessibility settings
-    AccessibilityInfo.isBoldTextEnabled().then(enabled => {
-      setIsBoldTextEnabled(enabled);
-    });
-    
-    // Listen for font scale changes
-    const fontChangeSubscription = AccessibilityInfo.addEventListener(
-      'boldTextChanged',
-      enabled => {
+    // Check if bold text is enabled in accessibility settings only on native platforms
+    if (Platform.OS !== 'web') {
+      AccessibilityInfo.isBoldTextEnabled().then(enabled => {
         setIsBoldTextEnabled(enabled);
-      }
-    );
-
-    // Setup a listener for font scale changes
-    if (Platform.OS === 'ios') {
-      // iOS provides direct notification for font scale changes
-      const fontScaleChangedSubscription = AccessibilityInfo.addEventListener(
-        'reduceMotionChanged', // We use this as a proxy since there's no direct fontScaleChanged event
-        () => {
-          const newFontScale = PixelRatio.getFontScale();
-          setFontScale(newFontScale);
+      });
+      
+      // Listen for font scale changes
+      const fontChangeSubscription = AccessibilityInfo.addEventListener(
+        'boldTextChanged',
+        enabled => {
+          setIsBoldTextEnabled(enabled);
         }
       );
-      
-      return () => {
-        fontChangeSubscription.remove();
-        fontScaleChangedSubscription.remove();
-      };
+
+      // Setup a listener for font scale changes
+      if (Platform.OS === 'ios') {
+        // iOS provides direct notification for font scale changes
+        const fontScaleChangedSubscription = AccessibilityInfo.addEventListener(
+          'reduceMotionChanged', // We use this as a proxy since there's no direct fontScaleChanged event
+          () => {
+            const newFontScale = PixelRatio.getFontScale();
+            setFontScale(newFontScale);
+          }
+        );
+        
+        return () => {
+          fontChangeSubscription.remove();
+          fontScaleChangedSubscription.remove();
+        };
+      } else {
+        // For Android, we'll use a polling approach for font scale
+        const interval = setInterval(() => {
+          const newFontScale = PixelRatio.getFontScale();
+          if (newFontScale !== fontScale) {
+            setFontScale(newFontScale);
+          }
+        }, 1000); // Check every second
+        
+        return () => {
+          fontChangeSubscription.remove();
+          clearInterval(interval);
+        };
+      }
     } else {
-      // For Android, we'll use a polling approach for font scale
-      const interval = setInterval(() => {
-        const newFontScale = PixelRatio.getFontScale();
-        if (newFontScale !== fontScale) {
-          setFontScale(newFontScale);
-        }
-      }, 1000); // Check every second
-      
-      return () => {
-        fontChangeSubscription.remove();
-        clearInterval(interval);
-      };
+      // Web platform - use default values
+      setIsBoldTextEnabled(false);
+      // Optional: You can detect system font scale on web using window.devicePixelRatio
+      const webFontScale = typeof window !== 'undefined' ? window.devicePixelRatio : 1;
+      setFontScale(webFontScale);
     }
   }, [fontScale]);
 
