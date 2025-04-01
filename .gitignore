@@ -140,7 +140,6 @@ ios/Podfile.lock
 !babel.config.js
 !declarations.d.ts
 !eas.json
-!expo-env.d.ts
 !LICENSE
 !metro.config.js
 !package.json
