@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LANGUAGES, Language } from './languages';
+import CountryFlag from './CountryFlags';
 
 interface LanguageSelectorProps {
   selectedLanguage: Language;
@@ -27,7 +28,7 @@ interface LanguageSelectorProps {
 }
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const BOTTOM_SHEET_MAX_HEIGHT = SCREEN_HEIGHT * 0.5;
+const BOTTOM_SHEET_MAX_HEIGHT = SCREEN_HEIGHT * 0.6;
 const DRAG_THRESHOLD = 50;
 
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({
@@ -162,7 +163,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           { backgroundColor: isDark ? '#2d2d2d' : '#ffffff', borderWidth: isDark ? 0 : 1, borderColor: '#e0e0e0' }
         ]}
       >
-        <Ionicons name="globe-outline" size={20} color={isDark ? '#fff' : '#000'} />
+        <CountryFlag language={selectedLanguage} size={20} />
         <Text 
           style={[styles.selectedText, { color: isDark ? '#fff' : '#000' }]}
           numberOfLines={1}
@@ -300,17 +301,20 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
                     color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)',
                   }}
                 >
-                  <Text 
-                    style={[
-                      styles.languageText,
-                      { color: isDark ? '#fff' : '#000' },
-                      selectedLanguage === item && { color: '#fff', fontWeight: '500' }
-                    ]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {item}
-                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <CountryFlag language={item} size={20} style={{ marginRight: 10 }} />
+                    <Text 
+                      style={[
+                        styles.languageText,
+                        { color: isDark ? '#fff' : '#000' },
+                        selectedLanguage === item && { color: '#fff', fontWeight: '500' }
+                      ]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {item}
+                    </Text>
+                  </View>
                 </Pressable>
               )}
               onScrollToIndexFailed={(info) => {

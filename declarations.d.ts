@@ -6,12 +6,10 @@ declare module './APISettings';
 declare module './About';
 declare module './APISettingsAuth';
 
-
 declare module './tools/Translator';
 declare module './tools/Box2';
 declare module './tools/Box3';
 declare module './tools/ComingSoon';
-
 
 declare module "*.svg" {
   import React from "react";

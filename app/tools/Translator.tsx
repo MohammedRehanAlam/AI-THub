@@ -21,6 +21,7 @@ import { OpenAILogo, GeminiLogo, AnthropicLogo, OpenRouterLogo, GroqLogo } from 
 import * as ImagePicker from 'expo-image-picker';
 import Markdown from '@ronradtke/react-native-markdown-display';
 import { DEFAULT_MODELS } from '../APISettings';
+import CountryFlag from '../components/CountryFlags';
 
 // Theme colors
 const COLORS = {
@@ -694,8 +695,10 @@ const createStyles = (isDark: boolean): StylesType => {
       paddingVertical: 2,
       borderRadius: 10,
       zIndex: 1,
-      minWidth: 80,
+      minWidth: 90,
+      flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'center',
     },
     userLanguageLegendText: {
       color: '#fff',
@@ -2196,6 +2199,7 @@ export default function Box1() {
                 styles.userLanguageLegend,
                 { backgroundColor: activeUser === 1 ? colors.primary : colors.inactive }
               ]}>
+                <CountryFlag language={sourceLanguage} size={16} style={{ marginRight: 4 }} />
                 <Text style={styles.userLanguageLegendText}>{sourceLanguage}</Text>
               </View>
               <Text style={[
@@ -2216,6 +2220,7 @@ export default function Box1() {
                 styles.userLanguageLegend,
                 { backgroundColor: activeUser === 2 ? colors.primary : colors.inactive }
               ]}>
+                <CountryFlag language={targetLanguage} size={16} style={{ marginRight: 4 }} />
                 <Text style={styles.userLanguageLegendText}>{targetLanguage}</Text>
               </View>
               <Text style={[
