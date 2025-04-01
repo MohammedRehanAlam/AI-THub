@@ -568,7 +568,7 @@ export default function Box3() {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity style={styles.toggleButton} onPress={() => router.push('/') }>
+          <TouchableOpacity style={styles.toggleButton} onPress={() => router.push('/')}>
             <Ionicons name="chevron-back-outline" size={24} color={isDark ? '#fff' : '#000'} />
           </TouchableOpacity>
         </View>
