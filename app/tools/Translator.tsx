@@ -478,7 +478,7 @@ const createStyles = (isDark: boolean): StylesType => {
       alignItems: 'center',
       gap: 12,
       flex: 0.3,
-      minWidth: 100,
+      minWidth: 0,
     },
     headerRight: {
       flexDirection: 'row',
@@ -652,6 +652,7 @@ const createStyles = (isDark: boolean): StylesType => {
       backgroundColor: colors.background,
       width: '100%',
       paddingBottom: 5,
+      paddingTop: 4,
     },
     userToggle: {
       flexDirection: 'row',
@@ -690,7 +691,7 @@ const createStyles = (isDark: boolean): StylesType => {
     },
     userLanguageLegend: {
       position: 'absolute',
-      top: -8,
+      top: -9.5,
       paddingHorizontal: 8,
       paddingVertical: 2,
       borderRadius: 10,
@@ -2059,7 +2060,7 @@ export default function Box1() {
           style={styles.messagesContainer}
           contentContainerStyle={[
             styles.messagesContent,
-            { paddingBottom: keyboardVisible ? 5 : 120 }
+            { paddingBottom: keyboardVisible ? 5 : 124 }
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"

@@ -12,12 +12,12 @@ interface SettingsProps {
     onClose?: () => void;
 }
 
-const getFullYear = () => {
+const getCurrentYear = () => {
     return new Date().getFullYear();
 }
 
 const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
-    const { currentTheme, themePreference, setTheme } = useTheme();
+    const { currentTheme, themePreference, setTheme, useSystemFonts, setUseSystemFonts } = useTheme();
     const isDark = currentTheme === 'dark';
     const router = useRouter();
     const [isThemeExpanded, setIsThemeExpanded] = useState(false);
@@ -145,6 +145,27 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             letterSpacing: 0.5,
             textTransform: 'uppercase',
         },
+        toggleSwitch: {
+            width: 40,
+            height: 20,
+            borderRadius: 10,
+            backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        toggleSwitchActive: {
+            backgroundColor: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
+        },
+        toggleSwitchKnob: {
+            width: 16,
+            height: 16,
+            borderRadius: 8,
+            backgroundColor: isDark ? '#fff' : '#000',
+            transform: [{ translateX: -10 }],
+        },
+        toggleSwitchKnobActive: {
+            transform: [{ translateX: 10 }],
+        },
     }), [isDark]);
 
     const handleThemeChange = (theme: 'light' | 'dark' | 'system') => {
@@ -221,7 +242,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                         </Animated.View>
                     </TouchableOpacity>
 
-                    <Animated.View style={[themedStyles.themeSubmenu, { maxHeight: dropdownHeight }]}>
+                    <Animated.View style={{ height: dropdownHeight, overflow: 'hidden' }}>
                         <TouchableOpacity 
                             style={[
                                 themedStyles.themeOption,
@@ -270,6 +291,25 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                             )}
                         </TouchableOpacity>
                     </Animated.View>
+
+                    <TouchableOpacity 
+                        style={themedStyles.menuItem}
+                        onPress={() => setUseSystemFonts(!useSystemFonts)}
+                    >
+                        <View style={themedStyles.iconContainer}>
+                            <Ionicons name="text-outline" size={20} color={isDark ? '#fff' : '#000'} />
+                        </View>
+                        <Text style={themedStyles.menuItemText}>Use System Fonts</Text>
+                        <View style={[
+                            themedStyles.toggleSwitch, 
+                            useSystemFonts ? themedStyles.toggleSwitchActive : {}
+                        ]}>
+                            <View style={[
+                                themedStyles.toggleSwitchKnob,
+                                useSystemFonts ? themedStyles.toggleSwitchKnobActive : {}
+                            ]} />
+                        </View>
+                    </TouchableOpacity>
                 </View>
 
                 
@@ -290,7 +330,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             </ScrollView>
             <View style={themedStyles.footerContent}>
                 <View style={themedStyles.footerContainer}>
-                    <Text style={themedStyles.copyrightText}>© {getFullYear()} AI T-Hub</Text>
+                    <Text style={themedStyles.copyrightText}>© {getCurrentYear()} AI T-Hub</Text>
                     <Text style={themedStyles.copyrightText}>All Rights Reserved</Text>
                 </View>
             </View>

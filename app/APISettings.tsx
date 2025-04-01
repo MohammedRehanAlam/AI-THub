@@ -855,9 +855,10 @@ const APISettings = () => {
             minHeight: 45,
         },
         label: {
-            fontSize: 16,
+            fontSize: 15,
             color: isDark ? '#fff' : '#000',
             fontWeight: '500',
+            marginRight: 6,
         },
         separator: {
             height: 1,
@@ -866,10 +867,10 @@ const APISettings = () => {
             marginBottom: 10,
         },
         section: {
-            marginBottom: 24,
+            marginBottom: 20,
             backgroundColor: isDark ? '#252525' : '#f9f9f9',
             borderRadius: 12,
-            padding: 16,
+            padding: 12,
             borderWidth: 1,
             borderColor: isDark ? '#333' : '#eee',
             width: '100%',
@@ -877,14 +878,17 @@ const APISettings = () => {
         sectionHeader: {
             flexDirection: 'row',
             alignItems: 'center',
-            marginBottom: 12,
+            paddingVertical: 10,
+            flexWrap: 'nowrap',
+            width: '100%'
         },
         sectionIcon: {
             width: 24,
             height: 24,
-            marginRight: 10,
+            marginRight: 8,
             justifyContent: 'center',
             alignItems: 'center',
+            flexShrink: 0,
         },
         verifyButton: {
             backgroundColor: isDark ? '#4a90e2' : '#2196F3',
@@ -907,8 +911,9 @@ const APISettings = () => {
             marginBottom: 8,
         },
         statusText: {
-            fontSize: 14,
-            marginLeft: 8,
+            fontSize: 12,
+            marginLeft: 6,
+            flex: 1,
         },
         successText: {
             color: '#4CAF50',
@@ -920,9 +925,9 @@ const APISettings = () => {
             color: '#FFA500',
         },
         infoText: {
-            fontSize: 14,
+            fontSize: 12,
             color: isDark ? '#aaa' : '#666',
-            marginTop: 4,
+            marginTop: 2,
             marginBottom: 8,
         },
         inputGroup: {
@@ -965,12 +970,15 @@ const APISettings = () => {
         toggleContainer: {
             flexDirection: 'row',
             alignItems: 'center',
-            marginLeft: 'auto',
+            marginLeft: 4,
+            flexShrink: 0
         },
         toggleLabel: {
             fontSize: 12,
-            marginRight: 4,
+            marginRight: 0,
             color: isDark ? '#bbb' : '#555',
+            minWidth: 45,
+            textAlign: 'right',
         },
         disabledText: {
             color: isDark ? '#666' : '#aaa',
@@ -978,11 +986,12 @@ const APISettings = () => {
         statusBadge: {
             flexDirection: 'row',
             alignItems: 'center',
-            paddingHorizontal: 8,
-            paddingVertical: 4,
-            borderRadius: 12,
-            marginRight: 8,
-            gap: 4,
+            justifyContent: 'center',
+            width: 22,
+            height: 22,
+            borderRadius: 11,
+            marginRight: 0,
+            flexShrink: 0,
         },
         verifiedBadge: {
             backgroundColor: '#4CAF50',
@@ -994,7 +1003,7 @@ const APISettings = () => {
             backgroundColor: '#F44336',
         },
         statusBadgeText: {
-            fontSize: 12,
+            fontSize: 10,
             fontWeight: '500',
             color: '#fff',
         },
@@ -1221,21 +1230,18 @@ const APISettings = () => {
                 return (
                     <View style={[themedStyles.statusBadge, themedStyles.verifiedBadge]}>
                         <Ionicons name="checkmark-circle" size={14} color="#fff" />
-                        <Text style={themedStyles.statusBadgeText}>Verified</Text>
                     </View>
                 );
             } else if (status === false && isUsageLimitError && !isCredentialError) {
                 return (
                     <View style={[themedStyles.statusBadge, themedStyles.limitBadge]}>
                         <Ionicons name="alert-circle" size={14} color="#fff" />
-                        <Text style={themedStyles.statusBadgeText}>Usage Limit</Text>
                     </View>
                 );
             } else if (status === false) {
                 return (
                     <View style={[themedStyles.statusBadge, themedStyles.errorBadge]}>
                         <Ionicons name="close-circle" size={14} color="#fff" />
-                        <Text style={themedStyles.statusBadgeText}>Error</Text>
                     </View>
                 );
             }
@@ -1248,21 +1254,22 @@ const APISettings = () => {
                 <View style={themedStyles.sectionIcon}>
                     {logoComponent}
                 </View>
-                <Text style={themedStyles.label}>{title}</Text>
-                <View style={{ flex: 1 }} />
-                {getStatusBadge()}
-                <View style={themedStyles.toggleContainer}>
-                    <Text style={[themedStyles.toggleLabel, !isToggleEnabled && themedStyles.disabledText]}>
-                        {activeProviders[providerType] ? 'Active' : 'Inactive'}
-                    </Text>
-                    <Switch
-                        trackColor={{ false: isDark ? '#444' : '#ccc', true: isDark ? '#4a90e2' : '#2196F3' }}
-                        thumbColor={activeProviders[providerType] ? (isDark ? '#fff' : '#fff') : (isDark ? '#888' : '#f4f3f4')}
-                        ios_backgroundColor={isDark ? '#444' : '#ccc'}
-                        onValueChange={handleToggleChange}
-                        value={activeProviders[providerType]}
-                        disabled={!isToggleEnabled}
-                    />
+                <Text style={[themedStyles.label, { flex: 1, flexShrink: 1 }]} numberOfLines={1} ellipsizeMode="tail">{title}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 0 }}>
+                    {getStatusBadge()}
+                    <View style={themedStyles.toggleContainer}>
+                        <Text style={[themedStyles.toggleLabel, !isToggleEnabled && themedStyles.disabledText]}>
+                            {activeProviders[providerType] ? 'Active' : 'Inactive'}
+                        </Text>
+                        <Switch
+                            trackColor={{ false: isDark ? '#444' : '#ccc', true: isDark ? '#4a90e2' : '#2196F3' }}
+                            thumbColor={activeProviders[providerType] ? (isDark ? '#fff' : '#fff') : (isDark ? '#888' : '#f4f3f4')}
+                            ios_backgroundColor={isDark ? '#444' : '#ccc'}
+                            onValueChange={handleToggleChange}
+                            value={activeProviders[providerType]}
+                            disabled={!isToggleEnabled}
+                        />
+                    </View>
                 </View>
             </View>
             
@@ -1425,7 +1432,7 @@ const APISettings = () => {
                 ]}>
                     <Ionicons 
                         name={status ? "checkmark-circle" : (isUsageLimitError ? "alert-circle" : "close-circle")} 
-                        size={20} 
+                        size={18} 
                         color={status ? "#4CAF50" : (isUsageLimitError ? "#FFA500" : "#F44336")} 
                     />
                     <Text style={[
@@ -1437,8 +1444,8 @@ const APISettings = () => {
                         {status ? 
                             `${title} verified successfully` : 
                             (isUsageLimitError ? 
-                                `API key is valid but has usage limits or credit issues. You can still toggle it on.` : 
-                                `Verification failed. Please check your credentials.`)}
+                                `API key is valid but has usage limits.` : 
+                                `Verification failed. Check your credentials.`)}
                     </Text>
                 </View>
             )}

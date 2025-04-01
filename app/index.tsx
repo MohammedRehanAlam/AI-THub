@@ -271,6 +271,8 @@ export default function HomePage() {
       borderRadius: 10,
       gap: 4,
       minWidth: 100,
+      maxWidth: 130,
+      overflow: 'hidden',
       alignSelf: 'flex-end',
       borderWidth: 1,
       borderColor: isDark ? '#555' : '#ddd',
@@ -279,6 +281,9 @@ export default function HomePage() {
       color: isDark ? '#fff' : '#000',
       fontSize: 14,
       fontWeight: '500',
+      flex: 1,
+      flexShrink: 1,
+      marginRight: 2,
     },
     dropdownModal: {
       flex: 1,
@@ -318,12 +323,13 @@ export default function HomePage() {
       flex: 1,
       flexDirection: 'column',
       gap: 2,
-      minWidth: 80,
+      minWidth: 70,
     },
     dropdownItemModel: {
       color: isDark ? '#aaa' : '#666',
       fontSize: 12,
-      width: '100%', // Take full width of parent
+      width: '100%',
+      flexShrink: 1,
     },
     noProvidersText: {
       color: isDark ? '#999' : '#666',
@@ -390,7 +396,8 @@ export default function HomePage() {
       fontWeight: '500',
     },
     expandButton: {
-      padding: 4,
+      padding: 2,
+      flexShrink: 0,
       marginLeft: 'auto',
     },
   }), [isDark]);
@@ -489,11 +496,13 @@ export default function HomePage() {
               >
                 {selectedProvider ? (
                   <>
-                    {selectedProvider === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
-                    {selectedProvider === 'google' && <GeminiLogo width={24} height={24} />}
-                    {selectedProvider === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
-                    {selectedProvider === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
-                    {selectedProvider === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
+                    <View style={{ flexShrink: 0 }}>
+                      {selectedProvider === 'openai' && <OpenAILogo width={20} height={20} useThemeColor={true} />}
+                      {selectedProvider === 'google' && <GeminiLogo width={20} height={20} />}
+                      {selectedProvider === 'anthropic' && <AnthropicLogo width={20} height={20} fill="#d97757" />}
+                      {selectedProvider === 'openrouter' && <OpenRouterLogo width={20} height={20} useThemeColor={true} />}
+                      {selectedProvider === 'groq' && <GroqLogo width={20} height={20} fill="#ffffff" />}
+                    </View>
                     <View style={themedStyles.dropdownItemContent}>
                       <Text style={themedStyles.providerText} numberOfLines={1} ellipsizeMode="tail">
                         {PROVIDER_INFO[selectedProvider].name}
@@ -502,17 +511,29 @@ export default function HomePage() {
                         {currentModels[selectedProvider]}
                       </Text>
                     </View>
-                    <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={isDark ? '#fff' : '#000'} />
+                    <Ionicons 
+                      name={dropdownVisible ? "chevron-up" : "chevron-down"} 
+                      size={16} 
+                      color={isDark ? '#fff' : '#000'} 
+                      style={{ marginLeft: 'auto', flexShrink: 0 }}
+                    />
                   </>
                 ) : (
                   <>
-                    <Ionicons name="cloud-outline" size={24} color={isDark ? '#fff' : '#000'} />
+                    <View style={{ flexShrink: 0 }}>
+                      <Ionicons name="cloud-outline" size={20} color={isDark ? '#fff' : '#000'} />
+                    </View>
                     <View style={themedStyles.dropdownItemContent}>
                       <Text style={themedStyles.providerText} numberOfLines={1} ellipsizeMode="tail">
                         {activeProvidersList.length > 0 ? 'Select Provider' : 'No Providers'}
                       </Text>
                     </View>
-                    <Ionicons name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color={isDark ? '#fff' : '#000'} />
+                    <Ionicons 
+                      name={dropdownVisible ? "chevron-up" : "chevron-down"} 
+                      size={16} 
+                      color={isDark ? '#fff' : '#000'} 
+                      style={{ marginLeft: 'auto', flexShrink: 0 }}
+                    />
                   </>
                 )}
               </TouchableOpacity>
@@ -550,11 +571,13 @@ export default function HomePage() {
                             await handleProviderSelect(item);
                           }}
                         >
-                          {item === 'openai' && <OpenAILogo width={24} height={24} useThemeColor={true} />}
-                          {item === 'google' && <GeminiLogo width={24} height={24} />}
-                          {item === 'anthropic' && <AnthropicLogo width={24} height={24} fill="#d97757" />}
-                          {item === 'openrouter' && <OpenRouterLogo width={24} height={24} useThemeColor={true} />}
-                          {item === 'groq' && <GroqLogo width={24} height={24} fill="#ffffff" />}
+                          <View style={{ flexShrink: 0 }}>
+                            {item === 'openai' && <OpenAILogo width={20} height={20} useThemeColor={true} />}
+                            {item === 'google' && <GeminiLogo width={20} height={20} />}
+                            {item === 'anthropic' && <AnthropicLogo width={20} height={20} fill="#d97757" />}
+                            {item === 'openrouter' && <OpenRouterLogo width={20} height={20} useThemeColor={true} />}
+                            {item === 'groq' && <GroqLogo width={20} height={20} fill="#ffffff" />}
+                          </View>
                           <View style={themedStyles.dropdownItemContent}>
                             <Text style={themedStyles.dropdownItemText} numberOfLines={1} ellipsizeMode="tail">
                               {PROVIDER_INFO[item].name}

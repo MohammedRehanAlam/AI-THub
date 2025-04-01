@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { useColorScheme, Appearance, Platform, AppState, AppStateStatus, StatusBar } from 'react-native';
+import { useColorScheme, Appearance, Platform, AppState, AppStateStatus, StatusBar, PixelRatio, AccessibilityInfo } from 'react-native';
 import * as SystemUI from 'expo-system-ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -10,11 +10,24 @@ interface ThemeContextType {
   themePreference: ThemeType;
   setTheme: (theme: ThemeType) => void;
   forceRefresh: () => void;
+  fontScale: number;
+  fontFamily: string;
+  isBoldTextEnabled: boolean;
+  useSystemFonts: boolean;
+  setUseSystemFonts: (value: boolean) => Promise<void>;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const THEME_STORAGE_KEY = '@theme_preference';
+const SYSTEM_FONTS_PREFERENCE_KEY = '@system_fonts_preference';
+
+// Default system font families by platform
+const DEFAULT_FONT_FAMILY = Platform.select({
+  ios: 'System',
+  android: 'Roboto',
+  default: 'System',
+});
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const colorScheme = useColorScheme();
@@ -23,23 +36,119 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshCounter, setRefreshCounter] = useState(0);
   const appState = useRef(AppState.currentState);
+  
+  // Implement system fonts functionality directly
+  const [fontScale, setFontScale] = useState<number>(PixelRatio.getFontScale());
+  const [isBoldTextEnabled, setIsBoldTextEnabled] = useState<boolean>(false);
+  const [fontFamily, setFontFamily] = useState<string>(DEFAULT_FONT_FAMILY);
+  
+  const [useSystemFonts, setUseSystemFontsState] = useState(true);
+  
+  // Default font settings (used when not using system fonts)
+  const [defaultFontSettings, setDefaultFontSettings] = useState({
+    fontScale: 1,
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'Roboto',
+      default: 'System',
+    }),
+    isBoldTextEnabled: false
+  });
 
-  // Load saved theme preference
+  // Monitor system font settings
   useEffect(() => {
-    const loadThemePreference = async () => {
+    // Get initial font scale
+    const initialFontScale = PixelRatio.getFontScale();
+    setFontScale(initialFontScale);
+
+    // Check if bold text is enabled in accessibility settings
+    AccessibilityInfo.isBoldTextEnabled().then(enabled => {
+      setIsBoldTextEnabled(enabled);
+    });
+    
+    // Listen for font scale changes
+    const fontChangeSubscription = AccessibilityInfo.addEventListener(
+      'boldTextChanged',
+      enabled => {
+        setIsBoldTextEnabled(enabled);
+      }
+    );
+
+    // Setup a listener for font scale changes
+    if (Platform.OS === 'ios') {
+      // iOS provides direct notification for font scale changes
+      const fontScaleChangedSubscription = AccessibilityInfo.addEventListener(
+        'reduceMotionChanged', // We use this as a proxy since there's no direct fontScaleChanged event
+        () => {
+          const newFontScale = PixelRatio.getFontScale();
+          setFontScale(newFontScale);
+        }
+      );
+      
+      return () => {
+        fontChangeSubscription.remove();
+        fontScaleChangedSubscription.remove();
+      };
+    } else {
+      // For Android, we'll use a polling approach for font scale
+      const interval = setInterval(() => {
+        const newFontScale = PixelRatio.getFontScale();
+        if (newFontScale !== fontScale) {
+          setFontScale(newFontScale);
+        }
+      }, 1000); // Check every second
+      
+      return () => {
+        fontChangeSubscription.remove();
+        clearInterval(interval);
+      };
+    }
+  }, [fontScale]);
+
+  // System fonts settings object
+  const systemFonts = {
+    fontScale,
+    fontFamily,
+    isBoldTextEnabled
+  };
+
+  // Derived font settings based on user preference
+  const fontSettings = useSystemFonts ? systemFonts : defaultFontSettings;
+
+  // Load saved preferences
+  useEffect(() => {
+    const loadPreferences = async () => {
       try {
+        // Load theme preference
         const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
         if (savedTheme) {
           setThemePreference(savedTheme as ThemeType);
         }
+        
+        // Load system font preference
+        const savedFontPreference = await AsyncStorage.getItem(SYSTEM_FONTS_PREFERENCE_KEY);
+        if (savedFontPreference !== null) {
+          setUseSystemFontsState(savedFontPreference === 'true');
+        }
+        
         setIsLoading(false);
       } catch (error) {
-        console.error('Error loading theme preference:', error);
+        console.error('Error loading preferences:', error);
         setIsLoading(false);
       }
     };
-    loadThemePreference();
+    loadPreferences();
   }, []);
+
+  // Function to update system font preference
+  const setUseSystemFonts = async (value: boolean) => {
+    try {
+      await AsyncStorage.setItem(SYSTEM_FONTS_PREFERENCE_KEY, value.toString());
+      setUseSystemFontsState(value);
+    } catch (error) {
+      console.error('Error saving system fonts preference:', error);
+    }
+  };
 
   // Update system theme when colorScheme changes
   useEffect(() => {
@@ -134,7 +243,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       currentTheme: effectiveTheme,
       themePreference,
       setTheme,
-      forceRefresh 
+      forceRefresh,
+      fontScale: fontSettings.fontScale,
+      fontFamily: fontSettings.fontFamily,
+      isBoldTextEnabled: fontSettings.isBoldTextEnabled,
+      useSystemFonts,
+      setUseSystemFonts
     }}>
       {children}
     </ThemeContext.Provider>

@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, 
-  Text, 
   TouchableOpacity, 
   Modal, 
   FlatList, 
@@ -12,11 +11,15 @@ import {
   Pressable,
   Animated,
   PanResponder,
-  Dimensions
+  Dimensions,
+  Text
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LANGUAGES, Language } from './languages';
 import CountryFlag from './CountryFlags';
+import SystemText from './SystemText';
+import { BlurView } from 'expo-blur';
+import { useTheme } from '../context/ThemeContext';
 
 interface LanguageSelectorProps {
   selectedLanguage: Language;
@@ -164,13 +167,14 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         ]}
       >
         <CountryFlag language={selectedLanguage} size={20} />
-        <Text 
-          style={[styles.selectedText, { color: isDark ? '#fff' : '#000' }]}
+        <SystemText 
+          style={styles.selectedText}
+          fontStyle="regular"
           numberOfLines={1}
           ellipsizeMode="tail"
         >
           {selectedLanguage}
-        </Text>
+        </SystemText>
         <Ionicons name="chevron-down" size={20} color={isDark ? '#fff' : '#000'} />
       </TouchableOpacity>
 
@@ -303,17 +307,17 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <CountryFlag language={item} size={20} style={{ marginRight: 10 }} />
-                    <Text 
+                    <SystemText 
                       style={[
                         styles.languageText,
-                        { color: isDark ? '#fff' : '#000' },
-                        selectedLanguage === item && { color: '#fff', fontWeight: '500' }
+                        selectedLanguage === item ? { fontWeight: '500' as const } : {}
                       ]}
+                      fontStyle="regular"
                       numberOfLines={1}
                       ellipsizeMode="tail"
                     >
                       {item}
-                    </Text>
+                    </SystemText>
                   </View>
                 </Pressable>
               )}

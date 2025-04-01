@@ -1,11 +1,22 @@
 import { Text, type TextProps, StyleSheet } from 'react-native';
-
 import { useThemeColor } from '@/hooks/useThemeColor';
+import SystemText from '../app/components/SystemText';
+import { useTheme } from '../app/context/ThemeContext';
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
   type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+  allowFontScaling?: boolean;
+};
+
+// Map ThemedText types to SystemText fontStyles
+const typeToFontStyleMap = {
+  default: 'normal',
+  defaultSemiBold: 'semibold',
+  title: 'title',
+  subtitle: 'subtitle',
+  link: 'link',
 };
 
 export function ThemedText({
@@ -13,26 +24,29 @@ export function ThemedText({
   lightColor,
   darkColor,
   type = 'default',
+  allowFontScaling = true,
   ...rest
 }: ThemedTextProps) {
   const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const { fontScale } = useTheme();
+  
+  // Convert ThemedText type to SystemText fontStyle
+  const fontStyle = typeToFontStyleMap[type] as any;
 
   return (
-    <Text
+    <SystemText
       style={[
         { color },
-        type === 'default' ? styles.default : undefined,
-        type === 'title' ? styles.title : undefined,
-        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
-        type === 'subtitle' ? styles.subtitle : undefined,
-        type === 'link' ? styles.link : undefined,
         style,
       ]}
+      fontStyle={fontStyle}
+      allowFontScaling={allowFontScaling}
       {...rest}
     />
   );
 }
 
+// Keep the old styles for backward compatibility in case we need them
 const styles = StyleSheet.create({
   default: {
     fontSize: 16,
