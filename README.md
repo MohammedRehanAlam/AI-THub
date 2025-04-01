@@ -68,13 +68,13 @@ A powerful translation application that leverages advanced AI technology to prov
 
 ```
 ai-thub/
-├── app/                    # Main application screens and navigation
-│   ├── components/        # UI components specific to screens
-│   ├── context/          # React context providers
-│   ├── tools/            # Utility tools for the app
-│   └── _utils/           # Helper functions
-├── assets/               # Static assets (images, fonts, SVG logos)
-├── components/           # Reusable UI components
+├── app/                 # Main application screens and navigation
+│   ├── components/      # UI components specific to screens
+│   ├── context/         # React context providers
+│   ├── tools/           # Utility tools for the app
+│   └── _utils/          # Helper functions
+├── assets/              # Static assets (images, fonts, SVG logos)
+├── components/          # Reusable UI components
 ├── constants/           # Application constants and theme settings
 ├── hooks/               # Custom React hooks
 ├── scripts/             # Utility scripts
