@@ -601,7 +601,7 @@ export default function ComingSoon() {
                 </>
               ) : (
                 <>
-                  <Ionicons name="cloud-outline" size={24} color={isDark ? '#fff' : '#000'} />
+                  <Ionicons name="cloud-offline-outline" size={24} color={isDark ? '#fff' : '#000'} />
                   <View style={styles.dropdownItemContent}>
                     <Text style={styles.providerText} numberOfLines={1} ellipsizeMode="tail">
                       {activeProvidersList.length > 0 ? 'Select Provider' : 'No Providers'}

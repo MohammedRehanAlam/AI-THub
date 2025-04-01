@@ -1960,7 +1960,7 @@ export default function Box1() {
                 </>
               ) : (
                 <>
-                  <Ionicons name="cloud-outline" size={24} color={colors.text} />
+                  <Ionicons name="cloud-offline-outline" size={24} color={colors.text} />
                   <View style={styles.dropdownItemContent}>
                     <Text style={styles.providerText} numberOfLines={1} ellipsizeMode="tail">
                       {activeProvidersList.length > 0 ? 'Select Provider' : 'No Providers'}

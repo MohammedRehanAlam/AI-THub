@@ -513,7 +513,7 @@ export default function HomePage() {
                     </View>
                     <Ionicons 
                       name={dropdownVisible ? "chevron-up" : "chevron-down"} 
-                      size={16} 
+                      size={19} 
                       color={isDark ? '#fff' : '#000'} 
                       style={{ marginLeft: 'auto', flexShrink: 0 }}
                     />
@@ -521,7 +521,7 @@ export default function HomePage() {
                 ) : (
                   <>
                     <View style={{ flexShrink: 0 }}>
-                      <Ionicons name="cloud-outline" size={20} color={isDark ? '#fff' : '#000'} />
+                      <Ionicons name="cloud-offline-outline" size={20} color={isDark ? '#fff' : '#000'} />
                     </View>
                     <View style={themedStyles.dropdownItemContent}>
                       <Text style={themedStyles.providerText} numberOfLines={1} ellipsizeMode="tail">

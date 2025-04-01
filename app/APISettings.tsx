@@ -767,7 +767,8 @@ const APISettings = () => {
                                         name="key-outline" 
                                         size={24} 
                                         color={isDark ? '#ff4444' : '#ff0000'} 
-                                        style={{ marginLeft: 60 }}
+                                        // style={{ marginLeft: 10 }}
+                                        paddingRight={10}
                                     />
                                 </View>
                             </TouchableOpacity>
@@ -1081,6 +1082,10 @@ const APISettings = () => {
         modalOptionText: {
             fontSize: 16,
             fontWeight: '500',
+            flex: 1,
+            flexShrink: 0,
+            flexWrap: 'nowrap',
+            overflow: 'hidden',
         },
         modalDivider: {
             height: 1,
