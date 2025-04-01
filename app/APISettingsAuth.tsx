@@ -269,6 +269,7 @@ const APISettingsAuth = () => {
             height: 50,
             borderRadius: 8,
             paddingHorizontal: 16,
+            paddingRight: 50,
             fontSize: 16,
             borderWidth: 1,
             marginBottom: 12,
@@ -279,7 +280,7 @@ const APISettingsAuth = () => {
         showPasswordButton: {
             position: 'absolute',
             right: 12,
-            top: 13,
+            paddingVertical: 12,
             padding: 4,
         },
         button: {

@@ -771,7 +771,7 @@ const createStyles = (isDark: boolean): StylesType => {
     sendButton: {
       alignSelf: 'flex-end',
       padding: 2,
-      paddingBottom: 14,
+      paddingBottom: 13,
     },
     providerSelector: {
       flex: 1,
@@ -2055,7 +2055,7 @@ export default function Box1() {
           style={styles.messagesContainer}
           contentContainerStyle={[
             styles.messagesContent,
-            { paddingBottom: keyboardVisible ? 10 : 120 }
+            { paddingBottom: keyboardVisible ? 5 : 120 }
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -2323,7 +2323,7 @@ export default function Box1() {
         >
           <View style={styles.dropdownContent}>
             {activeProvidersList.length > 0 ? (
-              <ScrollView style={{ maxHeight: 408 }}> 
+              <ScrollView style={{ maxHeight: 410 }}> 
                 {activeProvidersList.map((provider) => (
                   <View key={provider}>
                     <TouchableOpacity

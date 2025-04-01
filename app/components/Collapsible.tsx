@@ -65,3 +65,5 @@ const styles = StyleSheet.create({
     // paddingRight: 10,
   },
 });
+
+export default Collapsible; 

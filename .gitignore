@@ -4,6 +4,7 @@
 node_modules/
 .pnp/
 .pnp.js
+yarn.lock
 
 # Expo
 .expo/
@@ -18,6 +19,9 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+*.ipa
+*.apk
+*.aab
 
 # Prebuild folders - recommended by expo-doctor
 /android
@@ -25,6 +29,7 @@ expo-env.d.ts
 
 # Metro
 .metro-health-check*
+.metro/
 
 # debug
 npm-debug.*
@@ -38,27 +43,33 @@ yarn-error.*
 # local env files
 .env
 .env*.local
+.env.development
+.env.test
+.env.production
 
 # typescript
 *.tsbuildinfo
+tsconfig.tsbuildinfo
 
 # logs
 logs
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.*
+yarn-error.log*
 
 # testing
 coverage/
 .jest/
 jest-*.json
+__tests__/__snapshots__/
 
 # production build
 build/
 dist/
 out/
 .next/
+.expo-shared/
 
 # IDE specific files
 .idea/
@@ -81,19 +92,26 @@ Desktop.ini
 
 # app specific
 app-example
+*.bak
+*.tmp
+*.temp
 
 # EAS
 .eas/local/
 eas-build-local/
+eas.json.local
 
 # Temporary files
 *.tmp
 .tmp/
 tmp/
 .cache/
+.temp/
 
 # Generated files
 .generated/
+*.generated.*
+generated/
 
 # Android/IntelliJ
 android/build/
@@ -101,6 +119,12 @@ android/.gradle
 android/local.properties
 android/*.iml
 android/.idea/
+android/app/build/
+android/gradle/
+android/gradlew
+android/gradlew.bat
+android/captures/
+android/app/release/
 
 # iOS
 ios/build/
@@ -108,12 +132,17 @@ ios/Pods/
 ios/DerivedData/
 ios/*.xcworkspace
 ios/*.xcodeproj/xcuserdata/
+ios/Podfile.lock
 
 # Do NOT ignore these important files
+!.eslintrc.js
 !app.json
-!eas.json
 !babel.config.js
-!metro.config.js
-!tsconfig.json
-!package.json
 !declarations.d.ts
+!eas.json
+# !expo-env.d.ts
+!LICENSE
+!metro.config.js
+# !package-lock.json
+!package.json
+!tsconfig.json

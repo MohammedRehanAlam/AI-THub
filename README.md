@@ -26,6 +26,8 @@ A powerful translation application that leverages advanced AI technology to prov
 - Reanimated for smooth animations
 - EAS Update for OTA updates
 - AsyncStorage for local data persistence
+- ESLint for code quality
+- Jest for testing
 
 ## Getting Started
 
@@ -64,16 +66,27 @@ A powerful translation application that leverages advanced AI technology to prov
 
 ## Project Structure
 
-- `/app` - Main application screens and navigation
-  - `/components` - UI components specific to screens
-  - `/context` - React context providers
-  - `/tools` - Utility tools for the app
-  - `/_utils` - Helper functions
-- `/assets` - Static assets like images, fonts, and SVG logos
-- `/components` - Reusable UI components
-- `/constants` - Application constants and theme settings
-- `/hooks` - Custom React hooks
-- `/scripts` - Utility scripts
+```
+ai-thub/
+├── app/                    # Main application screens and navigation
+│   ├── components/        # UI components specific to screens
+│   ├── context/          # React context providers
+│   ├── tools/            # Utility tools for the app
+│   └── _utils/           # Helper functions
+├── assets/               # Static assets (images, fonts, SVG logos)
+├── components/           # Reusable UI components
+├── constants/           # Application constants and theme settings
+├── hooks/               # Custom React hooks
+├── scripts/             # Utility scripts
+├── utils/               # General utility functions
+├── .vscode/             # VS Code configuration
+├── app.json             # Expo configuration
+├── eas.json             # EAS Build configuration
+├── babel.config.js      # Babel configuration
+├── metro.config.js      # Metro bundler configuration
+├── tsconfig.json        # TypeScript configuration
+└── package.json         # Project dependencies and scripts
+```
 
 ## Development
 
@@ -230,6 +243,27 @@ eas submit --platform ios
 eas submit --platform android
 ```
 
+## Development Guidelines
+
+### Code Style
+
+This project uses ESLint for code quality and consistency. The configuration can be found in `.eslintrc.js`.
+
+### TypeScript
+
+The project is written in TypeScript. Type definitions are managed in:
+- `tsconfig.json` for project-wide TypeScript configuration
+- `expo-env.d.ts` for Expo-specific type definitions
+- `declarations.d.ts` for custom type declarations
+
+### VS Code Setup
+
+The project includes VS Code configuration in the `.vscode` directory for:
+- Recommended extensions
+- Editor settings
+- Debug configurations
+- Task definitions
+
 ## Troubleshooting
 
 ### Common Issues
@@ -238,6 +272,7 @@ eas submit --platform android
 - **Dependency conflicts**: Run `npm dedupe` or `yarn dedupe`
 - **Build failures**: Check the EAS build logs and ensure all configuration is correct
 - **SVG rendering issues**: Ensure SVGs are properly optimized and follow the format requirements
+- **TypeScript errors**: Run `npm run type-check` to verify type definitions
 
 ### Getting Help
 
@@ -256,7 +291,11 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-Please ensure your code follows the project's coding standards and includes appropriate tests.
+Please ensure your code:
+- Follows the project's coding standards
+- Includes appropriate tests
+- Updates documentation as needed
+- Passes all linting and type checks
 
 ## License
 
